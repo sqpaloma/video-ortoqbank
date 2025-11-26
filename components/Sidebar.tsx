@@ -3,16 +3,34 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BookOpen, Video, User, HelpCircle, LogOut } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarSeparator,
+} from "@/components/ui/sidebar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-export function Sidebar() {
+export function AppSidebar() {
   const pathname = usePathname();
 
   const menuItems = [
-    { icon: User, label: "Meu Perfil", href: "/" },
-    { icon: BookOpen, label: "Cursos", href: "/cursos" },
+    { icon: BookOpen, label: "Cursos", href: "/" },
     { icon: Video, label: "Vídeos", href: "/videos" },
+    { icon: User, label: "Meu Perfil", href: "/perfil" },
   ];
 
   const bottomItems = [
@@ -21,70 +39,93 @@ export function Sidebar() {
   ];
 
   return (
-    <aside className="w-[147px] h-screen bg-linear-to-b from-blue-brand to-blue-brand-dark text-white flex flex-col fixed left-0 top-0 z-50">
-      {/* Logo */}
-      <div className="p-4 flex items-center gap-2 mb-4">
-        <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center shrink-0">
-          
+    <Sidebar collapsible="icon" className="border-none">
+      <SidebarHeader className="p-4 group-data-[collapsible=icon]:p-2">
+        <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
+          <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center shrink-0" />
+          <h1 className="text-base font-bold text-white whitespace-nowrap group-data-[collapsible=icon]:hidden">
+            OrtoQBank
+          </h1>
         </div>
-        <h1 className="text-base font-bold whitespace-nowrap">OrtoQBank</h1>
-      </div>
+      </SidebarHeader>
 
-      {/* Navigation Menu */}
-      <nav className="flex-1 px-2">
-        <ul className="space-y-1">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
-            return (
-              <li key={item.href}>
-                <Button
-                  variant="ghost"
-                  asChild
-                  size="sm"
-                  className={cn(
-                    "w-full justify-start gap-2 text-white/80 hover:text-white hover:bg-white/10 h-9",
-                    isActive && "bg-white/20 text-white hover:bg-white/20"
-                  )}
-                >
-                  <Link href={item.href}>
-                    <Icon size={16} />
-                    <span className="text-xs">{item.label}</span>
-                  </Link>
-                </Button>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {menuItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = pathname === item.href;
+                return (
+                  <SidebarMenuItem key={item.href}>
+                    <TooltipProvider delayDuration={0}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <SidebarMenuButton
+                            asChild
+                            isActive={isActive}
+                            className={cn(
+                              "text-white/80 hover:text-white hover:bg-white/10",
+                              isActive && "bg-white/20 text-white hover:bg-white/20"
+                            )}
+                          >
+                            <Link href={item.href}>
+                              <Icon size={16} />
+                              <span className="text-xs">{item.label}</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="group-data-[collapsible=icon]:flex hidden">
+                          <p>{item.label}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
 
-      {/* Bottom Menu */}
-      <div className="px-2 pb-4">
-        <div className="border-t border-white/20 pt-3">
-          <p className="text-xs text-white/60 px-3 mb-2">Usuário</p>
-          <ul className="space-y-1">
-            {bottomItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <li key={item.href}>
-                  <Button
-                    variant="ghost"
-                    asChild
-                    size="sm"
-                    className="w-full justify-start gap-2 text-white/80 hover:text-white hover:bg-white/10 h-8"
-                  >
-                    <Link href={item.href}>
-                      <Icon size={16} />
-                      <span className="text-xs">{item.label}</span>
-                    </Link>
-                  </Button>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      </div>
-    </aside>
+      <SidebarFooter>
+        <SidebarSeparator className="bg-white/20" />
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-xs text-white/60 group-data-[collapsible=icon]:hidden">
+            Usuário
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {bottomItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <SidebarMenuItem key={item.href}>
+                    <TooltipProvider delayDuration={0}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <SidebarMenuButton
+                            asChild
+                            className="text-white/80 hover:text-white hover:bg-white/10"
+                          >
+                            <Link href={item.href}>
+                              <Icon size={16} />
+                              <span className="text-xs">{item.label}</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="group-data-[collapsible=icon]:flex hidden">
+                          <p>{item.label}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarFooter>
+    </Sidebar>
   );
 }
 

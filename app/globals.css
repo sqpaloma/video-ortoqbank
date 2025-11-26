@@ -48,12 +48,12 @@
 
 :root {
   --radius: 0.625rem;
-  
+
   /* Cores da marca - Blue Brand #2288e2 */
   --blue-brand: oklch(0.62 0.19 248);
   --blue-brand-dark: oklch(0.52 0.19 248);
   --blue-brand-light: oklch(0.95 0.05 248);
-  
+
   --background: oklch(1 0 0);
   --foreground: oklch(0.129 0.042 264.695);
   --card: oklch(1 0 0);
@@ -78,14 +78,14 @@
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: var(--blue-brand);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: var(--blue-brand);
+  --sidebar: var(--blue-brand);
+  --sidebar-foreground: oklch(1 0 0);
+  --sidebar-primary: oklch(1 0 0);
+  --sidebar-primary-foreground: var(--blue-brand);
+  --sidebar-accent: oklch(1 0 0 / 20%);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(1 0 0 / 20%);
+  --sidebar-ring: oklch(1 0 0);
 }
 
 .dark {
@@ -93,7 +93,7 @@
   --blue-brand: oklch(0.68 0.19 248);
   --blue-brand-dark: oklch(0.58 0.19 248);
   --blue-brand-light: oklch(0.25 0.1 248);
-  
+
   --background: oklch(0.129 0.042 264.695);
   --foreground: oklch(0.984 0.003 247.858);
   --card: oklch(0.208 0.042 265.755);
@@ -118,14 +118,14 @@
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: var(--blue-brand);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: var(--blue-brand);
+  --sidebar: var(--blue-brand);
+  --sidebar-foreground: oklch(1 0 0);
+  --sidebar-primary: oklch(1 0 0);
+  --sidebar-primary-foreground: var(--blue-brand);
+  --sidebar-accent: oklch(1 0 0 / 20%);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(1 0 0 / 20%);
+  --sidebar-ring: oklch(1 0 0);
 }
 
 @layer base {
@@ -134,5 +134,11 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  
+  /* Customização da Sidebar - mantém o design original de 147px */
+  [data-sidebar] {
+    --sidebar-width: 147px;
+    --sidebar-width-icon: 60px;
   }
 }
