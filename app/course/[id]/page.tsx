@@ -50,6 +50,7 @@ export default async function CoursePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  void id; // Intentionally unused until Convex integration
 
   // TODO: Substituir por preloadQuery do Convex
   // const preloaded = await preloadQuery(api.courses.getCourse, { courseId: id });
