@@ -27,7 +27,6 @@ export const current = query({
       imageUrl: v.optional(v.string()),
       clerkUserId: v.string(),
       onboardingCompleted: v.boolean(),
-      termsAccepted: v.boolean(),
       role: v.union(v.literal("user"), v.literal("admin")),
       status: v.union(v.literal("active"), v.literal("inactive"), v.literal("suspended")),
       hasActiveYearAccess: v.boolean(),
@@ -75,7 +74,6 @@ export const ensureCurrentUser = mutation({
       clerkUserId: identity.subject,
       imageUrl: identity.pictureUrl,
       onboardingCompleted: false,
-      termsAccepted: false,
       role: "user",
       status: "active",
       paid: false,
@@ -159,7 +157,6 @@ export const upsertFromClerk = internalMutation({
       return await context.db.insert("users", {
         ...userData,
         onboardingCompleted: false,
-        termsAccepted: false,
         role: "user",
         status: "active",
         paid: true,
@@ -174,7 +171,6 @@ export const upsertFromClerk = internalMutation({
     return await context.db.insert("users", {
       ...userData,
       onboardingCompleted: false,
-      termsAccepted: false,
       role: "user",
       status: "active",
       paid: false,

@@ -7,7 +7,6 @@ import { api } from '../../convex/_generated/api';
 
 interface SessionContextType {
   isAdmin: boolean;
-  termsAccepted: boolean;
   userRole: string | null;
   isLoading: boolean;
 }
@@ -18,7 +17,6 @@ interface SessionProviderProps {
 
 const SessionContext = createContext<SessionContextType>({
   isAdmin: false,
-  termsAccepted: true, // Default to true to prevent modal flash
   userRole: null,
   isLoading: true,
 });
@@ -26,15 +24,13 @@ const SessionContext = createContext<SessionContextType>({
 export function SessionProvider({ children }: SessionProviderProps) {
   // Get real-time data from Convex backend
   const userRole = useQuery(api.userAdmin.getCurrentUserRole);
-  const termsAccepted = useQuery(api.userAccess.getTermsAccepted);
-  
+
   // Calculate derived values
   const isAdmin = userRole === 'admin';
-  const isLoading = userRole === undefined || termsAccepted === undefined;
+  const isLoading = userRole === undefined;
 
   const sessionValue: SessionContextType = {
     isAdmin,
-    termsAccepted: termsAccepted ?? true, // Default to true to prevent modal flash
     userRole: userRole ?? null,
     isLoading,
   };

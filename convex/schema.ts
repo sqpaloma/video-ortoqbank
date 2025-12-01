@@ -12,7 +12,6 @@ export default defineSchema({
     lastName: v.string(),
     imageUrl: v.optional(v.string()),
     onboardingCompleted: v.boolean(),
-    termsAccepted: v.boolean(),
     role: v.union(v.literal("user"), v.literal("admin")),
     status: v.union(v.literal("active"), v.literal("inactive"), v.literal("suspended")),
     hasActiveYearAccess: v.boolean(),

@@ -214,35 +214,8 @@ export const checkUserHasVideoAccessById = query({
 });
 
 // ============================================================================
-// ONBOARDING & TERMS FUNCTIONS
+// ONBOARDING FUNCTIONS
 // ============================================================================
-
-/**
- * Check if current user accepted terms
- */
-export const getTermsAccepted = query({
-  args: {},
-  returns: v.boolean(),
-  async handler(ctx) {
-    const user = await getCurrentUser(ctx);
-    return user?.termsAccepted === true;
-  },
-});
-
-/**
- * Set terms accepted status
- */
-export const setTermsAccepted = mutation({
-  args: { accepted: v.boolean() },
-  returns: v.null(),
-  async handler(ctx, args) {
-    const user = await getCurrentUser(ctx);
-    if (!user) return null;
-
-    await ctx.db.patch(user._id, { termsAccepted: args.accepted });
-    return null;
-  },
-});
 
 /**
  * Complete onboarding for current user
