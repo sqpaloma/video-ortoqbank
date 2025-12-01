@@ -10,6 +10,9 @@
 
 import type * as myFunctions from "../myFunctions.js";
 import type * as seed from "../seed.js";
+import type * as userAccess from "../userAccess.js";
+import type * as userAdmin from "../userAdmin.js";
+import type * as users from "../users.js";
 
 import type {
   ApiFromModules,
@@ -20,6 +23,9 @@ import type {
 declare const fullApi: ApiFromModules<{
   myFunctions: typeof myFunctions;
   seed: typeof seed;
+  userAccess: typeof userAccess;
+  userAdmin: typeof userAdmin;
+  users: typeof users;
 }>;
 
 /**

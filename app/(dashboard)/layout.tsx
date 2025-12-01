@@ -4,8 +4,8 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 
-import { SessionProvider } from '@/components/providers/SessionProvider';
-import { TermsProvider } from '@/components/providers/TermsProvider';
+import { SessionProvider } from '@/components/providers/session-provider';
+import { TermsProvider } from '@/components/providers/terms-provider';
 import { AppSidebar } from '@/components/sidebar/app-sidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -18,31 +18,10 @@ export default function Layout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const [showOnboarding, setShowOnboarding] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const { isLoading, isAuthenticated, user } = useCurrentUser();
+  const { isLoading, isAuthenticated } = useCurrentUser();
   
-  // Check if user should see onboarding (simplified without URL params)
-  useEffect(() => {
-    const hasCompletedOnboarding = user?.onboardingCompleted;
-    let timerId: NodeJS.Timeout | undefined;
-    
-    // Only show onboarding if explicitly marked as false (not undefined or loading)
-    if (isAuthenticated && user && hasCompletedOnboarding === false) {
-      // Small delay to ensure sidebar is rendered
-      timerId = setTimeout(() => setShowOnboarding(true), 500);
-    } else {
-      // Hide onboarding in all other cases
-      setShowOnboarding(false);
-    }
-    
-    // Cleanup: cancel pending timer when effect re-runs or component unmounts
-    return () => {
-      if (timerId) {
-        clearTimeout(timerId);
-      }
-    };
-  }, [user?.onboardingCompleted, isAuthenticated]);
+  
 
   // Redirect to sign-in if not authenticated using Next.js navigation
   useEffect(() => {

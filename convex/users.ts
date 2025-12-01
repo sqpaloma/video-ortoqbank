@@ -1,0 +1,220 @@
+import { v } from "convex/values";
+import {
+  internalMutation,
+  internalQuery,
+  type MutationCtx,
+  query,
+  type QueryCtx as QueryContext,
+} from "./_generated/server";
+
+// ============================================================================
+// CURRENT USER QUERIES
+// ============================================================================
+
+/**
+ * Get the current authenticated user
+ */
+export const current = query({
+  args: {},
+  returns: v.union(
+    v.object({
+      _id: v.id("users"),
+      _creationTime: v.number(),
+      firstName: v.string(),
+      lastName: v.string(),
+      email: v.string(),
+      imageUrl: v.optional(v.string()),
+      clerkUserId: v.string(),
+      onboardingCompleted: v.boolean(),
+      termsAccepted: v.boolean(),
+      role: v.union(v.literal("user"), v.literal("admin")),
+      status: v.union(v.literal("active"), v.literal("inactive"), v.literal("suspended")),
+      hasActiveYearAccess: v.boolean(),
+      paid: v.boolean(),
+      paymentDate: v.optional(v.number()),
+      paymentId: v.optional(v.string()),
+      paymentStatus: v.union(
+        v.literal("pending"),
+        v.literal("completed"),
+        v.literal("failed"),
+        v.literal("refunded")
+      ),
+      testeId: v.optional(v.string()),
+    }),
+    v.null()
+  ),
+  handler: async (context) => {
+    return await getCurrentUser(context);
+  },
+});
+
+/**
+ * Get user by Clerk ID (internal use)
+ */
+export const getUserByClerkId = internalQuery({
+  args: { clerkUserId: v.string() },
+  returns: v.union(v.any(), v.null()),
+  handler: async (ctx, args) => {
+    return await userByClerkUserId(ctx, args.clerkUserId);
+  },
+});
+
+// ============================================================================
+// CLERK WEBHOOK HANDLERS
+// ============================================================================
+
+/**
+ * Upsert user from Clerk webhook
+ * This handles both user creation and updates from Clerk
+ */
+export const upsertFromClerk = internalMutation({
+  args: {
+    data: v.any(),
+  }, // no runtime validation, trust Clerk
+  returns: v.union(v.id("users"), v.null()),
+  async handler(context, { data }) {
+    // Extract any payment data from Clerk's public metadata
+    const publicMetadata = data.public_metadata || {};
+    const isPaidFromClerk = publicMetadata.paid === true;
+
+    // Get existing user to preserve payment data if it exists
+    const existingUser = await userByClerkUserId(context, data.id);
+
+    // Base user data to update or insert
+    const userData = {
+      firstName: data.first_name || "",
+      lastName: data.last_name || "",
+      email: data.email_addresses?.[0]?.email_address,
+      clerkUserId: data.id,
+      imageUrl: data.image_url,
+    };
+
+    if (existingUser !== null) {
+      // Update existing user, preserving payment data if it exists
+      // and not overriding with new payment data from Clerk
+      const paymentData = isPaidFromClerk
+        ? {
+            paid: true,
+            paymentId: publicMetadata.paymentId?.toString(),
+            paymentDate: publicMetadata.paymentDate,
+            paymentStatus: publicMetadata.paymentStatus || "completed",
+            hasActiveYearAccess: publicMetadata.hasActiveYearAccess === true,
+          }
+        : {
+            // Keep existing payment data if it exists
+            paid: existingUser.paid,
+            paymentId: existingUser.paymentId,
+            paymentDate: existingUser.paymentDate,
+            paymentStatus: existingUser.paymentStatus,
+            hasActiveYearAccess: existingUser.hasActiveYearAccess,
+          };
+
+      return await context.db.patch(existingUser._id, {
+        ...userData,
+        ...paymentData,
+      });
+    }
+
+    // Create new user with payment data if it exists in Clerk
+    if (isPaidFromClerk) {
+      return await context.db.insert("users", {
+        ...userData,
+        onboardingCompleted: false,
+        termsAccepted: false,
+        role: "user",
+        status: "active",
+        paid: true,
+        paymentId: publicMetadata.paymentId?.toString(),
+        paymentDate: publicMetadata.paymentDate,
+        paymentStatus: publicMetadata.paymentStatus || "completed",
+        hasActiveYearAccess: publicMetadata.hasActiveYearAccess === true,
+      });
+    }
+
+    // Create new user without payment data
+    return await context.db.insert("users", {
+      ...userData,
+      onboardingCompleted: false,
+      termsAccepted: false,
+      role: "user",
+      status: "active",
+      paid: false,
+      paymentStatus: "pending",
+      hasActiveYearAccess: false,
+    });
+  },
+});
+
+/**
+ * Delete user from Clerk webhook
+ */
+export const deleteFromClerk = internalMutation({
+  args: { clerkUserId: v.string() },
+  returns: v.null(),
+  async handler(context, { clerkUserId }) {
+    const user = await userByClerkUserId(context, clerkUserId);
+
+    if (user === null) {
+      console.warn(
+        `Can't delete user, there is none for Clerk user ID: ${clerkUserId}`
+      );
+    } else {
+      await context.db.delete(user._id);
+    }
+
+    return null;
+  },
+});
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+/**
+ * Safe version - returns user or null (no throwing)
+ * Use this for queries that should gracefully handle unauthenticated users
+ */
+export async function getCurrentUser(context: QueryContext) {
+  const identity = await context.auth.getUserIdentity();
+  if (identity === null) {
+    return null;
+  }
+  return await userByClerkUserId(context, identity.subject);
+}
+
+/**
+ * Protected version - throws if no user
+ * Use this for mutations and queries that require authentication
+ */
+export async function getCurrentUserOrThrow(context: QueryContext) {
+  const userRecord = await getCurrentUser(context);
+  if (!userRecord) throw new Error("Can't get current user");
+  return userRecord;
+}
+
+/**
+ * Internal helper to get user by Clerk user ID
+ */
+async function userByClerkUserId(context: QueryContext, clerkUserId: string) {
+  return await context.db
+    .query("users")
+    .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", clerkUserId))
+    .unique();
+}
+
+/**
+ * Require admin access - throws if not admin
+ * This helper is exported for use in other files
+ */
+export async function requireAdmin(
+  context: QueryContext | MutationCtx
+): Promise<void> {
+  const user = await getCurrentUser(context);
+  if (!user) {
+    throw new Error("Unauthorized: Authentication required");
+  }
+
+  if (user.role !== "admin") {
+    throw new Error("Unauthorized: Admin access required");
+  }
+}

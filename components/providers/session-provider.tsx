@@ -3,7 +3,7 @@
 import { useQuery } from 'convex/react';
 import { createContext, ReactNode, useContext } from 'react';
 
-import { api } from '../../convex/_generated/api';
+import { api } from '../../convex/_generated/api'; 
 
 interface SessionContextType {
   isAdmin: boolean;
@@ -25,8 +25,8 @@ const SessionContext = createContext<SessionContextType>({
 
 export function SessionProvider({ children }: SessionProviderProps) {
   // Get real-time data from Convex backend
-  const userRole = useQuery(api.users.getCurrentUserRole);
-  const termsAccepted = useQuery(api.users.getTermsAccepted);
+  const userRole = useQuery(api.userAdmin.getCurrentUserRole);
+  const termsAccepted = useQuery(api.userAccess.getTermsAccepted);
   
   // Calculate derived values
   const isAdmin = userRole === 'admin';

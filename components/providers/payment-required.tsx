@@ -4,7 +4,7 @@ import { useQuery } from 'convex/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
-import { api } from '../../../convex/_generated/api';
+import { api } from '../../convex/_generated/api'; 
 
 interface PaymentRequiredProps {
   children: React.ReactNode;
@@ -16,7 +16,7 @@ export function PaymentRequired({
   redirectTo = '/',
 }: PaymentRequiredProps) {
   const router = useRouter();
-  const isPaid = useQuery(api.users.checkUserPaid);
+  const isPaid = useQuery(api.userAccess.checkUserPaid);
 
   useEffect(() => {
     // Only redirect if we have a definitive result from the server

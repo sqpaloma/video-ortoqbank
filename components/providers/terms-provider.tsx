@@ -1,11 +1,9 @@
 'use client';
 import { useMutation } from 'convex/react';
 import { ReactNode, useEffect, useState } from 'react';
-
-import { TermsOfServiceModal } from '@/components/modals/TermsOfServiceModal';
-
+import { TermsOfServiceModal } from '@/components/terms-of-service-modal';
 import { api } from '../../convex/_generated/api';
-import { useSession } from './SessionProvider';
+import { useSession } from './session-provider';
 
 interface TermsProviderProps {
   children: ReactNode;
@@ -13,7 +11,7 @@ interface TermsProviderProps {
 
 export function TermsProvider({ children }: TermsProviderProps) {
   const { termsAccepted, isLoading } = useSession();
-  const setTermsAccepted = useMutation(api.users.setTermsAccepted);
+  const setTermsAccepted = useMutation(api.userAccess.setTermsAccepted);
 
   // Use a state to prevent flickering when data is loading
   const [showModal, setShowModal] = useState(false);
