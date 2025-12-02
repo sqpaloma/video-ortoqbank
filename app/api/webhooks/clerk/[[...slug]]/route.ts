@@ -15,7 +15,11 @@ const clerk = CLERK_SECRET_KEY
   : undefined;
 
 // Initialize Convex client
-const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+if (!convexUrl) {
+  console.error('Missing NEXT_PUBLIC_CONVEX_URL environment variable');
+}
+const convex = convexUrl ? new ConvexHttpClient(convexUrl) : null;
 
 // This is the main webhook handler for Clerk events
 export async function POST(request: Request) {
@@ -93,6 +97,17 @@ export async function POST(request: Request) {
     if (event.type === 'user.created' || event.type === 'user.updated') {
       console.log(`[Clerk Webhook] Processing ${event.type} event for user`);
       
+      if (!convex) {
+        console.error('[Clerk Webhook] Convex client not initialized - missing NEXT_PUBLIC_CONVEX_URL');
+        return NextResponse.json(
+          {
+            received: true,
+            error: 'Server configuration error',
+          },
+          { status: 200 },
+        );
+      }
+      
       try {
         // Call Convex to upsert the user
         await convex.mutation(api.userAdmin.upsertFromClerk, {
@@ -114,6 +129,17 @@ export async function POST(request: Request) {
       }
     } else if (event.type === 'user.deleted') {
       console.log(`[Clerk Webhook] Processing user.deleted event`);
+      
+      if (!convex) {
+        console.error('[Clerk Webhook] Convex client not initialized - missing NEXT_PUBLIC_CONVEX_URL');
+        return NextResponse.json(
+          {
+            received: true,
+            error: 'Server configuration error',
+          },
+          { status: 200 },
+        );
+      }
       
       try {
         // Call Convex to delete the user

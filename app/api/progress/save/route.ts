@@ -28,7 +28,15 @@ export async function POST(req: Request) {
       );
     }
 
-    const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+    const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+    if (!convexUrl) {
+      console.error('Missing NEXT_PUBLIC_CONVEX_URL environment variable');
+      return NextResponse.json(
+        { error: 'Server configuration error: Missing Convex URL' },
+        { status: 500 }
+      );
+    }
+    const convex = new ConvexHttpClient(convexUrl);
 
     try {
       await convex.mutation(api.progress.saveVideoProgress, {

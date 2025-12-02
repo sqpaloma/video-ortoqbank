@@ -19,7 +19,15 @@ export async function GET(req: Request) {
     }
 
     // Check if user has access (payment/subscription)
-    const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+    const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+    if (!convexUrl) {
+      console.error('Missing NEXT_PUBLIC_CONVEX_URL environment variable');
+      return NextResponse.json(
+        { error: 'Server configuration error: Missing Convex URL' },
+        { status: 500 }
+      );
+    }
+    const convex = new ConvexHttpClient(convexUrl);
     
     try {
       // Check access by Clerk user ID

@@ -20,7 +20,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing videoId' }, { status: 400 });
     }
 
-    const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+    const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+    if (!convexUrl) {
+      console.error('Missing NEXT_PUBLIC_CONVEX_URL environment variable');
+      // Return 200 OK to prevent Bunny from retrying
+      return NextResponse.json({ ok: true, error: 'Server configuration error' });
+    }
+    const convex = new ConvexHttpClient(convexUrl);
 
     // Determine status
     let status: 'uploading' | 'processing' | 'ready' | 'failed' = 'processing';

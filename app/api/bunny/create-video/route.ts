@@ -68,7 +68,19 @@ export async function POST(req: Request) {
     console.log('Bunny video created:', bunnyData);
 
     // Save to Convex
-    const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+    const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+    if (!convexUrl) {
+      console.error('Missing NEXT_PUBLIC_CONVEX_URL environment variable');
+      // Continue anyway - the video exists in Bunny
+      return NextResponse.json({
+        success: true,
+        videoId: bunnyData.guid,
+        libraryId: LIBRARY_ID,
+        data: bunnyData,
+        warning: 'Video created but not saved to database (missing Convex URL)',
+      });
+    }
+    const convex = new ConvexHttpClient(convexUrl);
     
     try {
       await convex.mutation(api.videos.create, {
