@@ -7,16 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { ShieldCheckIcon, UserIcon, SearchIcon, LoaderIcon, AlertCircleIcon } from "lucide-react";
+import { ShieldCheckIcon, UserIcon, SearchIcon, LoaderIcon, AlertCircleIcon, CheckCircleIcon, XCircleIcon } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 export function UserList() {
   const users = useQuery(api.userAdmin.getAllUsersForAdmin, { limit: 100 });
   const setUserRole = useMutation(api.userAdmin.setUserRole);
+  const approveUserAccess = useMutation(api.userAdmin.approveUserAccess);
+  const revokeUserAccess = useMutation(api.userAdmin.revokeUserAccess);
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [changingRole, setChangingRole] = useState<Id<"users"> | null>(null);
+  const [changingAccess, setChangingAccess] = useState<Id<"users"> | null>(null);
 
   const handleToggleAdmin = async (userId: Id<"users">, currentRole: "user" | "admin") => {
     setChangingRole(userId);
@@ -36,6 +39,46 @@ export function UserList() {
       });
     } finally {
       setChangingRole(null);
+    }
+  };
+
+  const handleApproveAccess = async (userId: Id<"users">) => {
+    setChangingAccess(userId);
+    try {
+      await approveUserAccess({ userId });
+      
+      toast({
+        title: "Acesso Aprovado",
+        description: "Usuário agora tem acesso completo à plataforma",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? error.message : "Erro ao aprovar acesso",
+        variant: "destructive",
+      });
+    } finally {
+      setChangingAccess(null);
+    }
+  };
+
+  const handleRevokeAccess = async (userId: Id<"users">) => {
+    setChangingAccess(userId);
+    try {
+      await revokeUserAccess({ userId });
+      
+      toast({
+        title: "Acesso Revogado",
+        description: "Acesso do usuário foi removido",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? error.message : "Erro ao revogar acesso",
+        variant: "destructive",
+      });
+    } finally {
+      setChangingAccess(null);
     }
   };
 
@@ -140,14 +183,52 @@ export function UserList() {
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap justify-end">
+                {/* Approve/Revoke Access Button */}
+                {user.hasActiveYearAccess && user.paid ? (
+                  <Button
+                    onClick={() => handleRevokeAccess(user._id)}
+                    disabled={changingAccess === user._id}
+                    variant="outline"
+                    size="sm"
+                    className="border-red-300 text-red-600 hover:bg-red-50"
+                  >
+                    {changingAccess === user._id ? (
+                      <LoaderIcon className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <XCircleIcon className="h-4 w-4 mr-1" />
+                        Revogar Acesso
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => handleApproveAccess(user._id)}
+                    disabled={changingAccess === user._id}
+                    variant="default"
+                    size="sm"
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {changingAccess === user._id ? (
+                      <LoaderIcon className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <CheckCircleIcon className="h-4 w-4 mr-1" />
+                        Aprovar Acesso
+                      </>
+                    )}
+                  </Button>
+                )}
+
+                {/* Admin Role Button */}
                 <Button
                   onClick={() => handleToggleAdmin(user._id, user.role)}
                   disabled={changingRole === user._id}
                   variant={user.role === "admin" ? "outline" : "default"}
                   size="sm"
                   className={cn(
-                    user.role === "admin" && "border-red-300 text-red-600 hover:bg-red-50"
+                    user.role === "admin" && "border-orange-300 text-orange-600 hover:bg-orange-50"
                   )}
                 >
                   {changingRole === user._id ? (

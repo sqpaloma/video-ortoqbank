@@ -147,6 +147,53 @@ export const setUserStatus = mutation({
   },
 });
 
+/**
+ * Approve user access - grant them video access (admin only)
+ * This sets paid=true and hasActiveYearAccess=true
+ */
+export const approveUserAccess = mutation({
+  args: {
+    userId: v.id("users"),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    
+    const now = Date.now();
+    
+    await ctx.db.patch(args.userId, {
+      paid: true,
+      hasActiveYearAccess: true,
+      paymentStatus: "completed",
+      paymentDate: now,
+      status: "active",
+    });
+    
+    return null;
+  },
+});
+
+/**
+ * Revoke user access - remove video access (admin only)
+ */
+export const revokeUserAccess = mutation({
+  args: {
+    userId: v.id("users"),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    
+    await ctx.db.patch(args.userId, {
+      paid: false,
+      hasActiveYearAccess: false,
+      paymentStatus: "pending",
+    });
+    
+    return null;
+  },
+});
+
 // ============================================================================
 // ADMIN QUERIES
 // ============================================================================

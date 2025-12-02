@@ -2,24 +2,54 @@ import type { WebhookEvent } from '@clerk/backend';
 import { createClerkClient } from '@clerk/backend';
 import { NextResponse } from 'next/server';
 import { Webhook } from 'svix';
-import { ConvexHttpClient } from 'convex/browser';
-import { api } from '@/convex/_generated/api';
+import { internal } from '@/convex/_generated/api';
 
 // Import env variables to make sure they're available
 const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY;
 const CLERK_WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET_2;
+const CONVEX_DEPLOY_KEY = process.env.CONVEX_DEPLOY_KEY;
+const CONVEX_URL = process.env.NEXT_PUBLIC_CONVEX_URL;
 
 // Initialize the Clerk client
 const clerk = CLERK_SECRET_KEY
   ? createClerkClient({ secretKey: CLERK_SECRET_KEY })
   : undefined;
 
-// Initialize Convex client
-const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
-if (!convexUrl) {
+// Check for required environment variables
+if (!CONVEX_URL) {
   console.error('Missing NEXT_PUBLIC_CONVEX_URL environment variable');
 }
-const convex = convexUrl ? new ConvexHttpClient(convexUrl) : null;
+if (!CONVEX_DEPLOY_KEY) {
+  console.error('Missing CONVEX_DEPLOY_KEY environment variable - required for webhook authentication');
+}
+
+// Helper function to call Convex internal mutations
+async function callConvexMutation(functionName: string, args: any) {
+  if (!CONVEX_URL || !CONVEX_DEPLOY_KEY) {
+    throw new Error('Missing Convex configuration');
+  }
+
+  const response = await fetch(`${CONVEX_URL}/api/json`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Convex-Client': 'npm-@0.0.0',
+      'Authorization': `Convex ${CONVEX_DEPLOY_KEY}`,
+    },
+    body: JSON.stringify({
+      path: functionName,
+      args: [args],
+      format: 'convex_encoded_json',
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Convex mutation failed: ${error}`);
+  }
+
+  return response.json();
+}
 
 // This is the main webhook handler for Clerk events
 export async function POST(request: Request) {
@@ -97,8 +127,8 @@ export async function POST(request: Request) {
     if (event.type === 'user.created' || event.type === 'user.updated') {
       console.log(`[Clerk Webhook] Processing ${event.type} event for user`);
       
-      if (!convex) {
-        console.error('[Clerk Webhook] Convex client not initialized - missing NEXT_PUBLIC_CONVEX_URL');
+      if (!CONVEX_URL || !CONVEX_DEPLOY_KEY) {
+        console.error('[Clerk Webhook] Convex not configured - missing NEXT_PUBLIC_CONVEX_URL or CONVEX_DEPLOY_KEY');
         return NextResponse.json(
           {
             received: true,
@@ -109,8 +139,8 @@ export async function POST(request: Request) {
       }
       
       try {
-        // Call Convex to upsert the user
-        await convex.mutation(api.userAdmin.upsertFromClerk, {
+        // Call Convex internal mutation to upsert the user
+        await callConvexMutation('users:upsertFromClerk', {
           data: event.data,
         });
         
@@ -130,8 +160,8 @@ export async function POST(request: Request) {
     } else if (event.type === 'user.deleted') {
       console.log(`[Clerk Webhook] Processing user.deleted event`);
       
-      if (!convex) {
-        console.error('[Clerk Webhook] Convex client not initialized - missing NEXT_PUBLIC_CONVEX_URL');
+      if (!CONVEX_URL || !CONVEX_DEPLOY_KEY) {
+        console.error('[Clerk Webhook] Convex not configured - missing NEXT_PUBLIC_CONVEX_URL or CONVEX_DEPLOY_KEY');
         return NextResponse.json(
           {
             received: true,
@@ -142,8 +172,8 @@ export async function POST(request: Request) {
       }
       
       try {
-        // Call Convex to delete the user
-        await convex.mutation(api.userAdmin.deleteFromClerk, {
+        // Call Convex internal mutation to delete the user
+        await callConvexMutation('users:deleteFromClerk', {
           clerkUserId: event.data.id!,
         });
         
