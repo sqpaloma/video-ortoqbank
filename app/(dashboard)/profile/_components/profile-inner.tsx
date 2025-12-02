@@ -8,104 +8,47 @@ import { Clock, CheckCircle2, PlayCircle, TrendingUp, User, ChevronLeft } from "
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useRouter } from "next/navigation";
+import { Id } from "@/convex/_generated/dataModel";
 
-// Mock data
-const mockData = {
-  user: {
-    name: "João Silva",
-    email: "joao.silva@email.com",
-    pictureUrl: undefined,
-  },
-  stats: {
-    totalVideosWatched: 45,
-    totalVideos: 120,
-    completionPercentage: 38,
-  },
-  recentVideos: [
-    {
-      id: "1",
-      title: "Anatomia do Sistema Nervoso Central",
-      categoryName: "Neuroanatomia Básica",
-      duration: "15:34",
-      thumbnailUrl: undefined,
-      lastWatchedAt: Date.now() - 1000 * 60 * 30, // 30 min atrás
-      completed: true,
-    },
-    {
-      id: "2",
-      title: "Fundamentos da Fisiologia Celular",
-      categoryName: "Fisiologia Humana",
-      duration: "22:15",
-      thumbnailUrl: undefined,
-      lastWatchedAt: Date.now() - 1000 * 60 * 60 * 2, // 2 horas atrás
-      completed: true,
-    },
-    {
-      id: "3",
-      title: "Introdução à Farmacologia",
-      categoryName: "Farmacologia Geral",
-      duration: "18:45",
-      thumbnailUrl: undefined,
-      lastWatchedAt: Date.now() - 1000 * 60 * 60 * 5, // 5 horas atrás
-      completed: false,
-    },
-    {
-      id: "4",
-      title: "Bioquímica das Proteínas",
-      categoryName: "Bioquímica Básica",
-      duration: "20:30",
-      thumbnailUrl: undefined,
-      lastWatchedAt: Date.now() - 1000 * 60 * 60 * 24, // 1 dia atrás
-      completed: true,
-    },
-    {
-      id: "5",
-      title: "Embriologia: Primeira Semana",
-      categoryName: "Embriologia Humana",
-      duration: "25:00",
-      thumbnailUrl: undefined,
-      lastWatchedAt: Date.now() - 1000 * 60 * 60 * 24 * 2, // 2 dias atrás
-      completed: false,
-    },
-  ],
-  categoriesProgress: [ 
-    {
-      categoryId: "1",
-      categoryName: "Neuroanatomia Básica",
-      totalVideos: 25,
-      watchedVideos: 18,
-      percentage: 72,
-    },
-    {
-      categoryId: "2",
-      categoryName: "Fisiologia Humana",
-      totalVideos: 30,
-      watchedVideos: 12,
-      percentage: 40,
-    },
-    {
-      categoryId: "3",
-      categoryName: "Farmacologia Geral",
-      totalVideos: 20,
-      watchedVideos: 5,
-      percentage: 25,
-    },
-    {
-      categoryId: "4",
-      categoryName: "Bioquímica Básica",
-      totalVideos: 22,
-      watchedVideos: 8,
-      percentage: 36,
-    },
-    {
-      categoryId: "5",
-      categoryName: "Embriologia Humana",
-      totalVideos: 23,
-      watchedVideos: 2,
-      percentage: 9,
-    },
-  ],
-};
+interface ProfileInnerProps {
+  userData: {
+    _id: Id<"users">;
+    firstName: string;
+    lastName: string;
+    email: string;
+    imageUrl?: string;
+    role: "user" | "admin";
+    status: "active" | "inactive" | "suspended";
+  } | null;
+  globalProgress: {
+    completedLessonsCount: number;
+    progressPercent: number;
+    updatedAt: number;
+  } | null;
+  recentViews: Array<{
+    _id: Id<"recentViews">;
+    viewedAt: number;
+    action: "started" | "resumed" | "completed";
+    lesson: {
+      _id: Id<"lessons">;
+      title: string;
+      description: string;
+      thumbnailUrl?: string;
+      durationSeconds: number;
+    };
+    module: {
+      _id: Id<"modules">;
+      title: string;
+      categoryId: Id<"categories">;
+    };
+    category: {
+      _id: Id<"categories">;
+      title: string;
+    };
+  }>;
+  completedCount: number;
+  totalLessons: number;
+}
 
 function formatTimeAgo(timestamp: number): string {
   const seconds = Math.floor((Date.now() - timestamp) / 1000);
@@ -116,9 +59,20 @@ function formatTimeAgo(timestamp: number): string {
   return `${Math.floor(seconds / 86400)} dias atrás`;
 }
 
-export default function ProfileInner() {
+function formatDuration(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
+
+export default function ProfileInner({
+  userData,
+  globalProgress,
+  recentViews,
+  completedCount,
+  totalLessons,
+}: ProfileInnerProps) {
   const router = useRouter();
-  const data = mockData;
 
   return (
     <div className="min-h-screen bg-white">
@@ -145,12 +99,11 @@ export default function ProfileInner() {
         {/* User Info Card */}
         <Card>
         <CardHeader>
-
           <div className="flex items-center gap-4">
-            {data.user.pictureUrl ? (
+            {userData?.imageUrl ? (
               <Image
-                src={data.user.pictureUrl}
-                alt={data.user.name}
+                src={userData.imageUrl}
+                alt={`${userData.firstName} ${userData.lastName}`}
                 width={64}
                 height={64}
                 className="rounded-full"
@@ -161,8 +114,15 @@ export default function ProfileInner() {
               </div>
             )}
             <div>
-              <CardTitle className="text-2xl">{data.user.name}</CardTitle>
-              <CardDescription>{data.user.email}</CardDescription>
+              <CardTitle className="text-2xl">
+                {userData ? `${userData.firstName} ${userData.lastName}` : "Usuário"}
+              </CardTitle>
+              <CardDescription>{userData?.email || ""}</CardDescription>
+              {userData?.role === "admin" && (
+                <Badge variant="default" className="mt-2">
+                  Administrador
+                </Badge>
+              )}
             </div>
           </div>
         </CardHeader>
@@ -172,13 +132,13 @@ export default function ProfileInner() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Vídeos Assistidos</CardTitle>
+            <CardTitle className="text-sm font-medium">Aulas Concluídas</CardTitle>
             <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.stats.totalVideosWatched}</div>
+            <div className="text-2xl font-bold">{completedCount}</div>
             <p className="text-xs text-muted-foreground">
-              de {data.stats.totalVideos} vídeos
+              de {totalLessons} aulas
             </p>
           </CardContent>
         </Card>
@@ -189,44 +149,46 @@ export default function ProfileInner() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.stats.completionPercentage}%</div>
-            <Progress value={data.stats.completionPercentage} className="mt-2" />
+            <div className="text-2xl font-bold">{globalProgress?.progressPercent || 0}%</div>
+            <Progress value={globalProgress?.progressPercent || 0} className="mt-2" />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Categorias em Andamento</CardTitle>
+            <CardTitle className="text-sm font-medium">Aulas Visualizadas</CardTitle>
             <PlayCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-                {data.categoriesProgress.filter((c) => c.percentage > 0 && c.percentage < 100).length}
+              {recentViews.length}
             </div>
             <p className="text-xs text-muted-foreground">
-              de {data.categoriesProgress.length} categorias
+              aulas recentemente visualizadas
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Recent Categories */}
-      {data.recentVideos.length > 0 && (
+      {/* Recent Views */}
+      {recentViews.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Vídeos Recentes</CardTitle>
+            <CardTitle>Aulas Recentes</CardTitle>
+            <CardDescription>Suas aulas visualizadas recentemente</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {data.recentVideos.map((video) => (
+              {recentViews.map((view) => (
                 <div
-                  key={video.id}
+                  key={view._id}
+                  onClick={() => router.push(`/modules/${view.category._id}`)}
                   className="flex items-center gap-4 p-3 rounded-lg border hover:bg-accent transition-colors cursor-pointer"
                 >
-                  {video.thumbnailUrl ? (
+                  {view.lesson.thumbnailUrl ? (
                     <Image
-                      src={video.thumbnailUrl}
-                      alt={video.title}
+                      src={view.lesson.thumbnailUrl}
+                      alt={view.lesson.title}
                       width={96}
                       height={64}
                       className="rounded object-cover"
@@ -237,26 +199,65 @@ export default function ProfileInner() {
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-medium truncate">{video.title}</h4>
-                    <p className="text-sm text-muted-foreground">{video.categoryName}</p>
+                    <h4 className="font-medium truncate">{view.lesson.title}</h4>
+                    <p className="text-sm text-muted-foreground">{view.category.title}</p>
                     <div className="flex items-center gap-3 mt-1 flex-wrap">
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">{video.duration}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {formatDuration(view.lesson.durationSeconds)}
+                        </span>
                       </div>
                       <span className="text-xs text-muted-foreground">
-                        {formatTimeAgo(video.lastWatchedAt)}
+                        {formatTimeAgo(view.viewedAt)}
                       </span>
-                      {video.completed && (
+                      {view.action === "completed" && (
                         <Badge variant="secondary" className="text-xs">
                           <CheckCircle2 className="h-3 w-3 mr-1" />
                           Concluído
+                        </Badge>
+                      )}
+                      {view.action === "started" && (
+                        <Badge variant="outline" className="text-xs">
+                          Iniciado
+                        </Badge>
+                      )}
+                      {view.action === "resumed" && (
+                        <Badge variant="outline" className="text-xs">
+                          Em andamento
                         </Badge>
                       )}
                     </div>
                   </div>
                 </div>
               ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
+      {recentViews.length === 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Aulas Recentes</CardTitle>
+            <CardDescription>Suas aulas visualizadas recentemente</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-12">
+              <PlayCircle size={48} className="text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500">
+                Você ainda não assistiu nenhuma aula.
+              </p>
+              <p className="text-sm text-gray-400 mt-2">
+                Comece a explorar as categorias e módulos disponíveis!
+              </p>
+              <Button
+                variant="default"
+                className="mt-4"
+                onClick={() => router.push("/categories")}
+              >
+                Explorar Aulas
+              </Button>
             </div>
           </CardContent>
         </Card>

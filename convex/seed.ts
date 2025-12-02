@@ -386,3 +386,17 @@ export const clearAll = mutation({
   },
 });
 
+/**
+ * Initialize or recalculate content statistics
+ */
+export const initializeContentStats = mutation({
+  args: {},
+  returns: v.null(),
+  handler: async (ctx) => {
+    console.log("Initializing content statistics...");
+    await ctx.runMutation(api.contentStats.recalculate, {});
+    console.log("Content statistics initialized successfully!");
+    return null;
+  },
+});
+

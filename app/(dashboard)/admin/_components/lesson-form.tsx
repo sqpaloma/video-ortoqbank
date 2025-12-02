@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useToast } from "@/hooks/use-toast";
+import { Id } from "@/convex/_generated/dataModel";
 import {
   Select,
   SelectContent,
@@ -18,9 +19,25 @@ import { Textarea } from "@/components/ui/textarea";
 
 interface LessonFormProps {
   onSuccess?: () => void;
+  editingLesson?: {
+    _id: Id<"lessons">;
+    moduleId: Id<"modules">;
+    title: string;
+    slug: string;
+    description: string;
+    bunnyStoragePath?: string;
+    publicUrl?: string;
+    thumbnailUrl?: string;
+    durationSeconds: number;
+    order_index: number;
+    lessonNumber: number;
+    isPublished: boolean;
+    tags?: string[];
+  } | null;
+  onCancelEdit?: () => void;
 }
 
-export function LessonForm({ onSuccess }: LessonFormProps) {
+export function LessonForm({ onSuccess, editingLesson, onCancelEdit }: LessonFormProps) {
   const [moduleId, setModuleId] = useState("");
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
@@ -37,7 +54,26 @@ export function LessonForm({ onSuccess }: LessonFormProps) {
 
   const modules = useQuery(api.modules.list);
   const createLesson = useMutation(api.lessons.create);
+  const updateLesson = useMutation(api.lessons.update);
   const { toast } = useToast();
+
+  // Load editing lesson data
+  useEffect(() => {
+    if (editingLesson) {
+      setModuleId(editingLesson.moduleId);
+      setTitle(editingLesson.title);
+      setSlug(editingLesson.slug);
+      setDescription(editingLesson.description);
+      setDurationSeconds(editingLesson.durationSeconds.toString());
+      setOrderIndex(editingLesson.order_index.toString());
+      setLessonNumber(editingLesson.lessonNumber.toString());
+      setIsPublished(editingLesson.isPublished);
+      setBunnyStoragePath(editingLesson.bunnyStoragePath || "");
+      setPublicUrl(editingLesson.publicUrl || "");
+      setThumbnailUrl(editingLesson.thumbnailUrl || "");
+      setTags(editingLesson.tags?.join(", ") || "");
+    }
+  }, [editingLesson]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +92,30 @@ export function LessonForm({ onSuccess }: LessonFormProps) {
     try {
       const tagsArray = tags.trim() ? tags.split(",").map(tag => tag.trim()) : undefined;
 
+      if (editingLesson) {
+        // Update existing lesson
+        await updateLesson({
+          id: editingLesson._id,
+          moduleId: moduleId as any,
+          title,
+          slug,
+          description,
+          durationSeconds: parseInt(durationSeconds),
+          order_index: parseInt(orderIndex),
+          lessonNumber: parseInt(lessonNumber),
+          isPublished,
+          bunnyStoragePath: bunnyStoragePath || undefined,
+          publicUrl: publicUrl || undefined,
+          thumbnailUrl: thumbnailUrl || undefined,
+          tags: tagsArray,
+        });
+
+        toast({
+          title: "Sucesso",
+          description: "Aula atualizada com sucesso!",
+        });
+      } else {
+        // Create new lesson
       await createLesson({
         moduleId: moduleId as any,
         title,
@@ -75,6 +135,7 @@ export function LessonForm({ onSuccess }: LessonFormProps) {
         title: "Sucesso",
         description: "Aula criada com sucesso!",
       });
+      }
 
       // Limpar o formulário
       setModuleId("");
@@ -96,7 +157,7 @@ export function LessonForm({ onSuccess }: LessonFormProps) {
     } catch (error) {
       toast({
         title: "Erro",
-        description: error instanceof Error ? error.message : "Erro ao criar aula",
+        description: error instanceof Error ? error.message : (editingLesson ? "Erro ao atualizar aula" : "Erro ao criar aula"),
         variant: "destructive",
       });
     } finally {
@@ -119,8 +180,10 @@ export function LessonForm({ onSuccess }: LessonFormProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Nova Aula</CardTitle>
-        <CardDescription>Adicione uma nova aula ao sistema</CardDescription>
+        <CardTitle>{editingLesson ? "Editar Aula" : "Nova Aula"}</CardTitle>
+        <CardDescription>
+          {editingLesson ? "Atualize as informações da aula" : "Adicione uma nova aula ao sistema"}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
@@ -263,9 +326,22 @@ export function LessonForm({ onSuccess }: LessonFormProps) {
             </label>
           </div>
 
-          <Button type="submit" disabled={isSubmitting} className="w-full">
-            {isSubmitting ? "Criando..." : "Criar Aula"}
+          <div className="flex gap-2">
+            {editingLesson && onCancelEdit && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancelEdit}
+                disabled={isSubmitting}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+            )}
+            <Button type="submit" disabled={isSubmitting} className="flex-1">
+              {isSubmitting ? (editingLesson ? "Atualizando..." : "Criando...") : (editingLesson ? "Atualizar Aula" : "Criar Aula")}
           </Button>
+          </div>
         </form>
       </CardContent>
     </Card>

@@ -5,7 +5,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useRouter } from "next/navigation";
 import { Preloaded, usePreloadedQuery, useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { ArrowLeft, CheckCircle, ChevronRight, Heart, PlayCircle } from "lucide-react";
+import { ArrowLeftIcon, CheckCircleIcon, ChevronRightIcon, StarIcon, PlayCircleIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Id } from "@/convex/_generated/dataModel";
@@ -30,6 +30,7 @@ export function ModulesInner({ preloadedModules, categoryTitle }: ModulesInnerPr
   // Mutations
   const markCompleted = useMutation(api.progress.markLessonCompleted);
   const toggleFavorite = useMutation(api.favorites.toggleFavorite);
+  const addRecentView = useMutation(api.recentViews.addView);
 
   // Load lessons for first module to get the first lesson
   const firstModuleLessons = useQuery(
@@ -81,15 +82,37 @@ export function ModulesInner({ preloadedModules, categoryTitle }: ModulesInnerPr
     });
   };
 
-  const handleLessonClick = (lessonId: Id<"lessons">, moduleId: Id<"modules">) => {
+  const handleLessonClick = async (lessonId: Id<"lessons">, moduleId: Id<"modules">) => {
     setCurrentLessonId(lessonId);
     setCurrentModuleId(moduleId);
+
+    // Register the view
+    if (user?.id) {
+      try {
+        await addRecentView({
+          userId: user.id,
+          lessonId,
+          moduleId,
+          action: "started",
+        });
+      } catch (error) {
+        console.error("Error adding recent view:", error);
+      }
+    }
   };
 
   const handleMarkCompleted = async () => {
-    if (!user?.id || !currentLessonId) return;
+    if (!user?.id || !currentLessonId || !currentModuleId) return;
     try {
       await markCompleted({ userId: user.id, lessonId: currentLessonId });
+      
+      // Register completion view
+      await addRecentView({
+        userId: user.id,
+        lessonId: currentLessonId,
+        moduleId: currentModuleId,
+        action: "completed",
+      });
     } catch (error) {
       console.error("Error marking lesson as completed:", error);
     }
@@ -144,7 +167,7 @@ export function ModulesInner({ preloadedModules, categoryTitle }: ModulesInnerPr
       <div className="py-4 px-6 flex items-center gap-4 border-b">
         <SidebarTrigger className="text-blue-brand hover:text-blue-brand-dark hover:bg-blue-brand-light" />
         <Button variant="ghost" size="icon" onClick={handleBackClick} className="hover:bg-accent">
-          <ArrowLeft size={20} />
+          <ArrowLeftIcon size={20} />
         </Button>
         <div className="flex-1">
           <h1 className="text-xl font-bold">{categoryTitle}</h1>
@@ -191,7 +214,7 @@ export function ModulesInner({ preloadedModules, categoryTitle }: ModulesInnerPr
             <div className="p-6">
               {/* Video Player */}
               <div className="bg-black rounded-lg aspect-video flex items-center justify-center mb-6">
-                <PlayCircle size={64} className="text-white/50" />
+                <PlayCircleIcon size={64} className="text-white/50" />
               </div>
 
               {/* Lesson Info */}
@@ -207,21 +230,21 @@ export function ModulesInner({ preloadedModules, categoryTitle }: ModulesInnerPr
                   variant={isLessonCompleted ? "outline" : "default"}
                   className="flex-1"
                 >
-                  <CheckCircle size={18} className="mr-2" />
+                  <CheckCircleIcon size={18} className="mr-2" />
                   {isLessonCompleted ? "Concluída" : "Marcar como concluída"}
                 </Button>
                 <Button onClick={handleToggleFavorite} variant="outline">
-                  <Heart
+                  <StarIcon
                     size={18}
-                    className={cn(isFavorited && "fill-red-500 text-red-500")}
-                  />
+                    className={cn(isFavorited && "fill-yellow-500 text-yellow-500")}
+              />
                 </Button>
               </div>
 
               {/* Next Lesson Button */}
               <Button onClick={handleNextLesson} variant="outline" className="w-full">
                 Próxima aula
-                <ChevronRight size={18} className="ml-2" />
+                <ChevronRightIcon size={18} className="ml-2" />
               </Button>
             </div>
           ) : (

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { CategoryForm } from "./category-form";
 import { CategoryList } from "./category-list";
 import { ModuleForm } from "./module-form";
@@ -8,8 +9,28 @@ import { LessonForm } from "./lesson-form";
 import { LessonList } from "./lesson-list";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Id } from "@/convex/_generated/dataModel";
 
 export function AdminInner() {
+  const [editingLesson, setEditingLesson] = useState<any>(null);
+
+  const handleEditLesson = (lesson: any) => {
+    setEditingLesson(lesson);
+    // Scroll to form
+    const lessonForm = document.querySelector('[data-lesson-form]');
+    if (lessonForm) {
+      lessonForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const handleLessonSuccess = () => {
+    setEditingLesson(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingLesson(null);
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -69,15 +90,19 @@ export function AdminInner() {
               <div className="mb-6">
                 <h2 className="text-xl font-semibold mb-2">Gerenciar Aulas</h2>
                 <p className="text-muted-foreground">
-                  Adicione, edite ou remova aulas do sistema
+                  {editingLesson ? `Editando: ${editingLesson.title}` : "Adicione, edite ou remova aulas do sistema"}
                 </p>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div>
-                  <LessonForm />
+                <div data-lesson-form>
+                  <LessonForm 
+                    editingLesson={editingLesson}
+                    onSuccess={handleLessonSuccess}
+                    onCancelEdit={handleCancelEdit}
+                  />
                 </div>
                 <div>
-                  <LessonList />
+                  <LessonList onEditLesson={handleEditLesson} />
                 </div>
               </div>
             </TabsContent>

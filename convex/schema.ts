@@ -121,4 +121,25 @@ export default defineSchema({
     .index("by_userId", ["userId"])
     .index("by_userId_and_lessonId", ["userId", "lessonId"])
     .index("by_lessonId", ["lessonId"]),
+
+  // Recent views (user's recent lesson views)
+  recentViews: defineTable({
+    userId: v.string(), // clerkUserId
+    lessonId: v.id("lessons"),
+    moduleId: v.id("modules"),
+    viewedAt: v.number(), // timestamp
+    action: v.union(v.literal("started"), v.literal("resumed"), v.literal("completed")),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_userId_and_viewedAt", ["userId", "viewedAt"])
+    .index("by_lessonId", ["lessonId"])
+    .index("by_userId_and_lessonId", ["userId", "lessonId"]),
+
+  // Content statistics (global system stats)
+  contentStats: defineTable({
+    totalLessons: v.number(), // total published lessons
+    totalModules: v.number(), // total modules
+    totalCategories: v.number(), // total categories
+    updatedAt: v.number(), // timestamp of last update
+  }),
 });

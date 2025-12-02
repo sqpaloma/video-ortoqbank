@@ -7,8 +7,13 @@ import { api } from "@/convex/_generated/api";
 import { useToast } from "@/hooks/use-toast";
 import { Edit, Trash2, Eye, EyeOff } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Id } from "@/convex/_generated/dataModel";
 
-export function LessonList() {
+interface LessonListProps {
+  onEditLesson?: (lesson: any) => void;
+}
+
+export function LessonList({ onEditLesson }: LessonListProps) {
   const lessons = useQuery(api.lessons.list);
   const modules = useQuery(api.modules.list);
   const deleteLesson = useMutation(api.lessons.remove);
@@ -118,10 +123,21 @@ export function LessonList() {
                       <Eye className="h-4 w-4" />
                     )}
                   </Button>
+                  {onEditLesson && (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => onEditLesson(lesson)}
+                      title="Editar"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={() => handleDelete(lesson._id, lesson.title)}
+                    title="Deletar"
                   >
                     <Trash2 className="h-4 w-4 text-destructive" />
                   </Button>

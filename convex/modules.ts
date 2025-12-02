@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
+import { internal } from "./_generated/api";
 
 // Query para listar todos os módulos
 export const list = query({
@@ -129,6 +130,9 @@ export const create = mutation({
       totalLessonVideos: args.totalLessonVideos,
     });
 
+    // Update contentStats
+    await ctx.scheduler.runAfter(0, internal.contentStats.incrementModules, { amount: 1 });
+
     return moduleId;
   },
 });
@@ -187,6 +191,10 @@ export const remove = mutation({
     }
 
     await ctx.db.delete(args.id);
+
+    // Update contentStats
+    await ctx.scheduler.runAfter(0, internal.contentStats.decrementModules, { amount: 1 });
+
     return null;
   },
 });

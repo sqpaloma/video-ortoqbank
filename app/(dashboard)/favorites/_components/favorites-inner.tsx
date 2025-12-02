@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Heart, PlayCircle, Clock } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon, PlayCircleIcon, ClockIcon, StarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -98,7 +98,7 @@ export function FavoritesInner({ initialFavorites, watchAlsoVideos }: { initialF
             onClick={() => router.push("/")}
             className="text-gray-700 hover:text-gray-900 hover:bg-gray-100"
           >
-            <ChevronLeft size={24} />
+            <ChevronLeftIcon size={24} />
           </Button>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Vídeos Favoritos</h1>
@@ -133,7 +133,7 @@ export function FavoritesInner({ initialFavorites, watchAlsoVideos }: { initialF
                           className="object-cover"
                         />
                       ) : (
-                        <PlayCircle size={48} className="text-primary/30" />
+                        <PlayCircleIcon size={48} className="text-primary/30" />
                       )}
                       {/* Favorite Button */}
                       <Button
@@ -142,7 +142,7 @@ export function FavoritesInner({ initialFavorites, watchAlsoVideos }: { initialF
                         className="absolute top-2 right-2 bg-white/90 hover:bg-white"
                         onClick={(e) => handleRemoveFavorite(e, video._id)}
                       >
-                        <Heart size={20} className="text-red-500 fill-red-500" />
+                        <StarIcon size={20} className="text-yellow-500 fill-yellow-500" />
                       </Button>
                     </div>
 
@@ -160,7 +160,7 @@ export function FavoritesInner({ initialFavorites, watchAlsoVideos }: { initialF
                           {video.level}
                         </Badge>
                         <div className="flex items-center gap-1">
-                          <Clock size={14} />
+                          <ClockIcon size={14} />
                           <span>{video.duration}</span>
                         </div>
                       </div>
@@ -183,7 +183,7 @@ export function FavoritesInner({ initialFavorites, watchAlsoVideos }: { initialF
                     disabled={currentPage === 0}
                     className="border-gray-300"
                   >
-                    <ChevronLeft size={20} className="mr-2" />
+                    <ChevronLeftIcon size={20} className="mr-2" />
                     Anterior
                   </Button>
                   <span className="text-sm text-gray-600">
@@ -196,14 +196,14 @@ export function FavoritesInner({ initialFavorites, watchAlsoVideos }: { initialF
                     className="border-gray-300"
                   >
                     Próxima
-                    <ChevronRight size={20} className="ml-2" />
+                    <ChevronRightIcon size={20} className="ml-2" />
                   </Button>
                 </div>
               )}
             </>
           ) : (
             <div className="text-center py-12">
-              <Heart size={48} className="text-gray-300 mx-auto mb-4" />
+              <StarIcon size={48} className="text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500">
                 Você ainda não tem vídeos favoritos.
               </p>
@@ -241,7 +241,7 @@ export function FavoritesInner({ initialFavorites, watchAlsoVideos }: { initialF
                         className="object-cover"
                       />
                     ) : (
-                      <PlayCircle size={48} className="text-blue-500/30" />
+                      <PlayCircleIcon size={48} className="text-blue-500/30" />
                     )}
                     {/* Favorite Button */}
                     <Button
@@ -250,7 +250,7 @@ export function FavoritesInner({ initialFavorites, watchAlsoVideos }: { initialF
                       className="absolute top-2 right-2 bg-white/90 hover:bg-white"
                       onClick={(e) => handleAddFavorite(e, video._id)}
                     >
-                      <Heart size={20} className="text-gray-400 hover:text-red-500" />
+                        <StarIcon size={20} className="text-gray-400 hover:text-yellow-500" />
                     </Button>
                   </div>
 
@@ -274,7 +274,7 @@ export function FavoritesInner({ initialFavorites, watchAlsoVideos }: { initialF
                         {video.level}
                       </Badge>
                       <div className="flex items-center gap-1">
-                        <Clock size={14} />
+                        <ClockIcon size={14} />
                         <span>{video.duration}</span>
                       </div>
                     </div>
@@ -289,7 +289,7 @@ export function FavoritesInner({ initialFavorites, watchAlsoVideos }: { initialF
             </div>
           ) : (
             <div className="text-center py-12">
-              <PlayCircle size={48} className="text-gray-300 mx-auto mb-4" />
+              <PlayCircleIcon size={48} className="text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500">
                 Não há novos vídeos disponíveis no momento.
               </p>

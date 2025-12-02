@@ -104,13 +104,9 @@ export const markLessonCompleted = mutation({
 
     const totalCompletedCount = allCompletedLessons.length;
 
-    // Get total lessons in the system (published only)
-    const allLessons = await ctx.db
-      .query("lessons")
-      .withIndex("by_isPublished", (q) => q.eq("isPublished", true))
-      .collect();
-
-    const totalLessonsInSystem = allLessons.length;
+    // Get total lessons from contentStats
+    const contentStats = await ctx.db.query("contentStats").first();
+    const totalLessonsInSystem = contentStats?.totalLessons || 0;
     const globalProgressPercent =
       totalLessonsInSystem > 0
         ? Math.round((totalCompletedCount / totalLessonsInSystem) * 100)
@@ -453,13 +449,9 @@ export const recalculateGlobalProgress = mutation({
 
     const totalCompletedCount = allCompletedLessons.length;
 
-    // Get total published lessons
-    const allLessons = await ctx.db
-      .query("lessons")
-      .withIndex("by_isPublished", (q) => q.eq("isPublished", true))
-      .collect();
-
-    const totalLessonsInSystem = allLessons.length;
+    // Get total lessons from contentStats
+    const contentStats = await ctx.db.query("contentStats").first();
+    const totalLessonsInSystem = contentStats?.totalLessons || 0;
     const globalProgressPercent =
       totalLessonsInSystem > 0
         ? Math.round((totalCompletedCount / totalLessonsInSystem) * 100)

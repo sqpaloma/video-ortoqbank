@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
+import { internal } from "./_generated/api";
 
 // Query para listar todas as lessons
 export const list = query({
@@ -207,6 +208,11 @@ export const create = mutation({
       });
     }
 
+    // Atualizar contentStats se a lesson foi publicada
+    if (args.isPublished) {
+      await ctx.scheduler.runAfter(0, internal.contentStats.incrementLessons, { amount: 1 });
+    }
+
     return lessonId;
   },
 });
@@ -240,6 +246,11 @@ export const update = mutation({
       throw new Error("Já existe uma aula com este slug");
     }
 
+    // Get current lesson to check if publish status changed
+    const currentLesson = await ctx.db.get(args.id);
+    const wasPublished = currentLesson?.isPublished || false;
+    const willBePublished = args.isPublished;
+
     await ctx.db.patch(args.id, {
       moduleId: args.moduleId,
       title: args.title,
@@ -254,6 +265,15 @@ export const update = mutation({
       isPublished: args.isPublished,
       tags: args.tags,
     });
+
+    // Update contentStats if publish status changed
+    if (!wasPublished && willBePublished) {
+      // Was unpublished, now published
+      await ctx.scheduler.runAfter(0, internal.contentStats.incrementLessons, { amount: 1 });
+    } else if (wasPublished && !willBePublished) {
+      // Was published, now unpublished
+      await ctx.scheduler.runAfter(0, internal.contentStats.decrementLessons, { amount: 1 });
+    }
 
     return null;
   },
@@ -272,6 +292,8 @@ export const remove = mutation({
       throw new Error("Aula não encontrada");
     }
 
+    const wasPublished = lesson.isPublished;
+
     await ctx.db.delete(args.id);
 
     // Atualizar o total de lessons no módulo
@@ -280,6 +302,11 @@ export const remove = mutation({
       await ctx.db.patch(lesson.moduleId, {
         totalLessonVideos: module.totalLessonVideos - 1,
       });
+    }
+
+    // Update contentStats if lesson was published
+    if (wasPublished) {
+      await ctx.scheduler.runAfter(0, internal.contentStats.decrementLessons, { amount: 1 });
     }
 
     return null;
@@ -304,6 +331,15 @@ export const togglePublish = mutation({
     await ctx.db.patch(args.id, {
       isPublished: newPublishStatus,
     });
+
+    // Update contentStats
+    if (newPublishStatus) {
+      // Now published
+      await ctx.scheduler.runAfter(0, internal.contentStats.incrementLessons, { amount: 1 });
+    } else {
+      // Now unpublished
+      await ctx.scheduler.runAfter(0, internal.contentStats.decrementLessons, { amount: 1 });
+    }
 
     return newPublishStatus;
   },

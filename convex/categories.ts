@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
+import { internal } from "./_generated/api";
 
 // Query para listar todas as categorias ordenadas por position
 export const list = query({
@@ -101,6 +102,9 @@ export const create = mutation({
       iconUrl: args.iconUrl,
     });
 
+    // Update contentStats
+    await ctx.scheduler.runAfter(0, internal.contentStats.incrementCategories, { amount: 1 });
+
     return categoryId;
   },
 });
@@ -147,6 +151,10 @@ export const remove = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
+
+    // Update contentStats
+    await ctx.scheduler.runAfter(0, internal.contentStats.decrementCategories, { amount: 1 });
+
     return null;
   },
 });

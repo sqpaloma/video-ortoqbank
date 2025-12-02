@@ -45,13 +45,7 @@ export function CategoriesInner({ preloadedCategories, initialProgress }: Catego
       <div className="py-6 px-48 flex items-center justify-center mb-6 relative">
         <SidebarTrigger className="absolute left-6 text-blue-brand hover:text-blue-brand-dark hover:bg-blue-brand-light" />
         <ProgressBar label="Progresso Total" progress={initialProgress} />
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-yellow-400 hover:text-yellow-500 hover:bg-transparent h-10 w-10 absolute right-48"
-        >
-          <Star size={32} fill="currentColor" />
-        </Button>
+        
       </div>
 
       <div className="px-48 pb-4">
