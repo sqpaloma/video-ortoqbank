@@ -7,11 +7,16 @@ import { ModuleForm } from "./module-form";
 import { ModuleList } from "./module-list";
 import { LessonFormV2 } from "./lesson-form-v2";
 import { LessonList } from "./lesson-list";
+import { UserList } from "./user-list";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Id } from "@/convex/_generated/dataModel";
+import { useSession } from "@/components/providers/session-provider";
+import { LoaderIcon, ShieldXIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export function AdminInner() {
+  const { isAdmin, isLoading } = useSession();
+  const router = useRouter();
   const [editingLesson, setEditingLesson] = useState<any>(null);
 
   const handleEditLesson = (lesson: any) => {
@@ -31,6 +36,39 @@ export function AdminInner() {
     setEditingLesson(null);
   };
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <LoaderIcon className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Verificando permissões...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show unauthorized message if not admin
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center max-w-md p-8">
+          <ShieldXIcon className="h-16 w-16 text-red-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold mb-2">Acesso Negado</h1>
+          <p className="text-muted-foreground mb-6">
+            Você não tem permissão para acessar esta área. Apenas administradores podem acessar o painel de administração.
+          </p>
+          <button
+            onClick={() => router.push("/")}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
+          >
+            Voltar para o início
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -43,10 +81,11 @@ export function AdminInner() {
       <div className="p-8">
         <div className="max-w-7xl mx-auto">
           <Tabs defaultValue="categories" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-8">
+            <TabsList className="grid w-full grid-cols-4 mb-8">
               <TabsTrigger value="categories">Categorias</TabsTrigger>
               <TabsTrigger value="modules">Módulos</TabsTrigger>
               <TabsTrigger value="lessons">Aulas</TabsTrigger>
+              <TabsTrigger value="users">Usuários</TabsTrigger>
             </TabsList>
 
             {/* Categorias */}
@@ -104,6 +143,19 @@ export function AdminInner() {
                 <div>
                   <LessonList onEditLesson={handleEditLesson} />
                 </div>
+              </div>
+            </TabsContent>
+
+            {/* Usuários */}
+            <TabsContent value="users">
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold mb-2">Gerenciar Usuários</h2>
+                <p className="text-muted-foreground">
+                  Visualize todos os usuários e gerencie permissões de administrador
+                </p>
+              </div>
+              <div className="max-w-4xl">
+                <UserList />
               </div>
             </TabsContent>
           </Tabs>

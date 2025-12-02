@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query, internalMutation } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
+import { requireAdmin } from "./users";
 
 // ============================================================================
 // PUBLIC QUERIES
@@ -245,6 +246,71 @@ export const remove = mutation({
 
     await ctx.db.delete(video._id);
     return null;
+  },
+});
+
+/**
+ * Mark video as ready (admin only)
+ * This is useful when videos are already processed in Bunny but status wasn't updated
+ */
+export const markAsReady = mutation({
+  args: { videoId: v.string() },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    
+    const video = await ctx.db
+      .query("videos")
+      .withIndex("by_videoId", (q) => q.eq("videoId", args.videoId))
+      .unique();
+
+    if (!video) {
+      throw new Error("Vídeo não encontrado");
+    }
+
+    // Build HLS URL
+    const libraryId = video.libraryId;
+    const hlsUrl = `https://vz-${libraryId}.b-cdn.net/${args.videoId}/playlist.m3u8`;
+
+    await ctx.db.patch(video._id, {
+      status: "ready",
+      hlsUrl: hlsUrl,
+    });
+
+    return null;
+  },
+});
+
+/**
+ * List all videos (admin only)
+ */
+export const listAll = query({
+  args: {},
+  returns: v.array(
+    v.object({
+      _id: v.id("videos"),
+      _creationTime: v.number(),
+      videoId: v.string(),
+      libraryId: v.string(),
+      title: v.string(),
+      description: v.string(),
+      thumbnailUrl: v.optional(v.string()),
+      hlsUrl: v.optional(v.string()),
+      mp4Urls: v.optional(v.array(v.object({ quality: v.string(), url: v.string() }))),
+      status: v.union(
+        v.literal("uploading"),
+        v.literal("processing"),
+        v.literal("ready"),
+        v.literal("failed")
+      ),
+      createdBy: v.string(),
+      isPrivate: v.boolean(),
+      metadata: v.optional(v.any()),
+    })
+  ),
+  handler: async (ctx) => {
+    await requireAdmin(ctx);
+    return await ctx.db.query("videos").collect();
   },
 });
 
