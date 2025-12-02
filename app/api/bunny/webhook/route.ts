@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ConvexHttpClient } from 'convex/browser';
-import { internal } from '@/convex/_generated/api';
+import { api } from '@/convex/_generated/api';
 
 export async function POST(req: Request) {
   try {
@@ -61,9 +61,9 @@ export async function POST(req: Request) {
       }));
     }
 
-    // Update video in Convex using internal mutation
+    // Update video in Convex using public mutation
     try {
-      await convex.mutation(internal.videos.updateFromWebhook, {
+      await convex.mutation(api.videos.update, {
         videoId,
         ...(thumbnailUrl && { thumbnailUrl }),
         ...(hlsUrl && { hlsUrl }),
