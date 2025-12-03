@@ -168,6 +168,17 @@ export function LessonFormV2({ onSuccess, editingLesson, onCancelEdit }: LessonF
       }
 
       const createData = await createResponse.json();
+      
+      if (!createData.videoId || !createData.libraryId) {
+        throw new Error('Resposta inválida ao criar vídeo: videoId ou libraryId não retornados');
+      }
+
+      console.log('Video created in Bunny:', {
+        videoId: createData.videoId,
+        libraryId: createData.libraryId,
+        data: createData,
+      });
+
       setVideoId(createData.videoId);
       setLibraryId(createData.libraryId);
       setIsCreatingVideo(false);
@@ -183,6 +194,13 @@ export function LessonFormV2({ onSuccess, editingLesson, onCancelEdit }: LessonF
 
       const uploadUrl = `/api/bunny/upload?videoId=${encodeURIComponent(createData.videoId)}&libraryId=${encodeURIComponent(createData.libraryId)}`;
       
+      console.log('Starting file upload:', {
+        url: uploadUrl,
+        fileSize: file.size,
+        fileType: file.type,
+        fileName: file.name,
+      });
+      
       const xhr = new XMLHttpRequest();
 
       return new Promise<void>((resolve, reject) => {
@@ -194,22 +212,40 @@ export function LessonFormV2({ onSuccess, editingLesson, onCancelEdit }: LessonF
         });
 
         xhr.addEventListener('load', async () => {
+          console.log('Upload XHR response:', {
+            status: xhr.status,
+            statusText: xhr.statusText,
+            responseText: xhr.responseText,
+          });
+
           if (xhr.status >= 200 && xhr.status < 300) {
-            toast({
-              title: 'Sucesso',
-              description: 'Vídeo enviado! O Bunny está processando.',
-            });
-            
+            let responseData;
+            try {
+              responseData = JSON.parse(xhr.responseText);
+              console.log('Upload response data:', responseData);
+            } catch (e) {
+              console.warn('Could not parse upload response as JSON:', e);
+            }
+
+            // Atualizar estado imediatamente
             setVideoId(createData.videoId);
             setUploadProgress(100);
             setIsUploading(false);
             
-            // Buscar informações do vídeo do Bunny (não-bloqueante)
-            // Fire-and-forget: não aguardar conclusão para não atrasar o usuário
-            fetch(
-              `/api/bunny/get-video-info?videoId=${encodeURIComponent(createData.videoId)}&libraryId=${encodeURIComponent(createData.libraryId)}`
-            )
-              .then(async (infoResponse) => {
+            toast({
+              title: 'Upload concluído!',
+              description: 'Vídeo enviado com sucesso. Buscando informações...',
+            });
+            
+            // Aguardar um pouco para o Bunny processar o upload
+            // Depois buscar informações do vídeo
+            setTimeout(async () => {
+              try {
+                console.log('Fetching video info from Bunny...');
+                const infoResponse = await fetch(
+                  `/api/bunny/get-video-info?videoId=${encodeURIComponent(createData.videoId)}&libraryId=${encodeURIComponent(createData.libraryId)}`
+                );
+
                 if (infoResponse.ok) {
                   const videoData = await infoResponse.json();
                   
@@ -226,39 +262,95 @@ export function LessonFormV2({ onSuccess, editingLesson, onCancelEdit }: LessonF
                     setDurationSeconds(videoData.processed.durationSeconds.toString());
                   }
                   
-                  // ✅ ATUALIZAR TABELA VIDEOS NO CONVEX (não-bloqueante)
-                  updateVideo({
-                    videoId: createData.videoId,
-                    thumbnailUrl: videoData.urls?.thumbnail,
-                    hlsUrl: videoData.urls?.hls,
-                    status: videoData.processed?.isReady ? 'ready' as const : 'processing' as const,
-                  })
-                    .then(() => console.log('✅ Tabela videos atualizada no Convex'))
-                    .catch((updateError) => console.error('Erro ao atualizar tabela videos:', updateError));
+                  // ✅ ATUALIZAR TABELA VIDEOS NO CONVEX
+                  try {
+                    await updateVideo({
+                      videoId: createData.videoId,
+                      thumbnailUrl: videoData.urls?.thumbnail,
+                      hlsUrl: videoData.urls?.hls,
+                      status: videoData.processed?.isReady ? 'ready' as const : 'processing' as const,
+                    });
+                    console.log('✅ Tabela videos atualizada no Convex');
+                  } catch (updateError) {
+                    console.error('Erro ao atualizar tabela videos:', updateError);
+                  }
                   
                   // Mostrar informações extras no toast
-                  if (videoData.processed?.statusText) {
-                    toast({
-                      title: 'Informações do vídeo atualizadas',
-                      description: `Status: ${videoData.processed.statusText} | Duração: ${videoData.processed.durationSeconds}s`,
-                    });
-                  }
+                  toast({
+                    title: 'Vídeo processado!',
+                    description: `Status: ${videoData.processed?.statusText || 'processando'} | Duração: ${videoData.processed?.durationSeconds || 0}s`,
+                  });
+                } else {
+                  const errorData = await infoResponse.json().catch(() => ({}));
+                  console.error('Failed to get video info:', errorData);
+                  toast({
+                    title: 'Upload concluído',
+                    description: 'Vídeo enviado, mas não foi possível buscar informações. Tente verificar o status manualmente.',
+                    variant: 'default',
+                  });
                 }
-              })
-              .catch((infoError) => {
+              } catch (infoError) {
                 console.error('Erro ao buscar info do vídeo:', infoError);
-                // Não bloquear o fluxo se falhar
-              });
+                toast({
+                  title: 'Upload concluído',
+                  description: 'Vídeo enviado, mas houve um erro ao buscar informações. O vídeo pode estar processando.',
+                  variant: 'default',
+                });
+              }
+            }, 2000); // Aguardar 2 segundos antes de buscar informações
             
             resolve();
           } else {
-            const response = JSON.parse(xhr.responseText);
-            reject(new Error(response.error || `Upload failed with status ${xhr.status}`));
+            let errorMessage = `Upload failed with status ${xhr.status}`;
+            let errorDetail = '';
+            try {
+              const response = JSON.parse(xhr.responseText);
+              errorMessage = response.error || errorMessage;
+              errorDetail = response.detail || response.suggestion || '';
+              console.error('Upload failed:', {
+                status: xhr.status,
+                statusText: xhr.statusText,
+                error: response,
+              });
+            } catch (e) {
+              console.error('Upload failed (could not parse response):', {
+                status: xhr.status,
+                statusText: xhr.statusText,
+                responseText: xhr.responseText,
+              });
+            }
+            
+            // Mostrar toast com erro detalhado
+            toast({
+              title: 'Erro no upload',
+              description: errorDetail || errorMessage,
+              variant: 'destructive',
+            });
+            
+            reject(new Error(errorMessage));
           }
         });
 
-        xhr.addEventListener('error', () => {
+        xhr.addEventListener('error', (e) => {
+          console.error('XHR upload error:', e);
+          toast({
+            title: 'Erro de rede',
+            description: 'Não foi possível conectar ao servidor. Verifique sua conexão.',
+            variant: 'destructive',
+          });
           reject(new Error('Erro de rede ao fazer upload'));
+        });
+
+        xhr.addEventListener('abort', () => {
+          console.warn('Upload aborted');
+          reject(new Error('Upload cancelado'));
+        });
+
+        console.log('Starting upload:', {
+          url: uploadUrl,
+          fileSize: file.size,
+          fileType: file.type,
+          fileName: file.name,
         });
 
         xhr.open('PUT', uploadUrl);
@@ -390,6 +482,7 @@ export function LessonFormV2({ onSuccess, editingLesson, onCancelEdit }: LessonF
 
   const hasVideo = !!videoId;
   const isProcessing = isCreatingVideo || isUploading;
+  const uploadComplete = uploadProgress === 100 && !isUploading && !isCreatingVideo && hasVideo;
 
   return (
     <Card>
@@ -471,6 +564,24 @@ export function LessonFormV2({ onSuccess, editingLesson, onCancelEdit }: LessonF
               </div>
               <p className="text-xs text-muted-foreground">
                 Não feche esta página até o upload terminar.
+              </p>
+            </div>
+          )}
+
+          {uploadComplete && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm text-green-600">
+                <span>✓ Upload concluído!</span>
+                <span>100%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: '100%' }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Buscando informações do vídeo...
               </p>
             </div>
           )}

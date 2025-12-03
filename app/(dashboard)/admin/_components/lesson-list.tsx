@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, Trash2, Eye, EyeOff, CheckCircleIcon, LoaderIcon, XCircleIcon, ClockIcon } from "lucide-react";
+import { Edit, Trash2, Eye, EyeOff, CheckCircleIcon, LoaderIcon, XCircleIcon, ClockIcon, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Id } from "@/convex/_generated/dataModel";
 
@@ -19,7 +19,8 @@ function LessonItem({
   onEditLesson, 
   onDelete, 
   onTogglePublish, 
-  onMarkVideoAsReady 
+  onMarkVideoAsReady,
+  onCheckVideoStatus
 }: {
   lesson: any;
   modules: any[];
@@ -27,6 +28,7 @@ function LessonItem({
   onDelete: (id: any, title: string) => void;
   onTogglePublish: (id: any, title: string, currentStatus: boolean) => void;
   onMarkVideoAsReady: (videoId: string, lessonTitle: string) => void;
+  onCheckVideoStatus: (videoId: string, lessonTitle: string) => Promise<void>;
 }) {
   const video = useQuery(
     api.videos.getByVideoId,
@@ -103,16 +105,28 @@ function LessonItem({
       </div>
       <div className="flex gap-2 shrink-0 flex-wrap">
         {lesson.videoId && video && video.status !== "ready" && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onMarkVideoAsReady(lesson.videoId!, lesson.title)}
-            title="Marcar vídeo como pronto"
-            className="text-xs"
-          >
-            <CheckCircleIcon className="h-3 w-3 mr-1" />
-            Marcar Pronto
-          </Button>
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onCheckVideoStatus(lesson.videoId!, lesson.title)}
+              title="Verificar status do vídeo no Bunny"
+              className="text-xs"
+            >
+              <RefreshCw className="h-3 w-3 mr-1" />
+              Verificar Status
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onMarkVideoAsReady(lesson.videoId!, lesson.title)}
+              title="Marcar vídeo como pronto manualmente"
+              className="text-xs"
+            >
+              <CheckCircleIcon className="h-3 w-3 mr-1" />
+              Marcar Pronto
+            </Button>
+          </>
         )}
         <Button
           variant="outline"
@@ -211,6 +225,33 @@ export function LessonList({ onEditLesson }: LessonListProps) {
     }
   };
 
+  const handleCheckVideoStatus = async (videoId: string, lessonTitle: string) => {
+    try {
+      const response = await fetch('/api/bunny/check-video-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ videoId }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao verificar status');
+      }
+
+      toast({
+        title: "Status Verificado",
+        description: `Status do vídeo "${lessonTitle}" atualizado para: ${data.status}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? error.message : "Erro ao verificar status do vídeo",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (lessons === undefined || modules === undefined) {
     return <div>Carregando...</div>;
   }
@@ -237,6 +278,7 @@ export function LessonList({ onEditLesson }: LessonListProps) {
                 onDelete={handleDelete}
                 onTogglePublish={handleTogglePublish}
                 onMarkVideoAsReady={handleMarkVideoAsReady}
+                onCheckVideoStatus={handleCheckVideoStatus}
               />
             ))
           )}

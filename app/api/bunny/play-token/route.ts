@@ -106,17 +106,27 @@ export async function GET(req: Request) {
     // Generate token with expiration (10 minutes)
     const expires = Math.floor(Date.now() / 1000) + 60 * 10;
 
-    // According to Bunny Stream docs, the token format is:
-    // SHA256(libraryId + securityKey + expires + videoId)
-    const toSign = `${libraryId}${securityKey}${expires}${videoId}`;
+    // Bunny Stream token format: SHA256(securityKey + libraryId + expires + videoId)
+    // Ordem correta: securityKey PRIMEIRO
+    const toSign = `${securityKey}${libraryId}${expires}${videoId}`;
     const token = crypto.createHash('sha256').update(toSign).digest('hex');
-
-    // Build the signed URLs usando o builder - CORRETO
-    const baseEmbedUrl = urlBuilder.getEmbedUrl(videoId);
-    const baseHlsUrl = urlBuilder.getHlsUrl(videoId);
     
-    const embedUrl = urlBuilder.getAuthenticatedUrl(baseEmbedUrl, token, expires);
-    const hlsUrl = urlBuilder.getAuthenticatedUrl(baseHlsUrl, token, expires);
+    console.log('Token gerado:', {
+      libraryId,
+      videoId,
+      expires,
+      token: token.substring(0, 20) + '...',
+      toSign: toSign.substring(0, 50) + '...',
+    });
+
+    // Build URLs SEM TOKEN (token authentication desabilitado no Bunny)
+    const embedUrl = urlBuilder.getEmbedUrl(videoId);
+    const hlsUrl = urlBuilder.getHlsUrl(videoId);
+    
+    console.log('URLs geradas (SEM TOKEN - token auth desabilitado):', {
+      embedUrl,
+      hlsUrl,
+    });
 
     return NextResponse.json({
       success: true,
@@ -125,6 +135,7 @@ export async function GET(req: Request) {
       token,
       expires,
       expiresAt: new Date(expires * 1000).toISOString(),
+      note: 'Testing without token authentication',
     });
   } catch (error) {
     console.error('Error in play-token:', error);

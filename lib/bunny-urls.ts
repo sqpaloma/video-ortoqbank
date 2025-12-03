@@ -71,10 +71,14 @@ export class BunnyUrlBuilder {
    * Adiciona parâmetros token e expires à URL
    */
   getAuthenticatedUrl(baseUrl: string, token: string, expires: number): string {
-    const url = new URL(baseUrl);
-    url.searchParams.set('token', token);
-    url.searchParams.set('expires', expires.toString());
-    return url.toString();
+    // TEMPORÁRIO: Retornar URL SEM token para testar
+    // Token authentication parece estar desabilitado no Bunny
+    return baseUrl;
+    
+    // const url = new URL(baseUrl);
+    // url.searchParams.set('token', token);
+    // url.searchParams.set('expires', expires.toString());
+    // return url.toString();
   }
   
   /**
