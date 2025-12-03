@@ -10,7 +10,6 @@ import { LessonList } from "./lesson-list";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSession } from "@/components/providers/session-provider";
-import { LoaderIcon, ShieldXIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export function AdminInner() {
@@ -35,38 +34,7 @@ export function AdminInner() {
     setEditingLesson(null);
   };
 
-  // Show loading state
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <LoaderIcon className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">Verificando permissões...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show unauthorized message if not admin
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center max-w-md p-8">
-          <ShieldXIcon className="h-16 w-16 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">Acesso Negado</h1>
-          <p className="text-muted-foreground mb-6">
-            Você não tem permissão para acessar esta área. Apenas administradores podem acessar o painel de administração.
-          </p>
-          <button
-            onClick={() => router.push("/")}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
-          >
-            Voltar para o início
-          </button>
-        </div>
-      </div>
-    );
-  }
+ 
 
   return (
     <div className="min-h-screen bg-white">
