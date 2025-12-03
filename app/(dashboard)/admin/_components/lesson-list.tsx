@@ -1,11 +1,27 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, Trash2, Eye, EyeOff, CheckCircleIcon, LoaderIcon, XCircleIcon, ClockIcon, RefreshCw } from "lucide-react";
+import {
+  Edit,
+  Trash2,
+  Eye,
+  EyeOff,
+  CheckCircleIcon,
+  LoaderIcon,
+  XCircleIcon,
+  ClockIcon,
+  RefreshCw,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Id } from "@/convex/_generated/dataModel";
 
@@ -13,14 +29,14 @@ interface LessonListProps {
   onEditLesson?: (lesson: any) => void;
 }
 
-function LessonItem({ 
-  lesson, 
-  modules, 
-  onEditLesson, 
-  onDelete, 
-  onTogglePublish, 
+function LessonItem({
+  lesson,
+  modules,
+  onEditLesson,
+  onDelete,
+  onTogglePublish,
   onMarkVideoAsReady,
-  onCheckVideoStatus
+  onCheckVideoStatus,
 }: {
   lesson: any;
   modules: any[];
@@ -32,7 +48,7 @@ function LessonItem({
 }) {
   const video = useQuery(
     api.videos.getByVideoId,
-    lesson.videoId ? { videoId: lesson.videoId } : "skip"
+    lesson.videoId ? { videoId: lesson.videoId } : "skip",
   );
 
   const getVideoStatusBadge = () => {
@@ -71,14 +87,14 @@ function LessonItem({
   };
 
   const getModuleName = (moduleId: any) => {
-    const module = modules?.find(m => m._id === moduleId);
+    const module = modules?.find((m) => m._id === moduleId);
     return module?.title || "Módulo desconhecido";
   };
 
   const formatDuration = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
   return (
@@ -86,7 +102,10 @@ function LessonItem({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1 flex-wrap">
           <h3 className="font-semibold truncate">{lesson.title}</h3>
-          <Badge variant={lesson.isPublished ? "default" : "secondary"} className="shrink-0">
+          <Badge
+            variant={lesson.isPublished ? "default" : "secondary"}
+            className="shrink-0"
+          >
             {lesson.isPublished ? "Publicada" : "Rascunho"}
           </Badge>
           {lesson.videoId && getVideoStatusBadge()}
@@ -131,7 +150,9 @@ function LessonItem({
         <Button
           variant="outline"
           size="icon"
-          onClick={() => onTogglePublish(lesson._id, lesson.title, lesson.isPublished)}
+          onClick={() =>
+            onTogglePublish(lesson._id, lesson.title, lesson.isPublished)
+          }
           title={lesson.isPublished ? "Despublicar" : "Publicar"}
         >
           {lesson.isPublished ? (
@@ -163,7 +184,7 @@ function LessonItem({
   );
 }
 
-export function LessonList({ onEditLesson }: LessonListProps) {
+export function LessonList() {
   const lessons = useQuery(api.lessons.list);
   const modules = useQuery(api.modules.list);
   const deleteLesson = useMutation(api.lessons.remove);
@@ -178,7 +199,7 @@ export function LessonList({ onEditLesson }: LessonListProps) {
 
     try {
       await deleteLesson({ id });
-      
+
       toast({
         title: "Sucesso",
         description: "Aula deletada com sucesso!",
@@ -186,16 +207,21 @@ export function LessonList({ onEditLesson }: LessonListProps) {
     } catch (error) {
       toast({
         title: "Erro",
-        description: error instanceof Error ? error.message : "Erro ao deletar aula",
+        description:
+          error instanceof Error ? error.message : "Erro ao deletar aula",
         variant: "destructive",
       });
     }
   };
 
-  const handleTogglePublish = async (id: any, title: string, currentStatus: boolean) => {
+  const handleTogglePublish = async (
+    id: any,
+    title: string,
+    currentStatus: boolean,
+  ) => {
     try {
       const newStatus = await togglePublish({ id });
-      
+
       toast({
         title: "Sucesso",
         description: `Aula "${title}" ${newStatus ? "publicada" : "despublicada"} com sucesso!`,
@@ -203,13 +229,17 @@ export function LessonList({ onEditLesson }: LessonListProps) {
     } catch (error) {
       toast({
         title: "Erro",
-        description: error instanceof Error ? error.message : "Erro ao atualizar aula",
+        description:
+          error instanceof Error ? error.message : "Erro ao atualizar aula",
         variant: "destructive",
       });
     }
   };
 
-  const handleMarkVideoAsReady = async (videoId: string, lessonTitle: string) => {
+  const handleMarkVideoAsReady = async (
+    videoId: string,
+    lessonTitle: string,
+  ) => {
     try {
       await markVideoAsReady({ videoId });
       toast({
@@ -219,24 +249,28 @@ export function LessonList({ onEditLesson }: LessonListProps) {
     } catch (error) {
       toast({
         title: "Erro",
-        description: error instanceof Error ? error.message : "Erro ao atualizar vídeo",
+        description:
+          error instanceof Error ? error.message : "Erro ao atualizar vídeo",
         variant: "destructive",
       });
     }
   };
 
-  const handleCheckVideoStatus = async (videoId: string, lessonTitle: string) => {
+  const handleCheckVideoStatus = async (
+    videoId: string,
+    lessonTitle: string,
+  ) => {
     try {
-      const response = await fetch('/api/bunny/check-video-status', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/bunny/check-video-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ videoId }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Erro ao verificar status');
+        throw new Error(data.error || "Erro ao verificar status");
       }
 
       toast({
@@ -246,7 +280,10 @@ export function LessonList({ onEditLesson }: LessonListProps) {
     } catch (error) {
       toast({
         title: "Erro",
-        description: error instanceof Error ? error.message : "Erro ao verificar status do vídeo",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Erro ao verificar status do vídeo",
         variant: "destructive",
       });
     }
@@ -267,14 +304,15 @@ export function LessonList({ onEditLesson }: LessonListProps) {
       <CardContent>
         <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
           {lessons.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhuma aula cadastrada ainda.</p>
+            <p className="text-sm text-muted-foreground">
+              Nenhuma aula cadastrada ainda.
+            </p>
           ) : (
             lessons.map((lesson) => (
               <LessonItem
                 key={lesson._id}
                 lesson={lesson}
                 modules={modules || []}
-                onEditLesson={onEditLesson}
                 onDelete={handleDelete}
                 onTogglePublish={handleTogglePublish}
                 onMarkVideoAsReady={handleMarkVideoAsReady}
@@ -287,4 +325,3 @@ export function LessonList({ onEditLesson }: LessonListProps) {
     </Card>
   );
 }
-

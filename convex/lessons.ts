@@ -23,7 +23,7 @@ export const list = query({
       isPublished: v.boolean(),
       tags: v.optional(v.array(v.string())),
       videoId: v.optional(v.string()),
-    })
+    }),
   ),
   handler: async (ctx) => {
     const lessons = await ctx.db.query("lessons").collect();
@@ -51,13 +51,13 @@ export const listByModule = query({
       isPublished: v.boolean(),
       tags: v.optional(v.array(v.string())),
       videoId: v.optional(v.string()),
-    })
+    }),
   ),
   handler: async (ctx, args) => {
     const lessons = await ctx.db
       .query("lessons")
-      .withIndex("by_moduleId_and_order", (q) => 
-        q.eq("moduleId", args.moduleId)
+      .withIndex("by_moduleId_and_order", (q) =>
+        q.eq("moduleId", args.moduleId),
       )
       .collect();
 
@@ -85,18 +85,18 @@ export const listPublishedByModule = query({
       isPublished: v.boolean(),
       tags: v.optional(v.array(v.string())),
       videoId: v.optional(v.string()),
-    })
+    }),
   ),
   handler: async (ctx, args) => {
     const lessons = await ctx.db
       .query("lessons")
-      .withIndex("by_moduleId_and_order", (q) => 
-        q.eq("moduleId", args.moduleId)
+      .withIndex("by_moduleId_and_order", (q) =>
+        q.eq("moduleId", args.moduleId),
       )
       .collect();
 
     // Filtrar apenas as publicadas
-    return lessons.filter(lesson => lesson.isPublished);
+    return lessons.filter((lesson) => lesson.isPublished);
   },
 });
 
@@ -121,7 +121,7 @@ export const getById = query({
       tags: v.optional(v.array(v.string())),
       videoId: v.optional(v.string()),
     }),
-    v.null()
+    v.null(),
   ),
   handler: async (ctx, args) => {
     const lesson = await ctx.db.get(args.id);
@@ -150,7 +150,7 @@ export const getBySlug = query({
       tags: v.optional(v.array(v.string())),
       videoId: v.optional(v.string()),
     }),
-    v.null()
+    v.null(),
   ),
   handler: async (ctx, args) => {
     const lesson = await ctx.db
@@ -172,7 +172,7 @@ export const create = mutation({
     bunnyStoragePath: v.optional(v.string()),
     publicUrl: v.optional(v.string()),
     thumbnailUrl: v.optional(v.string()),
-    durationSeconds: v.number(),
+    durationSeconds: v.optional(v.number()),
     order_index: v.number(),
     lessonNumber: v.number(),
     isPublished: v.boolean(),
@@ -199,7 +199,7 @@ export const create = mutation({
       bunnyStoragePath: args.bunnyStoragePath,
       publicUrl: args.publicUrl,
       thumbnailUrl: args.thumbnailUrl,
-      durationSeconds: args.durationSeconds,
+      durationSeconds: args.durationSeconds || 0,
       order_index: args.order_index,
       lessonNumber: args.lessonNumber,
       isPublished: args.isPublished,
@@ -217,7 +217,9 @@ export const create = mutation({
 
     // Atualizar contentStats se a lesson foi publicada
     if (args.isPublished) {
-      await ctx.scheduler.runAfter(0, internal.contentStats.incrementLessons, { amount: 1 });
+      await ctx.scheduler.runAfter(0, internal.contentStats.incrementLessons, {
+        amount: 1,
+      });
     }
 
     return lessonId;
@@ -235,7 +237,7 @@ export const update = mutation({
     bunnyStoragePath: v.optional(v.string()),
     publicUrl: v.optional(v.string()),
     thumbnailUrl: v.optional(v.string()),
-    durationSeconds: v.number(),
+    durationSeconds: v.optional(v.number()),
     order_index: v.number(),
     lessonNumber: v.number(),
     isPublished: v.boolean(),
@@ -267,7 +269,7 @@ export const update = mutation({
       bunnyStoragePath: args.bunnyStoragePath,
       publicUrl: args.publicUrl,
       thumbnailUrl: args.thumbnailUrl,
-      durationSeconds: args.durationSeconds,
+      durationSeconds: args.durationSeconds || 0,
       order_index: args.order_index,
       lessonNumber: args.lessonNumber,
       isPublished: args.isPublished,
@@ -278,10 +280,14 @@ export const update = mutation({
     // Update contentStats if publish status changed
     if (!wasPublished && willBePublished) {
       // Was unpublished, now published
-      await ctx.scheduler.runAfter(0, internal.contentStats.incrementLessons, { amount: 1 });
+      await ctx.scheduler.runAfter(0, internal.contentStats.incrementLessons, {
+        amount: 1,
+      });
     } else if (wasPublished && !willBePublished) {
       // Was published, now unpublished
-      await ctx.scheduler.runAfter(0, internal.contentStats.decrementLessons, { amount: 1 });
+      await ctx.scheduler.runAfter(0, internal.contentStats.decrementLessons, {
+        amount: 1,
+      });
     }
 
     return null;
@@ -296,7 +302,7 @@ export const remove = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     const lesson = await ctx.db.get(args.id);
-    
+
     if (!lesson) {
       throw new Error("Aula não encontrada");
     }
@@ -315,7 +321,9 @@ export const remove = mutation({
 
     // Update contentStats if lesson was published
     if (wasPublished) {
-      await ctx.scheduler.runAfter(0, internal.contentStats.decrementLessons, { amount: 1 });
+      await ctx.scheduler.runAfter(0, internal.contentStats.decrementLessons, {
+        amount: 1,
+      });
     }
 
     return null;
@@ -330,7 +338,7 @@ export const togglePublish = mutation({
   returns: v.boolean(),
   handler: async (ctx, args) => {
     const lesson = await ctx.db.get(args.id);
-    
+
     if (!lesson) {
       throw new Error("Aula não encontrada");
     }
@@ -344,13 +352,16 @@ export const togglePublish = mutation({
     // Update contentStats
     if (newPublishStatus) {
       // Now published
-      await ctx.scheduler.runAfter(0, internal.contentStats.incrementLessons, { amount: 1 });
+      await ctx.scheduler.runAfter(0, internal.contentStats.incrementLessons, {
+        amount: 1,
+      });
     } else {
       // Now unpublished
-      await ctx.scheduler.runAfter(0, internal.contentStats.decrementLessons, { amount: 1 });
+      await ctx.scheduler.runAfter(0, internal.contentStats.decrementLessons, {
+        amount: 1,
+      });
     }
 
     return newPublishStatus;
   },
 });
-

@@ -1,41 +1,15 @@
 "use client";
 
-import { useState } from "react";
 import { CategoryForm } from "./category-form";
 import { CategoryList } from "./category-list";
 import { ModuleForm } from "./module-form";
 import { ModuleList } from "./module-list";
-import { LessonFormV2 } from "./lesson-form-v2";
+import { LessonForm } from "././lesson-form";
 import { LessonList } from "./lesson-list";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useSession } from "@/components/providers/session-provider";
-import { useRouter } from "next/navigation";
 
 export function AdminInner() {
-  const { isAdmin, isLoading } = useSession();
-  const router = useRouter();
-  const [editingLesson, setEditingLesson] = useState<any>(null);
-
-  const handleEditLesson = (lesson: any) => {
-    setEditingLesson(lesson);
-    // Scroll to form
-    const lessonForm = document.querySelector('[data-lesson-form]');
-    if (lessonForm) {
-      lessonForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
-
-  const handleLessonSuccess = () => {
-    setEditingLesson(null);
-  };
-
-  const handleCancelEdit = () => {
-    setEditingLesson(null);
-  };
-
- 
-
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -57,7 +31,9 @@ export function AdminInner() {
             {/* Categorias */}
             <TabsContent value="categories">
               <div className="mb-6">
-                <h2 className="text-xl font-semibold mb-2">Gerenciar Categorias</h2>
+                <h2 className="text-xl font-semibold mb-2">
+                  Gerenciar Categorias
+                </h2>
                 <p className="text-muted-foreground">
                   Adicione, edite ou remova categorias do sistema
                 </p>
@@ -75,7 +51,9 @@ export function AdminInner() {
             {/* Módulos */}
             <TabsContent value="modules">
               <div className="mb-6">
-                <h2 className="text-xl font-semibold mb-2">Gerenciar Módulos</h2>
+                <h2 className="text-xl font-semibold mb-2">
+                  Gerenciar Módulos
+                </h2>
                 <p className="text-muted-foreground">
                   Adicione, edite ou remova módulos do sistema
                 </p>
@@ -94,20 +72,13 @@ export function AdminInner() {
             <TabsContent value="lessons">
               <div className="mb-6">
                 <h2 className="text-xl font-semibold mb-2">Gerenciar Aulas</h2>
-                <p className="text-muted-foreground">
-                  {editingLesson ? `Editando: ${editingLesson.title}` : "Adicione, edite ou remova aulas do sistema"}
-                </p>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div data-lesson-form>
-                  <LessonFormV2 
-                    editingLesson={editingLesson}
-                    onSuccess={handleLessonSuccess}
-                    onCancelEdit={handleCancelEdit}
-                  />
+                  <LessonForm />
                 </div>
                 <div>
-                  <LessonList onEditLesson={handleEditLesson} />
+                  <LessonList />
                 </div>
               </div>
             </TabsContent>
@@ -117,4 +88,3 @@ export function AdminInner() {
     </div>
   );
 }
-
