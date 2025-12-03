@@ -67,6 +67,7 @@ export function LessonFormV2({ onSuccess, editingLesson, onCancelEdit }: LessonF
   const modules = useQuery(api.modules.list);
   const createLesson = useMutation(api.lessons.create);
   const updateLesson = useMutation(api.lessons.update);
+  const updateVideo = useMutation(api.videos.update);
   const { toast } = useToast();
 
   // Carregar dados se estiver editando
@@ -203,40 +204,51 @@ export function LessonFormV2({ onSuccess, editingLesson, onCancelEdit }: LessonF
             setUploadProgress(100);
             setIsUploading(false);
             
-            // Buscar informações do vídeo do Bunny
-            try {
-              const infoResponse = await fetch(
-                `/api/bunny/get-video-info?videoId=${encodeURIComponent(createData.videoId)}&libraryId=${encodeURIComponent(createData.libraryId)}`
-              );
-              
-              if (infoResponse.ok) {
-                const videoData = await infoResponse.json();
-                
-                console.log('Video info from Bunny:', videoData);
-                
-                // Atualizar estado com informações reais do Bunny
-                if (videoData.urls?.thumbnail) {
-                  setThumbnailUrl(videoData.urls.thumbnail);
+            // Buscar informações do vídeo do Bunny (não-bloqueante)
+            // Fire-and-forget: não aguardar conclusão para não atrasar o usuário
+            fetch(
+              `/api/bunny/get-video-info?videoId=${encodeURIComponent(createData.videoId)}&libraryId=${encodeURIComponent(createData.libraryId)}`
+            )
+              .then(async (infoResponse) => {
+                if (infoResponse.ok) {
+                  const videoData = await infoResponse.json();
+                  
+                  console.log('Video info from Bunny:', videoData);
+                  
+                  // Atualizar estado com informações reais do Bunny
+                  if (videoData.urls?.thumbnail) {
+                    setThumbnailUrl(videoData.urls.thumbnail);
+                  }
+                  if (videoData.urls?.hls) {
+                    setPublicUrl(videoData.urls.hls);
+                  }
+                  if (videoData.processed?.durationSeconds) {
+                    setDurationSeconds(videoData.processed.durationSeconds.toString());
+                  }
+                  
+                  // ✅ ATUALIZAR TABELA VIDEOS NO CONVEX (não-bloqueante)
+                  updateVideo({
+                    videoId: createData.videoId,
+                    thumbnailUrl: videoData.urls?.thumbnail,
+                    hlsUrl: videoData.urls?.hls,
+                    status: videoData.processed?.isReady ? 'ready' as const : 'processing' as const,
+                  })
+                    .then(() => console.log('✅ Tabela videos atualizada no Convex'))
+                    .catch((updateError) => console.error('Erro ao atualizar tabela videos:', updateError));
+                  
+                  // Mostrar informações extras no toast
+                  if (videoData.processed?.statusText) {
+                    toast({
+                      title: 'Informações do vídeo atualizadas',
+                      description: `Status: ${videoData.processed.statusText} | Duração: ${videoData.processed.durationSeconds}s`,
+                    });
+                  }
                 }
-                if (videoData.urls?.hls) {
-                  setPublicUrl(videoData.urls.hls);
-                }
-                if (videoData.processed?.durationSeconds) {
-                  setDurationSeconds(videoData.processed.durationSeconds.toString());
-                }
-                
-                // Mostrar informações extras no toast
-                if (videoData.processed?.statusText) {
-                  toast({
-                    title: 'Informações do vídeo atualizadas',
-                    description: `Status: ${videoData.processed.statusText} | Duração: ${videoData.processed.durationSeconds}s`,
-                  });
-                }
-              }
-            } catch (infoError) {
-              console.error('Erro ao buscar info do vídeo:', infoError);
-              // Não bloquear o fluxo se falhar
-            }
+              })
+              .catch((infoError) => {
+                console.error('Erro ao buscar info do vídeo:', infoError);
+                // Não bloquear o fluxo se falhar
+              });
             
             resolve();
           } else {

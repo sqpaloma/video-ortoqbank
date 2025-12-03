@@ -32,34 +32,59 @@ export async function GET(req: Request) {
     
     try {
       // Check access by Clerk user ID
+      console.log('🔐 [ACCESS CHECK] Checking access for user:', clerkUser.id);
+      
       const hasAccess = await convex.query(
         api.userAccess.checkUserHasVideoAccessByClerkId,
         { clerkUserId: clerkUser.id }
       );
       
+      console.log('🔐 [ACCESS CHECK] Result:', {
+        userId: clerkUser.id,
+        email: clerkUser.emailAddresses[0]?.emailAddress,
+        hasAccess,
+        environment: process.env.NODE_ENV,
+      });
+      
       if (!hasAccess) {
         // In development, log but allow access for testing
         // In production, strictly deny access
         if (process.env.NODE_ENV === 'production') {
+          console.error('❌ [ACCESS DENIED] User does not have access:', clerkUser.id);
           return NextResponse.json(
-            { error: 'Access denied. You need an active subscription.' },
+            { 
+              error: 'Access denied',
+              message: 'You need an active subscription to access videos.',
+              reason: 'no_access'
+            },
             { status: 403 }
           );
         } else {
-          console.warn(`Access denied for user ${clerkUser.id}, but allowing in development mode`);
+          console.warn(`⚠️ [DEV MODE] Access denied for user ${clerkUser.id}, but allowing in development mode`);
         }
+      } else {
+        console.log('✅ [ACCESS GRANTED] User has access:', clerkUser.id);
       }
     } catch (accessError) {
-      console.error('Error checking access:', accessError);
+      console.error('❌ [ACCESS CHECK ERROR]', {
+        error: accessError,
+        userId: clerkUser.id,
+        message: accessError instanceof Error ? accessError.message : 'Unknown error',
+      });
+      
       // In development, allow access if query fails (user might not exist yet)
       // In production, deny access on error
       if (process.env.NODE_ENV === 'production') {
         return NextResponse.json(
-          { error: 'Failed to verify access' },
+          { 
+            error: 'Failed to verify access',
+            message: 'Could not verify your subscription status. Please try again.',
+            reason: 'verification_error'
+          },
           { status: 500 }
         );
       } else {
-        console.warn('Access check failed, allowing in development mode');
+        console.warn('⚠️ [DEV MODE] Access check failed, allowing in development mode. Error:', accessError);
       }
     }
 

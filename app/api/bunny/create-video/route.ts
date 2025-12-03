@@ -32,6 +32,9 @@ export async function POST(req: Request) {
     const payload = {
       title,
       ...(description && { description }),
+      // ⚡ Otimizações para processamento mais rápido
+      videoCodec: 'h264', // H.264 processa mais rápido que H.265
+      quality: 'medium',   // Qualidade média = mais rápido
     };
 
     // Create video object in Bunny

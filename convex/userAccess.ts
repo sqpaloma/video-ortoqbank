@@ -216,26 +216,62 @@ export const checkUserHasVideoAccessById = query({
 /**
  * Check if a user has video access by Clerk user ID (for API routes)
  * This is a public query that can be called from server-side API routes
- * Note: In production, you might want to add additional security checks
+ * 
+ * Returns true only if:
+ * 1. User exists in Convex (synced from Clerk)
+ * 2. User status is "active"
+ * 3. User has paid (paid = true)
+ * 4. User has active year access (hasActiveYearAccess = true)
  */
 export const checkUserHasVideoAccessByClerkId = query({
   args: { clerkUserId: v.string() },
   returns: v.boolean(),
   handler: async (ctx, args) => {
+    console.log('🔍 [CONVEX] Checking video access for Clerk user:', args.clerkUserId);
+    
     const user = await ctx.db
       .query("users")
       .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", args.clerkUserId))
       .unique();
 
     if (!user) {
+      console.error('❌ [CONVEX] User not found in database:', args.clerkUserId);
+      console.error('💡 [CONVEX] Possible reasons:');
+      console.error('   1. User just signed up and Clerk webhook hasn\'t synced yet');
+      console.error('   2. Clerk webhook is not configured');
+      console.error('   3. User was deleted from Convex');
       return false;
     }
 
-    return (
+    const hasAccess = (
       user.status === "active" &&
       user.paid === true &&
       user.hasActiveYearAccess === true
     );
+
+    console.log('🔍 [CONVEX] User access check result:', {
+      userId: user._id,
+      clerkUserId: args.clerkUserId,
+      email: user.email,
+      status: user.status,
+      paid: user.paid,
+      hasActiveYearAccess: user.hasActiveYearAccess,
+      hasAccess,
+    });
+
+    if (!hasAccess) {
+      console.warn('⚠️ [CONVEX] User does not have access. Details:', {
+        reason: !user.paid 
+          ? 'User has not paid'
+          : !user.hasActiveYearAccess
+          ? 'User does not have active year access'
+          : user.status !== 'active'
+          ? `User status is "${user.status}" (expected "active")`
+          : 'Unknown reason',
+      });
+    }
+
+    return hasAccess;
   },
 });
 
