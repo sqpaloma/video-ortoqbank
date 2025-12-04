@@ -10,10 +10,26 @@ export async function uploadVideoToBunny(formData: FormData) {
     const libraryId = formData.get("libraryId") as string;
     const file = formData.get("file") as File;
 
+    console.log("Server Action received:", {
+      videoId,
+      libraryId,
+      hasFile: !!file,
+      fileName: file?.name,
+      fileSize: file?.size,
+      fileType: file?.type,
+    });
+
     if (!videoId || !libraryId || !file) {
       return {
         success: false,
         error: "videoId, libraryId, and file are required",
+      };
+    }
+
+    if (!file.size || file.size === 0) {
+      return {
+        success: false,
+        error: "File is empty or invalid",
       };
     }
 
@@ -29,13 +45,23 @@ export async function uploadVideoToBunny(formData: FormData) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Upload to Bunny
+    console.log("Uploading video to Bunny:", {
+      videoId,
+      libraryId,
+      fileSize: buffer.length,
+      fileName: file.name,
+      fileType: file.type,
+    });
+
+    // Upload to Bunny with proper headers
     const response = await fetch(
       `https://video.bunnycdn.com/library/${libraryId}/videos/${videoId}`,
       {
         method: "PUT",
         headers: {
           AccessKey: apiKey,
+          "Content-Type": "application/octet-stream",
+          "Content-Length": buffer.length.toString(),
         },
         body: buffer,
       },
@@ -43,19 +69,28 @@ export async function uploadVideoToBunny(formData: FormData) {
 
     if (!response.ok) {
       const errorText = await response.text();
+      console.error("Bunny upload failed:", {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText,
+      });
       return {
         success: false,
-        error: "Bunny upload failed",
+        error: `Bunny upload failed: ${response.status} ${response.statusText}`,
         detail: errorText,
       };
     }
 
-    const result = await response.json();
+    // Bunny upload API returns success without body on successful upload
+    console.log("Video uploaded successfully to Bunny:", {
+      status: response.status,
+      videoId,
+      libraryId,
+    });
 
     return {
       success: true,
       message: "Video uploaded successfully",
-      result,
     };
   } catch (error) {
     return {

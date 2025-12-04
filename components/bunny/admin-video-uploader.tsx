@@ -101,8 +101,10 @@ export default function AdminVideoUploader({
 
       const uploadResult = await uploadVideoToBunny(formData);
 
+      console.log("Upload result:", uploadResult);
+
       if (!uploadResult.success) {
-        throw new Error("Falha no upload");
+        throw new Error(uploadResult.error || "Falha no upload");
       }
 
       toast({
