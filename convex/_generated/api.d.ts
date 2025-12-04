@@ -11,6 +11,7 @@
 import type * as categories from "../categories.js";
 import type * as contentStats from "../contentStats.js";
 import type * as favorites from "../favorites.js";
+import type * as http from "../http.js";
 import type * as lessons from "../lessons.js";
 import type * as modules from "../modules.js";
 import type * as myFunctions from "../myFunctions.js";
@@ -32,6 +33,7 @@ declare const fullApi: ApiFromModules<{
   categories: typeof categories;
   contentStats: typeof contentStats;
   favorites: typeof favorites;
+  http: typeof http;
   lessons: typeof lessons;
   modules: typeof modules;
   myFunctions: typeof myFunctions;

@@ -1,12 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload, Video, CheckCircle2 } from "lucide-react";
+import { Video, CheckCircle2 } from "lucide-react";
 import * as z from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -32,70 +32,179 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupText,
-  InputGroupTextarea,
-} from "@/components/ui/input-group";
+import { Id } from "@/convex/_generated/dataModel";
 
 const formSchema = z.object({
-  moduleId: z.string().min(1),
-  title: z.string().min(1),
-  description: z.string().min(1),
-  durationSeconds: z.number().min(1),
-  orderIndex: z.number().min(1),
-  tags: z.array(z.string()).min(1),
+  moduleId: z.string().min(1, "Selecione um módulo"),
+  title: z.string().min(3, "Título deve ter pelo menos 3 caracteres"),
+  description: z
+    .string()
+    .min(10, "Descrição deve ter pelo menos 10 caracteres"),
+  durationSeconds: z.number().min(1, "Duração deve ser maior que 0"),
+  orderIndex: z.number().min(0, "Ordem deve ser 0 ou maior"),
+  lessonNumber: z.number().min(1, "Número da aula deve ser maior que 0"),
+  tags: z.string().optional(),
+  videoId: z.string().optional(),
 });
 
 export function LessonForm() {
   const modules = useQuery(api.modules.list);
   const createLesson = useMutation(api.lessons.create);
-  const updateLesson = useMutation(api.lessons.update);
-  const updateVideo = useMutation(api.videos.update);
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [createdLessonId, setCreatedLessonId] = useState<Id<"lessons"> | null>(
+    null,
+  );
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       description: "",
+      durationSeconds: 0,
+      orderIndex: 0,
+      lessonNumber: 1,
+      tags: "",
+      videoId: "",
     },
   });
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
-    toast({
-      title: "Sucesso",
-      description: "Aula criada com sucesso!",
-    });
-    console.log(data);
+  // Generate slug from title
+  const generateSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .trim();
+  };
+
+  async function onSubmit(data: z.infer<typeof formSchema>) {
+    setIsSubmitting(true);
+    try {
+      const slug = generateSlug(data.title);
+      const tagsArray = data.tags
+        ? data.tags
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter(Boolean)
+        : [];
+
+      const lessonId = await createLesson({
+        moduleId: data.moduleId as Id<"modules">,
+        title: data.title,
+        slug,
+        description: data.description,
+        durationSeconds: data.durationSeconds,
+        order_index: data.orderIndex,
+        lessonNumber: data.lessonNumber,
+        isPublished: false,
+        tags: tagsArray.length > 0 ? tagsArray : undefined,
+        videoId: data.videoId || undefined,
+      });
+
+      setCreatedLessonId(lessonId);
+
+      toast({
+        title: "✅ Aula criada com sucesso!",
+        description: `${data.title} foi criada. ${data.videoId ? "Vídeo vinculado!" : "Agora você pode fazer upload do vídeo."}`,
+      });
+
+      form.reset();
+    } catch (error) {
+      toast({
+        title: "❌ Erro ao criar aula",
+        description:
+          error instanceof Error ? error.message : "Erro desconhecido",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  if (!modules) {
+    return <div className="p-4">Carregando módulos...</div>;
   }
 
   return (
-    <Card className="w-full sm:max-w-md">
+    <Card className="w-full">
       <CardHeader>
-        <CardTitle>Bug Report</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Video className="h-5 w-5" />
+          Criar Nova Aula
+        </CardTitle>
         <CardDescription>
-          Help us improve by reporting bugs you encounter.
+          Preencha os dados da aula. Você poderá fazer upload do vídeo após
+          criar a aula.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form id="form-rhf-demo" onSubmit={form.handleSubmit(onSubmit)}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FieldGroup>
+            {/* Module Selection */}
+            <Controller
+              name="moduleId"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>Módulo</FieldLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione um módulo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {modules.map((module) => (
+                        <SelectItem key={module._id} value={module._id}>
+                          {module.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+
+            {/* Title */}
             <Controller
               name="title"
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="form-rhf-demo-title">
-                    Bug Title
-                  </FieldLabel>
+                  <FieldLabel>Título da Aula</FieldLabel>
                   <Input
                     {...field}
-                    id="form-rhf-demo-title"
-                    aria-invalid={fieldState.invalid}
-                    placeholder="Login button not working on mobile"
+                    placeholder="Ex: Introdução à Anatomia do Joelho"
                     autoComplete="off"
+                  />
+                  <FieldDescription>
+                    Slug será gerado automaticamente:{" "}
+                    {generateSlug(field.value || "")}
+                  </FieldDescription>
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+
+            {/* Description */}
+            <Controller
+              name="description"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>Descrição</FieldLabel>
+                  <Textarea
+                    {...field}
+                    placeholder="Descreva o conteúdo da aula..."
+                    rows={4}
+                    className="resize-none"
                   />
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
@@ -103,32 +212,114 @@ export function LessonForm() {
                 </Field>
               )}
             />
+
+            {/* Lesson Number and Order */}
+            <div className="grid grid-cols-2 gap-4">
+              <Controller
+                name="lessonNumber"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel>Número da Aula</FieldLabel>
+                    <Input
+                      {...field}
+                      type="number"
+                      min={1}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+
+              <Controller
+                name="orderIndex"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel>Ordem</FieldLabel>
+                    <Input
+                      {...field}
+                      type="number"
+                      min={0}
+                      onChange={(e) =>
+                        field.onChange(parseInt(e.target.value) || 0)
+                      }
+                    />
+                    <FieldDescription>Ordem de exibição</FieldDescription>
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+            </div>
+
+            {/* Duration */}
             <Controller
-              name="description"
+              name="durationSeconds"
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="form-rhf-demo-description">
-                    Description
-                  </FieldLabel>
-                  <InputGroup>
-                    <InputGroupTextarea
-                      {...field}
-                      id="form-rhf-demo-description"
-                      placeholder="I'm having an issue with the login button on mobile."
-                      rows={6}
-                      className="min-h-24 resize-none"
-                      aria-invalid={fieldState.invalid}
-                    />
-                    <InputGroupAddon align="block-end">
-                      <InputGroupText className="tabular-nums">
-                        {field.value.length}/100 characters
-                      </InputGroupText>
-                    </InputGroupAddon>
-                  </InputGroup>
+                  <FieldLabel>Duração (segundos)</FieldLabel>
+                  <Input
+                    {...field}
+                    type="number"
+                    min={0}
+                    placeholder="Ex: 600 (10 minutos)"
+                    onChange={(e) =>
+                      field.onChange(parseInt(e.target.value) || 0)
+                    }
+                  />
                   <FieldDescription>
-                    Include steps to reproduce, expected behavior, and what
-                    actually happened.
+                    {field.value > 0 &&
+                      `≈ ${Math.floor(field.value / 60)} minutos`}
+                  </FieldDescription>
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+
+            {/* Tags */}
+            <Controller
+              name="tags"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>Tags (opcional)</FieldLabel>
+                  <Input
+                    {...field}
+                    placeholder="anatomia, joelho, ortopedia"
+                    autoComplete="off"
+                  />
+                  <FieldDescription>Separe por vírgulas</FieldDescription>
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+
+            {/* Video ID (optional - will be added after upload) */}
+            <Controller
+              name="videoId"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>Video ID (opcional)</FieldLabel>
+                  <Input
+                    {...field}
+                    placeholder="Deixe em branco se for fazer upload depois"
+                    autoComplete="off"
+                  />
+                  <FieldDescription>
+                    ID do vídeo já existente no Bunny (se houver)
                   </FieldDescription>
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
@@ -137,18 +328,41 @@ export function LessonForm() {
               )}
             />
           </FieldGroup>
+
+          {/* Submit Button */}
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => form.reset()}
+              disabled={isSubmitting}
+            >
+              Limpar
+            </Button>
+            <Button type="submit" disabled={isSubmitting} className="flex-1">
+              {isSubmitting ? (
+                "Criando..."
+              ) : createdLessonId ? (
+                <>
+                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                  Aula Criada!
+                </>
+              ) : (
+                "Criar Aula"
+              )}
+            </Button>
+          </div>
         </form>
+
+        {createdLessonId && (
+          <div className="mt-6 rounded-lg border border-green-500/20 bg-green-500/10 p-4">
+            <p className="text-sm text-green-700 dark:text-green-400">
+              ✅ Aula criada com sucesso! Agora você pode fazer upload do vídeo
+              na lista de aulas abaixo.
+            </p>
+          </div>
+        )}
       </CardContent>
-      <CardFooter>
-        <Field orientation="horizontal">
-          <Button type="button" variant="outline" onClick={() => form.reset()}>
-            Reset
-          </Button>
-          <Button type="submit" form="form-rhf-demo">
-            Submit
-          </Button>
-        </Field>
-      </CardFooter>
     </Card>
   );
 }

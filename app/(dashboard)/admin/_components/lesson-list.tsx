@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,6 +9,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useToast } from "@/hooks/use-toast";
@@ -21,9 +29,11 @@ import {
   XCircleIcon,
   ClockIcon,
   RefreshCw,
+  Upload,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Id } from "@/convex/_generated/dataModel";
+import AdminVideoUploader from "@/components/bunny/admin-video-uploader";
 
 interface LessonListProps {
   onEditLesson?: (lesson: any) => void;
@@ -37,6 +47,7 @@ function LessonItem({
   onTogglePublish,
   onMarkVideoAsReady,
   onCheckVideoStatus,
+  onUploadVideo,
 }: {
   lesson: any;
   modules: any[];
@@ -45,6 +56,7 @@ function LessonItem({
   onTogglePublish: (id: any, title: string, currentStatus: boolean) => void;
   onMarkVideoAsReady: (videoId: string, lessonTitle: string) => void;
   onCheckVideoStatus: (videoId: string, lessonTitle: string) => Promise<void>;
+  onUploadVideo: (lesson: any) => void;
 }) {
   const video = useQuery(
     api.videos.getByVideoId,
@@ -123,6 +135,18 @@ function LessonItem({
         </div>
       </div>
       <div className="flex gap-2 shrink-0 flex-wrap">
+        {!lesson.videoId && (
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => onUploadVideo(lesson)}
+            title="Fazer upload de vídeo"
+            className="text-xs"
+          >
+            <Upload className="h-3 w-3 mr-1" />
+            Upload Vídeo
+          </Button>
+        )}
         {lesson.videoId && video && video.status !== "ready" && (
           <>
             <Button
@@ -190,7 +214,10 @@ export function LessonList() {
   const deleteLesson = useMutation(api.lessons.remove);
   const togglePublish = useMutation(api.lessons.togglePublish);
   const markVideoAsReady = useMutation(api.videos.markAsReady);
+  const updateLesson = useMutation(api.lessons.update);
   const { toast } = useToast();
+
+  const [uploadingLesson, setUploadingLesson] = useState<any | null>(null);
 
   const handleDelete = async (id: any, title: string) => {
     if (!confirm(`Tem certeza que deseja deletar a aula "${title}"?`)) {
@@ -289,39 +316,97 @@ export function LessonList() {
     }
   };
 
+  const handleUploadVideo = (lesson: any) => {
+    setUploadingLesson(lesson);
+  };
+
+  const handleVideoUploadSuccess = async (videoData: {
+    videoId: string;
+    libraryId: string;
+  }) => {
+    if (!uploadingLesson) return;
+
+    try {
+      await updateLesson({
+        id: uploadingLesson._id,
+        moduleId: uploadingLesson.moduleId,
+        title: uploadingLesson.title,
+        slug: uploadingLesson.slug,
+        description: uploadingLesson.description,
+        durationSeconds: uploadingLesson.durationSeconds,
+        order_index: uploadingLesson.order_index,
+        lessonNumber: uploadingLesson.lessonNumber,
+        isPublished: uploadingLesson.isPublished,
+        tags: uploadingLesson.tags,
+        videoId: videoData.videoId,
+      });
+
+      toast({
+        title: "✅ Vídeo vinculado!",
+        description: `Vídeo associado à aula "${uploadingLesson.title}"`,
+      });
+
+      setUploadingLesson(null);
+    } catch (error) {
+      toast({
+        title: "Erro ao vincular vídeo",
+        description:
+          error instanceof Error ? error.message : "Erro desconhecido",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (lessons === undefined || modules === undefined) {
     return <div>Carregando...</div>;
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Aulas Cadastradas</CardTitle>
-        <CardDescription>
-          {lessons.length} {lessons.length === 1 ? "aula" : "aulas"} no sistema
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
-          {lessons.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Nenhuma aula cadastrada ainda.
-            </p>
-          ) : (
-            lessons.map((lesson) => (
-              <LessonItem
-                key={lesson._id}
-                lesson={lesson}
-                modules={modules || []}
-                onDelete={handleDelete}
-                onTogglePublish={handleTogglePublish}
-                onMarkVideoAsReady={handleMarkVideoAsReady}
-                onCheckVideoStatus={handleCheckVideoStatus}
-              />
-            ))
-          )}
-        </div>
-      </CardContent>
-    </Card>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Aulas Cadastradas</CardTitle>
+          <CardDescription>
+            {lessons.length} {lessons.length === 1 ? "aula" : "aulas"} no
+            sistema
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
+            {lessons.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Nenhuma aula cadastrada ainda.
+              </p>
+            ) : (
+              lessons.map((lesson) => (
+                <LessonItem
+                  key={lesson._id}
+                  lesson={lesson}
+                  modules={modules || []}
+                  onDelete={handleDelete}
+                  onTogglePublish={handleTogglePublish}
+                  onMarkVideoAsReady={handleMarkVideoAsReady}
+                  onCheckVideoStatus={handleCheckVideoStatus}
+                  onUploadVideo={handleUploadVideo}
+                />
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Video Upload Dialog */}
+      <Dialog
+        open={!!uploadingLesson}
+        onOpenChange={(open) => !open && setUploadingLesson(null)}
+      >
+        <DialogContent className="max-w-2xl">
+          <AdminVideoUploader
+            lessonTitle={uploadingLesson?.title || ""}
+            onSuccess={handleVideoUploadSuccess}
+          />
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
