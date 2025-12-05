@@ -303,10 +303,21 @@ export function ModulesInner({
                 <Button
                   onClick={handleMarkCompleted}
                   variant={isLessonCompleted ? "outline" : "default"}
-                  className="flex-1"
+                  className={cn(
+                    "flex-1",
+                    isLessonCompleted && "bg-green-500 text-white hover:bg-green-600 border-green-500"
+                  )}
                 >
                   <CheckCircleIcon size={18} className="mr-2" />
                   {isLessonCompleted ? "Concluída" : "Marcar como concluída"}
+                </Button>
+                <Button
+                  onClick={handleNextLesson}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Próxima aula
+                  <ChevronRightIcon size={18} className="ml-2" />
                 </Button>
                 <Button onClick={handleToggleFavorite} variant="outline">
                   <StarIcon
@@ -317,16 +328,6 @@ export function ModulesInner({
                   />
                 </Button>
               </div>
-
-              {/* Next Lesson Button */}
-              <Button
-                onClick={handleNextLesson}
-                variant="outline"
-                className="w-full"
-              >
-                Próxima aula
-                <ChevronRightIcon size={18} className="ml-2" />
-              </Button>
             </div>
           ) : (
             <div className="flex items-center justify-center h-full">
