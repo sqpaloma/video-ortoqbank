@@ -11,11 +11,13 @@
 import type * as categories from "../categories.js";
 import type * as contentStats from "../contentStats.js";
 import type * as favorites from "../favorites.js";
+import type * as feedback from "../feedback.js";
 import type * as http from "../http.js";
 import type * as lessons from "../lessons.js";
 import type * as modules from "../modules.js";
 import type * as myFunctions from "../myFunctions.js";
 import type * as progress from "../progress.js";
+import type * as ratings from "../ratings.js";
 import type * as recentViews from "../recentViews.js";
 import type * as seed from "../seed.js";
 import type * as userAccess from "../userAccess.js";
@@ -33,11 +35,13 @@ declare const fullApi: ApiFromModules<{
   categories: typeof categories;
   contentStats: typeof contentStats;
   favorites: typeof favorites;
+  feedback: typeof feedback;
   http: typeof http;
   lessons: typeof lessons;
   modules: typeof modules;
   myFunctions: typeof myFunctions;
   progress: typeof progress;
+  ratings: typeof ratings;
   recentViews: typeof recentViews;
   seed: typeof seed;
   userAccess: typeof userAccess;

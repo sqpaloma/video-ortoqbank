@@ -1,0 +1,93 @@
+import { v } from "convex/values";
+import { mutation, query } from "./_generated/server";
+import { Id } from "./_generated/dataModel";
+
+/**
+ * Submit feedback for a lesson
+ */
+export const submitFeedback = mutation({
+  args: {
+    userId: v.string(), // clerkUserId
+    lessonId: v.id("lessons"),
+    moduleId: v.id("modules"),
+    feedback: v.string(),
+  },
+  returns: v.id("lessonFeedback"),
+  handler: async (ctx, args) => {
+    if (!args.feedback || args.feedback.trim().length === 0) {
+      throw new Error("Feedback não pode estar vazio");
+    }
+
+    const feedbackId = await ctx.db.insert("lessonFeedback", {
+      userId: args.userId,
+      lessonId: args.lessonId,
+      moduleId: args.moduleId,
+      feedback: args.feedback.trim(),
+      createdAt: Date.now(),
+    });
+
+    return feedbackId;
+  },
+});
+
+/**
+ * Get feedback for a lesson
+ */
+export const getFeedbackByLesson = query({
+  args: {
+    lessonId: v.id("lessons"),
+  },
+  returns: v.array(
+    v.object({
+      _id: v.id("lessonFeedback"),
+      _creationTime: v.number(),
+      userId: v.string(),
+      lessonId: v.id("lessons"),
+      moduleId: v.id("modules"),
+      feedback: v.string(),
+      createdAt: v.number(),
+    })
+  ),
+  handler: async (ctx, args) => {
+    const feedbacks = await ctx.db
+      .query("lessonFeedback")
+      .withIndex("by_lessonId", (q) => q.eq("lessonId", args.lessonId))
+      .order("desc")
+      .collect();
+
+    return feedbacks;
+  },
+});
+
+/**
+ * Get user's feedback for a lesson
+ */
+export const getUserFeedback = query({
+  args: {
+    userId: v.string(),
+    lessonId: v.id("lessons"),
+  },
+  returns: v.union(
+    v.object({
+      _id: v.id("lessonFeedback"),
+      _creationTime: v.number(),
+      userId: v.string(),
+      lessonId: v.id("lessons"),
+      moduleId: v.id("modules"),
+      feedback: v.string(),
+      createdAt: v.number(),
+    }),
+    v.null()
+  ),
+  handler: async (ctx, args) => {
+    const feedback = await ctx.db
+      .query("lessonFeedback")
+      .withIndex("by_userId_and_lessonId", (q) =>
+        q.eq("userId", args.userId).eq("lessonId", args.lessonId)
+      )
+      .first();
+
+    return feedback || null;
+  },
+});
+

@@ -170,4 +170,28 @@ export default defineSchema({
     totalCategories: v.number(), // total categories
     updatedAt: v.number(), // timestamp of last update
   }),
+
+  // Lesson feedback (user feedback/questions about lessons)
+  lessonFeedback: defineTable({
+    userId: v.string(), // clerkUserId
+    lessonId: v.id("lessons"),
+    moduleId: v.id("modules"),
+    feedback: v.string(), // user's feedback or question
+    createdAt: v.number(), // timestamp
+  })
+    .index("by_userId", ["userId"])
+    .index("by_lessonId", ["lessonId"])
+    .index("by_userId_and_lessonId", ["userId", "lessonId"]),
+
+  // Lesson ratings (user star ratings for lessons)
+  lessonRatings: defineTable({
+    userId: v.string(), // clerkUserId
+    lessonId: v.id("lessons"),
+    moduleId: v.id("modules"),
+    rating: v.number(), // 1-5 stars
+    createdAt: v.number(), // timestamp
+  })
+    .index("by_userId", ["userId"])
+    .index("by_lessonId", ["lessonId"])
+    .index("by_userId_and_lessonId", ["userId", "lessonId"]),
 });
