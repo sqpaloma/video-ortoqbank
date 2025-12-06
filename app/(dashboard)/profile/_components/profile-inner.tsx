@@ -1,34 +1,22 @@
 "use client";
 
-import Image from "next/image";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { Clock, CheckCircle2, PlayCircle, TrendingUp, User, ChevronLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useRouter } from "next/navigation";
-import { Id } from "@/convex/_generated/dataModel";
+import { Preloaded } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import RecentViews from "./recent-views";
+import UserInfos from "./user-infos";
+import Dashboard from "./dashboard";
 
 interface ProfileInnerProps {
-  userData: {
-    _id: Id<"users">;
-    firstName: string;
-    lastName: string;
-    email: string;
-    imageUrl?: string;
-    role: "user" | "admin";
-    status: "active" | "inactive" | "suspended";
-  } | null;
-  globalProgress: {
-    completedLessonsCount: number;
-    progressPercent: number;
-    updatedAt: number;
-  } | null;
-  completedCount: number;
-  viewedCount: number;
-  totalLessons: number;
+  preloadedUserData: Preloaded<typeof api.users.current>;
+  preloadedContentStats: Preloaded<typeof api.contentStats.get>;
+  preloadedGlobalProgress: Preloaded<typeof api.progress.getGlobalProgress> | null;
+  preloadedCompletedCount: Preloaded<typeof api.progress.getCompletedPublishedLessonsCount> | null;
+  preloadedViewedCount: Preloaded<typeof api.recentViews.getUniqueViewedLessonsCount> | null;
+  preloadedRecentViews: Preloaded<typeof api.recentViews.getRecentViewsWithDetails> | null;
 }
 
 export function formatTimeAgo(timestamp: number): string {
@@ -47,11 +35,12 @@ export function formatDuration(seconds: number): string {
 }
 
 export default function ProfileInner({
-  userData,
-  globalProgress,
-  completedCount,
-  viewedCount,
-  totalLessons,
+  preloadedUserData,
+  preloadedContentStats,
+  preloadedGlobalProgress,
+  preloadedCompletedCount,
+  preloadedViewedCount,
+  preloadedRecentViews,
 }: ProfileInnerProps) {
   const router = useRouter();
 
@@ -78,81 +67,18 @@ export default function ProfileInner({
 
       <div className="max-w-7xl mx-auto p-8 space-y-6">
         {/* User Info Card */}
-        <Card>
-        <CardHeader>
-          <div className="flex items-center gap-4">
-            {userData?.imageUrl ? (
-              <Image
-                src={userData.imageUrl}
-                alt={`${userData.firstName} ${userData.lastName}`}
-                width={64}
-                height={64}
-                className="rounded-full"
-              />
-            ) : (
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <User className="h-8 w-8 text-primary" />
-              </div>
-            )}
-            <div>
-              <CardTitle className="text-2xl">
-                {userData ? `${userData.firstName} ${userData.lastName}` : "Usuário"}
-              </CardTitle>
-              <CardDescription>{userData?.email || ""}</CardDescription>
-              {userData?.role === "admin" && (
-                <Badge variant="default" className="mt-2">
-                  Administrador
-                </Badge>
-              )}
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
+        <UserInfos preloadedUserData={preloadedUserData} />
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Aulas Concluídas</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{completedCount}</div>
-            <p className="text-xs text-muted-foreground">
-              de {totalLessons} {totalLessons === 1 ? "aula" : "aulas"}
-            </p>
-          </CardContent>
-        </Card>
+        {/* Stats Overview */}
+        <Dashboard
+          preloadedContentStats={preloadedContentStats}
+          preloadedGlobalProgress={preloadedGlobalProgress}
+          preloadedCompletedCount={preloadedCompletedCount}
+          preloadedViewedCount={preloadedViewedCount}
+        />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Progresso Geral</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{globalProgress?.progressPercent || 0}%</div>
-            <Progress value={globalProgress?.progressPercent || 0} className="mt-2" />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Aulas Visualizadas</CardTitle>
-            <PlayCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {viewedCount}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {viewedCount === 1 ? "aula visualizada" : "aulas visualizadas"}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Views */}
-      <RecentViews />
+        {/* Recent Views */}
+        <RecentViews preloadedRecentViews={preloadedRecentViews} />
       </div>
     </div>
   );

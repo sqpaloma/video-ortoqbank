@@ -1,56 +1,67 @@
-"use client";
-
 import ProfileInner from "./_components/profile-inner";
-import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useUser } from "@clerk/nextjs";
+import { preloadQuery } from "convex/nextjs";
+import { auth } from "@clerk/nextjs/server";
 
-export default function ProfilePage() {
-  const { user } = useUser();
-  
-  // Get current user data from Convex
-  const userData = useQuery(api.users.current);
-  
-  // Get user's global progress
-  const globalProgress = useQuery(
-    api.progress.getGlobalProgress,
-    user?.id ? { userId: user.id } : "skip"
+export default async function ProfilePage() {
+  // Obter token de autenticação para Convex
+  const { userId, getToken } = await auth();
+  const token = await getToken({ template: "convex" }).catch(() => null);
+
+  // Pré-carregar dados no servidor para melhorar performance
+  const preloadedUserData = await preloadQuery(
+    api.users.current,
+    {},
+    token ? { token } : undefined
   );
   
-  // Get count of completed published lessons
-  const completedCount = useQuery(
-    api.progress.getCompletedPublishedLessonsCount,
-    user?.id ? { userId: user.id } : "skip"
+  const preloadedContentStats = await preloadQuery(
+    api.contentStats.get,
+    {},
+    token ? { token } : undefined
   );
 
-  // Get count of unique viewed lessons
-  const viewedCount = useQuery(
-    api.recentViews.getUniqueViewedLessonsCount,
-    user?.id ? { userId: user.id } : "skip"
-  );
+  // Pré-carregar queries que precisam de userId (se autenticado)
+  const preloadedGlobalProgress = userId
+    ? await preloadQuery(
+        api.progress.getGlobalProgress,
+        { userId },
+        token ? { token } : undefined
+      )
+    : null;
 
-  // Get content stats for total count
-  const contentStats = useQuery(api.contentStats.get);
+  const preloadedCompletedCount = userId
+    ? await preloadQuery(
+        api.progress.getCompletedPublishedLessonsCount,
+        { userId },
+        token ? { token } : undefined
+      )
+    : null;
 
-  // Handle loading state
-  if (!user || userData === undefined || globalProgress === undefined || completedCount === undefined || viewedCount === undefined || contentStats === undefined) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
+  const preloadedViewedCount = userId
+    ? await preloadQuery(
+        api.recentViews.getUniqueViewedLessonsCount,
+        { userId },
+        token ? { token } : undefined
+      )
+    : null;
+
+  const preloadedRecentViews = userId
+    ? await preloadQuery(
+        api.recentViews.getRecentViewsWithDetails,
+        { userId, limit: 3 },
+        token ? { token } : undefined
+      )
+    : null;
 
   return (
     <ProfileInner
-      userData={userData}
-      globalProgress={globalProgress}
-      completedCount={completedCount}
-      viewedCount={viewedCount}
-      totalLessons={contentStats?.totalLessons || 0}
+      preloadedUserData={preloadedUserData}
+      preloadedContentStats={preloadedContentStats}
+      preloadedGlobalProgress={preloadedGlobalProgress}
+      preloadedCompletedCount={preloadedCompletedCount}
+      preloadedViewedCount={preloadedViewedCount}
+      preloadedRecentViews={preloadedRecentViews}
     />
   );
 }

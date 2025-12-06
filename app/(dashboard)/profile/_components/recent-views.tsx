@@ -8,22 +8,23 @@ import { useRouter } from "next/navigation";
 import { formatDuration, formatTimeAgo } from "./profile-inner";
 import { Badge } from "@/components/ui/badge";
 import { Clock } from "lucide-react";
-import { useQuery } from "convex/react";
+import { Preloaded, usePreloadedQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { useUser } from "@clerk/nextjs";
 
-export default function RecentViews() {
+interface RecentViewsProps {
+  preloadedRecentViews: Preloaded<typeof api.recentViews.getRecentViewsWithDetails> | null;
+}
+
+export default function RecentViews({ preloadedRecentViews }: RecentViewsProps) {
   const router = useRouter();
-  const { user } = useUser();
   
-  // Get recent views with details (limit to 3 most recent unique lessons)
-  const recentViews = useQuery(
-    api.recentViews.getRecentViewsWithDetails,
-    user?.id ? { userId: user.id, limit: 3 } : "skip"
-  );
+  // Use preloaded query (carregada no servidor)
+  const recentViews = preloadedRecentViews
+    ? usePreloadedQuery(preloadedRecentViews)
+    : [];
 
   // Handle loading state
-  if (recentViews === undefined) {
+  if (preloadedRecentViews === null) {
     return null;
   }
     return (
