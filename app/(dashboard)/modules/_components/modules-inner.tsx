@@ -16,16 +16,16 @@ import {
   ChevronRightIcon,
   StarIcon,
   PlayCircleIcon,
-  SendIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Textarea } from "@/components/ui/textarea";
 import { Id } from "@/convex/_generated/dataModel";
 import { useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
-import { ModuleWithLessons } from "./module-with-lessons";
+import { LessonList } from "./lesson-list";
 import { VideoPlayerWithWatermark } from "@/components/bunny/video-player-with-watermark";
+import { Rating } from "./rating";
+import { Feedback } from "./feedback";
 
 interface ModulesInnerProps {
   preloadedModules: Preloaded<typeof api.modules.listByCategory>;
@@ -49,17 +49,12 @@ export function ModulesInner({
   const [currentModuleId, setCurrentModuleId] = useState<Id<"modules"> | null>(
     null,
   );
-  const [feedbackText, setFeedbackText] = useState("");
-  const [selectedRating, setSelectedRating] = useState<number | null>(null);
-  const [showRatingConfirm, setShowRatingConfirm] = useState(false);
 
   // Mutations
   const markCompleted = useMutation(api.progress.markLessonCompleted);
   const markIncomplete = useMutation(api.progress.markLessonIncomplete);
   const toggleFavorite = useMutation(api.favorites.toggleFavorite);
   const addRecentView = useMutation(api.recentViews.addView);
-  const submitFeedback = useMutation(api.feedback.submitFeedback);
-  const submitRating = useMutation(api.ratings.submitRating);
 
   // Load lessons for first module to get the first lesson
   const firstModuleLessons = useQuery(
@@ -89,23 +84,6 @@ export function ModulesInner({
       ? { userId: user.id, lessonId: currentLessonId }
       : "skip",
   );
-
-  const userRating = useQuery(
-    api.ratings.getUserRating,
-    user?.id && currentLessonId
-      ? { userId: user.id, lessonId: currentLessonId }
-      : "skip",
-  );
-
-  // Set initial rating when user rating loads
-  useEffect(() => {
-    if (userRating) {
-      setSelectedRating(userRating.rating);
-      setShowRatingConfirm(false);
-    } else {
-      setSelectedRating(null);
-    }
-  }, [userRating, currentLessonId]);
 
   // Set first lesson as current when data loads
   useEffect(() => {
@@ -199,52 +177,6 @@ export function ModulesInner({
     // For now, just a placeholder
   };
 
-  const handleSubmitFeedback = async () => {
-    if (!user?.id || !currentLessonId || !currentModuleId || !feedbackText.trim()) return;
-    try {
-      await submitFeedback({
-        userId: user.id,
-        lessonId: currentLessonId,
-        moduleId: currentModuleId,
-        feedback: feedbackText,
-      });
-      setFeedbackText("");
-    } catch (error) {
-      console.error("Error submitting feedback:", error);
-    }
-  };
-
-  const handleRatingClick = (rating: number) => {
-    setSelectedRating(rating);
-    // Show confirm button if rating changed or if no rating exists
-    if (!userRating || userRating.rating !== rating) {
-      setShowRatingConfirm(true);
-    } else {
-      setShowRatingConfirm(false);
-    }
-  };
-
-  const handleConfirmRating = async () => {
-    if (!user?.id || !currentLessonId || !currentModuleId || !selectedRating) return;
-    try {
-      await submitRating({
-        userId: user.id,
-        lessonId: currentLessonId,
-        moduleId: currentModuleId,
-        rating: selectedRating,
-      });
-      setShowRatingConfirm(false);
-    } catch (error) {
-      console.error("Error submitting rating:", error);
-    }
-  };
-
-  // Reset feedback and rating when lesson changes
-  useEffect(() => {
-    setFeedbackText("");
-    setShowRatingConfirm(false);
-  }, [currentLessonId]);
-
   const isLessonCompleted = allUserProgress?.some(
     (p) => p.lessonId === currentLessonId && p.completed,
   );
@@ -320,7 +252,7 @@ export function ModulesInner({
           {/* Modules List */}
           <div className="p-4 space-y-2">
             {modules.map((module) => (
-              <ModuleWithLessons
+              <LessonList
                 key={module._id}
                 moduleId={module._id}
                 moduleTitle={module.title}
@@ -329,7 +261,7 @@ export function ModulesInner({
                 currentLessonId={currentLessonId}
                 userProgress={allUserProgress}
                 onToggle={() => toggleModule(module._id)}
-                onLessonClick={(lessonId) =>
+                onLessonClick={(lessonId: Id<"lessons">) =>
                   handleLessonClick(lessonId, module._id)
                 }
               />
@@ -366,7 +298,7 @@ export function ModulesInner({
                 </div>
               )}
 
-              {/* Lesson Info and Rating */}
+              {/* Lesson Info and Action Buttons */}
               <div className="mb-6">
                 <h2 className="text-2xl font-bold mb-3">
                   {currentLesson.title}
@@ -379,69 +311,7 @@ export function ModulesInner({
                     </p>
                   </div>
                   
-                  {/* Rating Stars - Right side, aligned with description */}
-                  <div className="flex flex-col items-end lg:items-start">
-                    <label className="text-sm font-medium mb-2">
-                      O que você achou desta aula?
-                    </label>
-                    <div className="flex items-center gap-2 mb-2">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                          key={star}
-                          type="button"
-                          onClick={() => handleRatingClick(star)}
-                          className="focus:outline-none"
-                        >
-                          <StarIcon
-                            size={32}
-                            className={cn(
-                              "transition-colors",
-                              selectedRating && star <= selectedRating
-                                ? "fill-yellow-500 text-yellow-500"
-                                : "text-gray-300 hover:text-yellow-400"
-                            )}
-                          />
-                        </button>
-                      ))}
-                    </div>
-                    {showRatingConfirm && selectedRating && (
-                      <Button
-                        onClick={handleConfirmRating}
-                        className="w-full lg:w-auto"
-                        variant="default"
-                      >
-                        Confirmar avaliação
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Feedback and Action Buttons Section */}
-              <div className="mb-6">
-                <label className="text-sm font-medium mb-2 block">
-                  Deixe seu feedback ou tire uma dúvida
-                </label>
-                <div className="flex flex-col lg:flex-row gap-3 items-start">
-                  {/* Feedback Textarea - Takes more horizontal space */}
-                  <div className="flex gap-2 flex-1 w-full lg:w-auto">
-                    <Textarea
-                      placeholder="Digite seu feedback ou dúvida aqui..."
-                      value={feedbackText}
-                      onChange={(e) => setFeedbackText(e.target.value)}
-                      className="min-h-[100px] flex-1"
-                    />
-                    <Button
-                      onClick={handleSubmitFeedback}
-                      disabled={!feedbackText.trim()}
-                      size="icon"
-                      className="h-[100px] shrink-0"
-                    >
-                      <SendIcon size={18} />
-                    </Button>
-                  </div>
-
-                  {/* Action Buttons - Smaller width */}
+                  {/* Action Buttons - Now in place of Rating */}
                   <div className="flex flex-col gap-3 w-full lg:w-auto lg:min-w-[200px]">
                     <div className="flex gap-3">
                       <Button
@@ -473,6 +343,36 @@ export function ModulesInner({
                       <ChevronRightIcon size={18} className="ml-2" />
                     </Button>
                   </div>
+                </div>
+              </div>
+
+              {/* Feedback and Rating Section */}
+              <div className="mb-6">
+                <label className="text-sm font-medium mb-2 block">
+                  Deixe seu feedback ou tire uma dúvida
+                </label>
+                <div className="flex flex-col lg:flex-row gap-3 items-start">
+                  {/* Feedback Textarea - Takes more horizontal space */}
+                  {user?.id && currentLessonId && currentModuleId && (
+                    <div className="flex gap-2 flex-1 w-full lg:w-auto">
+                      <Feedback
+                        userId={user.id}
+                        lessonId={currentLessonId}
+                        moduleId={currentModuleId}
+                      />
+                    </div>
+                  )}
+
+                  {/* Rating Component - Now in place of Action Buttons */}
+                  {user?.id && currentLessonId && currentModuleId && (
+                    <div className="flex flex-col gap-3 w-full lg:w-auto lg:min-w-[200px]">
+                      <Rating
+                        userId={user.id}
+                        lessonId={currentLessonId}
+                        moduleId={currentModuleId}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

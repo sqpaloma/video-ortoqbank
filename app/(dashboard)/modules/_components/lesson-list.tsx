@@ -6,7 +6,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import { ChevronDownIcon, ChevronRightIcon, CheckCircleIcon, CircleIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface ModuleWithLessonsProps {
+  interface LessonListProps {
   moduleId: Id<"modules">;
   moduleTitle: string;
   totalLessons: number;
@@ -20,7 +20,7 @@ interface ModuleWithLessonsProps {
   onLessonClick: (lessonId: Id<"lessons">) => void;
 }
 
-export function ModuleWithLessons({
+export function LessonList({
   moduleId,
   moduleTitle,
   totalLessons,
@@ -29,7 +29,7 @@ export function ModuleWithLessons({
   userProgress,
   onToggle,
   onLessonClick,
-}: ModuleWithLessonsProps) {
+}: LessonListProps) {
   // Load lessons for this module
   const lessons = useQuery(
     api.lessons.listByModule,
