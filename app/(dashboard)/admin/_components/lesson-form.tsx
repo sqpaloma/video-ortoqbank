@@ -181,10 +181,7 @@ export function LessonForm({ modules }: LessonFormProps) {
                     placeholder="Ex: Introdução à Anatomia do Joelho"
                     autoComplete="off"
                   />
-                  <FieldDescription>
-                    Slug será gerado automaticamente:{" "}
-                    {generateSlug(field.value || "")}
-                  </FieldDescription>
+                 
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
                   )}
@@ -205,99 +202,6 @@ export function LessonForm({ modules }: LessonFormProps) {
                     rows={4}
                     className="resize-none"
                   />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-
-            {/* Lesson Number and Order */}
-            <div className="grid grid-cols-2 gap-4">
-              <Controller
-                name="lessonNumber"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>Número da Aula</FieldLabel>
-                    <Input
-                      {...field}
-                      type="number"
-                      min={1}
-                      onChange={(e) =>
-                        field.onChange(parseInt(e.target.value) || 0)
-                      }
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-
-              <Controller
-                name="orderIndex"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>Ordem</FieldLabel>
-                    <Input
-                      {...field}
-                      type="number"
-                      min={0}
-                      onChange={(e) =>
-                        field.onChange(parseInt(e.target.value) || 0)
-                      }
-                    />
-                    <FieldDescription>Ordem de exibição</FieldDescription>
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-            </div>
-
-            {/* Duration */}
-            <Controller
-              name="durationSeconds"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel>Duração (segundos)</FieldLabel>
-                  <Input
-                    {...field}
-                    type="number"
-                    min={0}
-                    placeholder="Ex: 600 (10 minutos)"
-                    onChange={(e) =>
-                      field.onChange(parseInt(e.target.value) || 0)
-                    }
-                  />
-                  <FieldDescription>
-                    {field.value > 0 &&
-                      `≈ ${Math.floor(field.value / 60)} minutos`}
-                  </FieldDescription>
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-
-            {/* Tags */}
-            <Controller
-              name="tags"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel>Tags (opcional)</FieldLabel>
-                  <Input
-                    {...field}
-                    placeholder="anatomia, joelho, ortopedia"
-                    autoComplete="off"
-                  />
-                  <FieldDescription>Separe por vírgulas</FieldDescription>
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
                   )}
