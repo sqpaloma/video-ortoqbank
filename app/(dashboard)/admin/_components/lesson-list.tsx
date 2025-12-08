@@ -16,6 +16,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useToast } from "@/hooks/use-toast";
@@ -38,6 +48,242 @@ import AdminVideoUploader from "@/components/bunny/admin-video-uploader";
 interface LessonListProps {
   lessons: Doc<"lessons">[];
   onEditLesson?: (lesson: any) => void;
+}
+
+function EditLessonForm({
+  lesson,
+  modules,
+  onSuccess,
+  onCancel,
+}: {
+  lesson: any;
+  modules: any[];
+  onSuccess: () => void;
+  onCancel: () => void;
+}) {
+  const updateLesson = useMutation(api.lessons.update);
+  const togglePublish = useMutation(api.lessons.togglePublish);
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    moduleId: lesson.moduleId,
+    title: lesson.title,
+    description: lesson.description,
+    durationSeconds: lesson.durationSeconds,
+    orderIndex: lesson.order_index,
+    lessonNumber: lesson.lessonNumber,
+    tags: lesson.tags?.join(", ") || "",
+  });
+
+  const generateSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .trim();
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const slug = generateSlug(formData.title);
+      const tagsArray = formData.tags
+        ? formData.tags
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter(Boolean)
+        : [];
+
+      await updateLesson({
+        id: lesson._id,
+        moduleId: formData.moduleId,
+        title: formData.title,
+        slug,
+        description: formData.description,
+        durationSeconds: formData.durationSeconds,
+        order_index: formData.orderIndex,
+        lessonNumber: formData.lessonNumber,
+        isPublished: lesson.isPublished,
+        tags: tagsArray.length > 0 ? tagsArray : undefined,
+        videoId: lesson.videoId,
+      });
+
+      onSuccess();
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description:
+          error instanceof Error ? error.message : "Erro ao atualizar aula",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleTogglePublish = async () => {
+    try {
+      const newStatus = await togglePublish({ id: lesson._id });
+      toast({
+        title: "Sucesso",
+        description: `Aula ${newStatus ? "publicada" : "despublicada"} com sucesso!`,
+      });
+      onSuccess();
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description:
+          error instanceof Error ? error.message : "Erro ao atualizar status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="edit-module">Módulo</Label>
+        <Select
+          value={formData.moduleId}
+          onValueChange={(value) =>
+            setFormData({ ...formData, moduleId: value })
+          }
+        >
+          <SelectTrigger id="edit-module">
+            <SelectValue placeholder="Selecione um módulo" />
+          </SelectTrigger>
+          <SelectContent>
+            {modules.map((module) => (
+              <SelectItem key={module._id} value={module._id}>
+                {module.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="edit-title">Título da Aula</Label>
+        <Input
+          id="edit-title"
+          value={formData.title}
+          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="edit-description">Descrição</Label>
+        <Textarea
+          id="edit-description"
+          value={formData.description}
+          onChange={(e) =>
+            setFormData({ ...formData, description: e.target.value })
+          }
+          rows={3}
+          required
+        />
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="edit-duration">Duração (segundos)</Label>
+          <Input
+            id="edit-duration"
+            type="number"
+            value={formData.durationSeconds}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                durationSeconds: parseInt(e.target.value) || 0,
+              })
+            }
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="edit-order">Ordem</Label>
+          <Input
+            id="edit-order"
+            type="number"
+            value={formData.orderIndex}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                orderIndex: parseInt(e.target.value) || 0,
+              })
+            }
+            required
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="edit-lesson-number">Número da Aula</Label>
+          <Input
+            id="edit-lesson-number"
+            type="number"
+            value={formData.lessonNumber}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                lessonNumber: parseInt(e.target.value) || 1,
+              })
+            }
+            required
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="edit-tags">Tags (separadas por vírgula)</Label>
+        <Input
+          id="edit-tags"
+          value={formData.tags}
+          onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+          placeholder="ortopedia, medicina, traumatologia"
+        />
+      </div>
+
+      <div className="flex items-center gap-2 pt-4 border-t">
+        <Button
+          type="button"
+          variant={lesson.isPublished ? "outline" : "default"}
+          onClick={handleTogglePublish}
+          className="flex items-center gap-2"
+        >
+          {lesson.isPublished ? (
+            <>
+              <EyeOff className="h-4 w-4" />
+              Despublicar
+            </>
+          ) : (
+            <>
+              <Eye className="h-4 w-4" />
+              Publicar
+            </>
+          )}
+        </Button>
+        <Badge variant={lesson.isPublished ? "default" : "secondary"}>
+          {lesson.isPublished ? "Publicada" : "Rascunho"}
+        </Badge>
+      </div>
+
+      <div className="flex gap-2 justify-end pt-4 border-t">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancelar
+        </Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Salvando..." : "Salvar Alterações"}
+        </Button>
+      </div>
+    </form>
+  );
 }
 
 function LessonItem({
@@ -147,8 +393,30 @@ function LessonItem({
             <Upload className="h-3 w-3 mr-1" />
             Upload Vídeo
           </Button>
+        )}
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => onEditLesson?.(lesson)}
+          title="Editar aula"
+        >
+          <Edit className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() =>
+            onTogglePublish(lesson._id, lesson.title, lesson.isPublished)
+          }
+          title={lesson.isPublished ? "Despublicar (Rascunho)" : "Publicar"}
+        >
+          {lesson.isPublished ? (
+            <Eye className="h-4 w-4 text-green-600" />
+          ) : (
+            <EyeOff className="h-4 w-4 text-gray-400" />
           )}
-         <Button
+        </Button>
+        <Button
           variant="outline"
           size="icon"
           onClick={() => onDelete(lesson._id, lesson.title)}
@@ -170,6 +438,7 @@ export function LessonList({ lessons }: LessonListProps) {
   const { toast } = useToast();
 
   const [uploadingLesson, setUploadingLesson] = useState<any | null>(null);
+  const [editingLesson, setEditingLesson] = useState<any | null>(null);
 
   const handleDelete = async (id: any, title: string) => {
     if (!confirm(`Tem certeza que deseja deletar a aula "${title}"?`)) {
@@ -272,6 +541,10 @@ export function LessonList({ lessons }: LessonListProps) {
     setUploadingLesson(lesson);
   };
 
+  const handleEditLesson = (lesson: any) => {
+    setEditingLesson(lesson);
+  };
+
   const handleVideoUploadSuccess = async (videoData: {
     videoId: string;
     libraryId: string;
@@ -335,6 +608,7 @@ export function LessonList({ lessons }: LessonListProps) {
                   key={lesson._id}
                   lesson={lesson}
                   modules={modules || []}
+                  onEditLesson={handleEditLesson}
                   onDelete={handleDelete}
                   onTogglePublish={handleTogglePublish}
                   onMarkVideoAsReady={handleMarkVideoAsReady}
@@ -357,6 +631,35 @@ export function LessonList({ lessons }: LessonListProps) {
             lessonTitle={uploadingLesson?.title || ""}
             onSuccess={handleVideoUploadSuccess}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Lesson Dialog */}
+      <Dialog
+        open={!!editingLesson}
+        onOpenChange={(open) => !open && setEditingLesson(null)}
+      >
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Aula</DialogTitle>
+            <DialogDescription>
+              Edite as informações da aula "{editingLesson?.title}"
+            </DialogDescription>
+          </DialogHeader>
+          {editingLesson && (
+            <EditLessonForm
+              lesson={editingLesson}
+              modules={modules || []}
+              onSuccess={() => {
+                setEditingLesson(null);
+                toast({
+                  title: "Sucesso",
+                  description: "Aula atualizada com sucesso!",
+                });
+              }}
+              onCancel={() => setEditingLesson(null)}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </>
