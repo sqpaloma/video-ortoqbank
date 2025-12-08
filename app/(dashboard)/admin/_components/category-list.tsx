@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Id, Doc } from "@/convex/_generated/dataModel";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 interface CategoryListProps {
   categories: Doc<"categories">[];
@@ -28,11 +29,27 @@ export function CategoryList({ categories }: CategoryListProps) {
 
   const [editingCategory, setEditingCategory] = useState<Id<"categories"> | null>(null);
   const [editTitle, setEditTitle] = useState("");
-  const [editSlug, setEditSlug] = useState("");
   const [editDescription, setEditDescription] = useState("");
-  const [editPosition, setEditPosition] = useState("");
   const [editIconUrl, setEditIconUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Auto-generate slug from title
+  const generateSlug = (title: string) => {
+    const slug = title
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+    
+    // Ensure slug meets minimum length requirement (3 characters)
+    // If the generated slug is too short, use a fallback based on timestamp
+    if (slug.length < 3) {
+      return `categoria-${Date.now()}`;
+    }
+    
+    return slug;
+  };
 
   const handleEdit = (category: {
     _id: Id<"categories">;
@@ -44,16 +61,15 @@ export function CategoryList({ categories }: CategoryListProps) {
   }) => {
     setEditingCategory(category._id);
     setEditTitle(category.title);
-    setEditSlug(category.slug);
     setEditDescription(category.description);
-    setEditPosition(category.position.toString());
-    setEditIconUrl(category.iconUrl || "");
+    // Ensure iconUrl is set correctly, even if it's undefined
+    setEditIconUrl(category.iconUrl ?? "");
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!editingCategory || !editTitle || !editSlug || !editDescription || !editPosition) {
+    if (!editingCategory || !editTitle || !editDescription) {
       toast({
         title: "Erro",
         description: "Preencha todos os campos obrigatórios",
@@ -62,16 +78,45 @@ export function CategoryList({ categories }: CategoryListProps) {
       return;
     }
 
+    // Validate minimum field lengths
+    if (editTitle.trim().length < 3) {
+      toast({
+        title: "Erro",
+        description: "O título deve ter pelo menos 3 caracteres",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (editDescription.trim().length < 10) {
+      toast({
+        title: "Erro",
+        description: "A descrição deve ter pelo menos 10 caracteres",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
+      // Auto-generate slug from the updated title
+      const newSlug = generateSlug(editTitle);
+      
+      // Additional validation to ensure slug is valid
+      if (newSlug.length < 3) {
+        throw new Error("Não foi possível gerar um slug válido a partir do título");
+      }
+      
+      // Ensure iconUrl is passed correctly (empty string becomes undefined)
+      const iconUrlToSave = editIconUrl && editIconUrl.trim() !== "" ? editIconUrl.trim() : undefined;
+      
       await updateCategory({
         id: editingCategory,
         title: editTitle,
-        slug: editSlug,
+        slug: newSlug,
         description: editDescription,
-        position: parseInt(editPosition),
-        iconUrl: editIconUrl || undefined,
+        iconUrl: iconUrlToSave,
       });
 
       toast({
@@ -114,35 +159,38 @@ export function CategoryList({ categories }: CategoryListProps) {
 
   return (
     <>
-      <Card>
-        <CardHeader>
+      <Card className="w-full">
+        <CardHeader className="pb-4">
           <CardTitle>Categorias Cadastradas</CardTitle>
           <CardDescription>
             {categories.length} {categories.length === 1 ? "categoria" : "categorias"} no sistema
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
+        <CardContent className="pt-0">
+          <div className="space-y-2 max-h-[390px] overflow-auto pr-2">
             {categories.length === 0 ? (
               <p className="text-sm text-muted-foreground">Nenhuma categoria cadastrada ainda.</p>
             ) : (
               categories.map((category) => (
                 <div
                   key={category._id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors"
                 >
                   <div className="flex-1">
-                    <h3 className="font-semibold">{category.title}</h3>
-                    <p className="text-sm text-muted-foreground line-clamp-1">
-                      {category.description}
-                    </p>
-                    <div className="flex gap-3 mt-1">
-                      <span className="text-xs text-muted-foreground">
-                        Slug: {category.slug}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        Posição: {category.position}
-                      </span>
+                    <div className="flex items-center gap-3">
+                      {category.iconUrl && (
+                        <img 
+                          src={category.iconUrl} 
+                          alt={category.title}
+                          className="w-10 h-10 object-contain rounded"
+                        />
+                      )}
+                      <div className="flex-1">
+                        <h3 className="font-semibold">{category.title}</h3>
+                        <p className="text-sm text-muted-foreground line-clamp-1">
+                          {category.description}
+                        </p>
+                      </div>
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -184,15 +232,7 @@ export function CategoryList({ categories }: CategoryListProps) {
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
                 disabled={isSubmitting}
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium">Slug *</label>
-              <Input
-                value={editSlug}
-                onChange={(e) => setEditSlug(e.target.value)}
-                disabled={isSubmitting}
+                placeholder="Ex: Ciências Básicas em Ortopedia"
               />
             </div>
 
@@ -202,26 +242,18 @@ export function CategoryList({ categories }: CategoryListProps) {
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
                 disabled={isSubmitting}
+                placeholder="Breve descrição da categoria"
               />
             </div>
 
             <div>
-              <label className="text-sm font-medium">Posição *</label>
-              <Input
-                type="number"
-                value={editPosition}
-                onChange={(e) => setEditPosition(e.target.value)}
-                min="1"
-                disabled={isSubmitting}
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium">URL do Ícone (opcional)</label>
-              <Input
+              <label className="text-sm font-medium">Ícone da Categoria (opcional)</label>
+              <ImageUpload
                 value={editIconUrl}
-                onChange={(e) => setEditIconUrl(e.target.value)}
+                onChange={setEditIconUrl}
                 disabled={isSubmitting}
+                folder="/categories"
+                id="category-edit-image-upload"
               />
             </div>
 

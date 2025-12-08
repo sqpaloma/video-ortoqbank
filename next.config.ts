@@ -7,6 +7,16 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '100mb',
     },
   },
+  
+  // Configuração do ImageKit para exibir imagens
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'ik.imagekit.io',
+      },
+    ],
+  },
 };
 
 export default nextConfig;

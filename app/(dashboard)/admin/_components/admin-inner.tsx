@@ -49,9 +49,7 @@ export function AdminInner({
                 <h2 className="text-xl font-semibold mb-2">
                   Gerenciar Categorias
                 </h2>
-                <p className="text-muted-foreground">
-                  Adicione, edite ou remova categorias do sistema
-                </p>
+              
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
@@ -69,15 +67,12 @@ export function AdminInner({
                 <h2 className="text-xl font-semibold mb-2">
                   Gerenciar Módulos
                 </h2>
-                <p className="text-muted-foreground">
-                  Adicione, edite ou remova módulos do sistema
-                </p>
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-240px)]">
+                <div className="h-full overflow-auto">
                   <ModuleForm categories={categories} />
                 </div>
-                <div>
+                <div className="h-full overflow-auto">
                   <ModuleList modules={modules} categories={categories} />
                 </div>
               </div>
@@ -88,11 +83,11 @@ export function AdminInner({
               <div className="mb-6">
                 <h2 className="text-xl font-semibold mb-2">Gerenciar Aulas</h2>
               </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div data-lesson-form>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-240px)]">
+                <div className="h-full overflow-auto" data-lesson-form>
                   <LessonForm modules={modules} />
                 </div>
-                <div>
+                <div className="h-full overflow-auto">
                   <LessonList lessons={lessons} />
                 </div>
               </div>

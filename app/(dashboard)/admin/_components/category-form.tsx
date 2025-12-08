@@ -24,13 +24,13 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { CheckCircle2, FolderPlus } from "lucide-react";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 const formSchema = z.object({
   title: z.string().min(3, "Título deve ter pelo menos 3 caracteres"),
   slug: z.string().min(3, "Slug deve ter pelo menos 3 caracteres"),
   description: z.string().min(10, "Descrição deve ter pelo menos 10 caracteres"),
-  position: z.number().min(1, "Posição deve ser maior que 0"),
-  iconUrl: z.string().url("URL inválida").optional().or(z.literal("")),
+  iconUrl: z.string().url("URL do ícone deve ser válida").or(z.literal("")).optional(),
 });
 
 interface CategoryFormProps {
@@ -49,29 +49,39 @@ export function CategoryForm({ onSuccess }: CategoryFormProps) {
       title: "",
       slug: "",
       description: "",
-      position: 1,
       iconUrl: "",
     },
   });
 
   // Auto-gerar slug a partir do título
   const generateSlug = (title: string) => {
-    return title
+    const slug = title
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
+    
+    // Ensure slug meets minimum length requirement (3 characters)
+    // If the generated slug is too short, use a fallback based on timestamp
+    if (slug.length < 3) {
+      return `categoria-${Date.now()}`;
+    }
+    
+    return slug;
   };
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
+    // Clear any previous success message to avoid showing it alongside errors
+    setCreatedCategory(false);
+    
     try {
+      // Get the next position automatically
       await createCategory({
         title: data.title,
         slug: data.slug,
         description: data.description,
-        position: data.position,
         iconUrl: data.iconUrl || undefined,
       });
 
@@ -104,7 +114,7 @@ export function CategoryForm({ onSuccess }: CategoryFormProps) {
 
   return (
     <Card className="w-full">
-      <CardHeader>
+      <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2">
           <FolderPlus className="h-5 w-5" />
           Nova Categoria
@@ -113,8 +123,8 @@ export function CategoryForm({ onSuccess }: CategoryFormProps) {
           Adicione uma nova categoria ao sistema
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <CardContent className="pt-0">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
           <FieldGroup>
             {/* Title */}
             <Controller
@@ -133,9 +143,6 @@ export function CategoryForm({ onSuccess }: CategoryFormProps) {
                       form.setValue("slug", generateSlug(e.target.value));
                     }}
                   />
-                  <FieldDescription>
-                    Slug gerado: {generateSlug(field.value || "")}
-                  </FieldDescription>
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
                   )}
@@ -143,25 +150,12 @@ export function CategoryForm({ onSuccess }: CategoryFormProps) {
               )}
             />
 
-            {/* Slug */}
+            {/* Hidden slug field - auto-generated from title */}
             <Controller
               name="slug"
               control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel>Slug</FieldLabel>
-                  <Input
-                    {...field}
-                    placeholder="ciencias-basicas-em-ortopedia"
-                    autoComplete="off"
-                  />
-                  <FieldDescription>
-                    URL amigável para a categoria
-                  </FieldDescription>
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
+              render={({ field }) => (
+                <input type="hidden" {...field} />
               )}
             />
 
@@ -184,45 +178,20 @@ export function CategoryForm({ onSuccess }: CategoryFormProps) {
               )}
             />
 
-            {/* Position */}
-            <Controller
-              name="position"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel>Posição</FieldLabel>
-                  <Input
-                    {...field}
-                    type="number"
-                    min={1}
-                    placeholder="1"
-                    onChange={(e) =>
-                      field.onChange(parseInt(e.target.value) || 1)
-                    }
-                  />
-                  <FieldDescription>Ordem de exibição</FieldDescription>
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-
-            {/* Icon URL */}
+            {/* Icon Upload */}
             <Controller
               name="iconUrl"
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel>URL do Ícone (opcional)</FieldLabel>
-                  <Input
-                    {...field}
-                    placeholder="https://..."
-                    autoComplete="off"
+                  <FieldLabel>Ícone da Categoria (opcional)</FieldLabel>
+                  <ImageUpload
+                    value={field.value}
+                    onChange={field.onChange}
+                    disabled={isSubmitting}
+                    folder="/categories"
+                    id="category-form-image-upload"
                   />
-                  <FieldDescription>
-                    Link para o ícone da categoria
-                  </FieldDescription>
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
                   )}
@@ -257,9 +226,9 @@ export function CategoryForm({ onSuccess }: CategoryFormProps) {
         </form>
 
         {createdCategory && (
-          <div className="mt-6 rounded-lg border border-green-500/20 bg-green-500/10 p-4">
+          <div className="mt-3 rounded-lg border border-green-500/20 bg-green-500/10 p-2">
             <p className="text-sm text-green-700 dark:text-green-400">
-              ✅ Categoria criada com sucesso! Visualize na lista ao lado.
+              ✅ Categoria criada com sucesso!
             </p>
           </div>
         )}
