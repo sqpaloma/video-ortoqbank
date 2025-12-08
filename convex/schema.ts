@@ -50,6 +50,7 @@ export default defineSchema({
     description: v.string(),
     order_index: v.number(),
     totalLessonVideos: v.number(),
+    lessonCounter: v.optional(v.number()), // Atomic counter for lesson order_index allocation
   })
     .index("by_categoryId", ["categoryId"])
     .index("by_slug", ["slug"])

@@ -16,6 +16,7 @@ export const list = query({
       description: v.string(),
       order_index: v.number(),
       totalLessonVideos: v.number(),
+      lessonCounter: v.optional(v.number()),
     })
   ),
   handler: async (ctx) => {
@@ -37,6 +38,7 @@ export const listByCategory = query({
       description: v.string(),
       order_index: v.number(),
       totalLessonVideos: v.number(),
+      lessonCounter: v.optional(v.number()),
     })
   ),
   handler: async (ctx, args) => {
@@ -64,6 +66,7 @@ export const getById = query({
       description: v.string(),
       order_index: v.number(),
       totalLessonVideos: v.number(),
+      lessonCounter: v.optional(v.number()),
     }),
     v.null()
   ),
@@ -86,6 +89,7 @@ export const getBySlug = query({
       description: v.string(),
       order_index: v.number(),
       totalLessonVideos: v.number(),
+      lessonCounter: v.optional(v.number()),
     }),
     v.null()
   ),
@@ -152,6 +156,7 @@ export const create = mutation({
       description: args.description,
       order_index: nextOrderIndex,
       totalLessonVideos: 0,
+      lessonCounter: 0,
     });
 
     // Update contentStats

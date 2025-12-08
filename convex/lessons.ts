@@ -202,19 +202,22 @@ export const create = mutation({
       throw new Error("Já existe uma aula com este slug");
     }
 
-    // Auto-calculate next order_index for this module
-    const lessonsInModule = await ctx.db
-      .query("lessons")
-      .withIndex("by_moduleId_and_order", (q) => 
-        q.eq("moduleId", args.moduleId)
-      )
-      .collect();
+    // Atomically increment the lesson counter on the module document
+    // to get a unique order_index (prevents race conditions on concurrent creates)
+    const module = await ctx.db.get(args.moduleId);
+    if (!module) {
+      throw new Error("Módulo não encontrado");
+    }
     
-    const maxOrderIndex = lessonsInModule.reduce(
-      (max, lesson) => Math.max(max, lesson.order_index),
-      -1
-    );
-    const nextOrderIndex = maxOrderIndex + 1;
+    // Initialize lessonCounter if it doesn't exist (for backward compatibility)
+    const currentCounter = module.lessonCounter ?? 0;
+    const nextOrderIndex = currentCounter;
+    
+    // Atomically increment both the counter and totalLessonVideos
+    await ctx.db.patch(args.moduleId, {
+      lessonCounter: currentCounter + 1,
+      totalLessonVideos: module.totalLessonVideos + 1,
+    });
 
     const lessonId: Id<"lessons"> = await ctx.db.insert("lessons", {
       moduleId: args.moduleId,
@@ -231,14 +234,6 @@ export const create = mutation({
       tags: args.tags,
       videoId: args.videoId,
     });
-
-    // Atualizar o total de lessons no módulo
-    const module = await ctx.db.get(args.moduleId);
-    if (module) {
-      await ctx.db.patch(args.moduleId, {
-        totalLessonVideos: module.totalLessonVideos + 1,
-      });
-    }
 
     // Atualizar contentStats se a lesson foi publicada
     if (args.isPublished) {
