@@ -43,7 +43,11 @@ export default function Dashboard({
   const totalLessons = contentStats?.totalLessons || 0;
   const completedLessonsCount = completedCount || 0;
   
-  // Calculate progress dynamically: (completed / total) * 100
+  // Calculate progress dynamically: (completed published / total published) * 100
+  // Note: Both numerator and denominator only count PUBLISHED lessons
+  // - completedLessonsCount: completed lessons that are still published
+  // - totalLessons: total published lessons in the system
+  // This ensures progress is based only on currently available content
   const progressPercent = totalLessons > 0 
     ? Math.round((completedLessonsCount / totalLessons) * 100)
     : 0;
