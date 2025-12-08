@@ -162,18 +162,26 @@ export const getBySlug = query({
   },
 });
 
+// Helper function to generate slug from title
+function generateSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 // Mutation para criar uma nova lesson
 export const create = mutation({
   args: {
     moduleId: v.id("modules"),
     title: v.string(),
-    slug: v.string(),
     description: v.string(),
     bunnyStoragePath: v.optional(v.string()),
     publicUrl: v.optional(v.string()),
     thumbnailUrl: v.optional(v.string()),
     durationSeconds: v.optional(v.number()),
-    order_index: v.number(),
     lessonNumber: v.number(),
     isPublished: v.boolean(),
     tags: v.optional(v.array(v.string())),
@@ -181,26 +189,43 @@ export const create = mutation({
   },
   returns: v.id("lessons"),
   handler: async (ctx, args) => {
+    // Auto-generate slug from title
+    const slug = generateSlug(args.title);
+
     // Verificar se já existe uma lesson com o mesmo slug
     const existing = await ctx.db
       .query("lessons")
-      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
       .first();
 
     if (existing) {
       throw new Error("Já existe uma aula com este slug");
     }
 
+    // Auto-calculate next order_index for this module
+    const lessonsInModule = await ctx.db
+      .query("lessons")
+      .withIndex("by_moduleId_and_order", (q) => 
+        q.eq("moduleId", args.moduleId)
+      )
+      .collect();
+    
+    const maxOrderIndex = lessonsInModule.reduce(
+      (max, lesson) => Math.max(max, lesson.order_index),
+      -1
+    );
+    const nextOrderIndex = maxOrderIndex + 1;
+
     const lessonId: Id<"lessons"> = await ctx.db.insert("lessons", {
       moduleId: args.moduleId,
       title: args.title,
-      slug: args.slug,
+      slug: slug,
       description: args.description,
       bunnyStoragePath: args.bunnyStoragePath,
       publicUrl: args.publicUrl,
       thumbnailUrl: args.thumbnailUrl,
       durationSeconds: args.durationSeconds || 0,
-      order_index: args.order_index,
+      order_index: nextOrderIndex,
       lessonNumber: args.lessonNumber,
       isPublished: args.isPublished,
       tags: args.tags,
@@ -232,7 +257,6 @@ export const update = mutation({
     id: v.id("lessons"),
     moduleId: v.id("modules"),
     title: v.string(),
-    slug: v.string(),
     description: v.string(),
     bunnyStoragePath: v.optional(v.string()),
     publicUrl: v.optional(v.string()),
@@ -246,10 +270,13 @@ export const update = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
+    // Auto-generate slug from title
+    const slug = generateSlug(args.title);
+
     // Verificar se já existe outra lesson com o mesmo slug
     const existing = await ctx.db
       .query("lessons")
-      .withIndex("by_slug", (q) => q.eq("slug", args.slug))
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
       .first();
 
     if (existing && existing._id !== args.id) {
@@ -264,7 +291,7 @@ export const update = mutation({
     await ctx.db.patch(args.id, {
       moduleId: args.moduleId,
       title: args.title,
-      slug: args.slug,
+      slug: slug,
       description: args.description,
       bunnyStoragePath: args.bunnyStoragePath,
       publicUrl: args.publicUrl,

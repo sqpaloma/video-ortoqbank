@@ -40,8 +40,6 @@ const formSchema = z.object({
   description: z
     .string()
     .min(10, "Descrição deve ter pelo menos 10 caracteres"),
-  durationSeconds: z.number().min(1, "Duração deve ser maior que 0"),
-  orderIndex: z.number().min(0, "Ordem deve ser 0 ou maior"),
   lessonNumber: z.number().min(1, "Número da aula deve ser maior que 0"),
   tags: z.string().optional(),
   videoId: z.string().optional(),
@@ -62,32 +60,18 @@ export function LessonForm({ modules }: LessonFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      moduleId: "",
       title: "",
       description: "",
-      durationSeconds: 0,
-      orderIndex: 0,
       lessonNumber: 1,
       tags: "",
       videoId: "",
     },
   });
 
-  // Generate slug from title
-  const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^\w\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .trim();
-  };
-
   async function onSubmit(data: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
     try {
-      const slug = generateSlug(data.title);
       const tagsArray = data.tags
         ? data.tags
             .split(",")
@@ -98,10 +82,7 @@ export function LessonForm({ modules }: LessonFormProps) {
       const lessonId = await createLesson({
         moduleId: data.moduleId as Id<"modules">,
         title: data.title,
-        slug,
         description: data.description,
-        durationSeconds: data.durationSeconds,
-        order_index: data.orderIndex,
         lessonNumber: data.lessonNumber,
         isPublished: false,
         tags: tagsArray.length > 0 ? tagsArray : undefined,

@@ -73,8 +73,6 @@ function EditLessonForm({
     moduleId: lesson.moduleId,
     title: lesson.title,
     description: lesson.description,
-    durationSeconds: lesson.durationSeconds,
-    orderIndex: lesson.order_index,
     lessonNumber: lesson.lessonNumber,
     tags: lesson.tags?.join(", ") || "",
   });
@@ -84,23 +82,11 @@ function EditLessonForm({
     currentVideoId ? { videoId: currentVideoId } : "skip"
   );
 
-  const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^\w\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .trim();
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const slug = generateSlug(formData.title);
       const tagsArray = formData.tags
         ? formData.tags
             .split(",")
@@ -112,10 +98,9 @@ function EditLessonForm({
         id: lesson._id,
         moduleId: formData.moduleId,
         title: formData.title,
-        slug,
         description: formData.description,
-        durationSeconds: formData.durationSeconds,
-        order_index: formData.orderIndex,
+        durationSeconds: lesson.durationSeconds,
+        order_index: lesson.order_index,
         lessonNumber: formData.lessonNumber,
         isPublished: lesson.isPublished,
         tags: tagsArray.length > 0 ? tagsArray : undefined,
@@ -141,7 +126,6 @@ function EditLessonForm({
     }
 
     try {
-      const slug = generateSlug(formData.title);
       const tagsArray = formData.tags
         ? formData.tags
             .split(",")
@@ -153,10 +137,9 @@ function EditLessonForm({
         id: lesson._id,
         moduleId: formData.moduleId,
         title: formData.title,
-        slug,
         description: formData.description,
-        durationSeconds: formData.durationSeconds,
-        order_index: formData.orderIndex,
+        durationSeconds: lesson.durationSeconds,
+        order_index: lesson.order_index,
         lessonNumber: formData.lessonNumber,
         isPublished: lesson.isPublished,
         tags: tagsArray.length > 0 ? tagsArray : undefined,
@@ -256,7 +239,6 @@ function EditLessonForm({
       }
 
       // Step 3: Update lesson with videoId
-      const slug = generateSlug(formData.title);
       const tagsArray = formData.tags
         ? formData.tags
             .split(",")
@@ -268,10 +250,9 @@ function EditLessonForm({
         id: lesson._id,
         moduleId: formData.moduleId,
         title: formData.title,
-        slug,
         description: formData.description,
-        durationSeconds: formData.durationSeconds,
-        order_index: formData.orderIndex,
+        durationSeconds: lesson.durationSeconds,
+        order_index: lesson.order_index,
         lessonNumber: formData.lessonNumber,
         isPublished: lesson.isPublished,
         tags: tagsArray.length > 0 ? tagsArray : undefined,
@@ -322,9 +303,7 @@ function EditLessonForm({
         <Label htmlFor="edit-module">Módulo</Label>
         <Select
           value={formData.moduleId}
-          onValueChange={(value) =>
-            setFormData({ ...formData, moduleId: value })
-          }
+          onValueChange={(value) => setFormData({ ...formData, moduleId: value })}
         >
           <SelectTrigger id="edit-module">
             <SelectValue placeholder="Selecione um módulo" />
@@ -354,62 +333,26 @@ function EditLessonForm({
         <Textarea
           id="edit-description"
           value={formData.description}
-          onChange={(e) =>
-            setFormData({ ...formData, description: e.target.value })
-          }
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           rows={3}
           required
         />
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="edit-duration">Duração (segundos)</Label>
-          <Input
-            id="edit-duration"
-            type="number"
-            value={formData.durationSeconds}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                durationSeconds: parseInt(e.target.value) || 0,
-              })
-            }
-            required
-          />
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="edit-order">Ordem</Label>
-          <Input
-            id="edit-order"
-            type="number"
-            value={formData.orderIndex}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                orderIndex: parseInt(e.target.value) || 0,
-              })
-            }
-            required
-          />
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="edit-lesson-number">Número da Aula</Label>
-          <Input
-            id="edit-lesson-number"
-            type="number"
-            value={formData.lessonNumber}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                lessonNumber: parseInt(e.target.value) || 1,
-              })
-            }
-            required
-          />
-        </div>
+      <div className="space-y-2">
+        <Label htmlFor="edit-lesson-number">Número da Aula</Label>
+        <Input
+          id="edit-lesson-number"
+          type="number"
+          value={formData.lessonNumber}
+          onChange={(e) => setFormData({
+            ...formData,
+            lessonNumber: parseInt(e.target.value) || 1,
+          })}
+          required
+        />
       </div>
 
       <div className="space-y-2">
@@ -459,7 +402,7 @@ function EditLessonForm({
                 <div className="flex-1">
                   <p className="text-sm font-medium text-green-900">
                     Vídeo vinculado
-                  </p>
+                  </p> 
                   <p className="text-xs text-green-700">
                     Status: {video.status === "ready" ? "Pronto" : video.status === "processing" ? "Processando" : video.status}
                   </p>
@@ -849,7 +792,6 @@ export function LessonList({ lessons }: LessonListProps) {
         id: uploadingLesson._id,
         moduleId: uploadingLesson.moduleId,
         title: uploadingLesson.title,
-        slug: uploadingLesson.slug,
         description: uploadingLesson.description,
         durationSeconds: uploadingLesson.durationSeconds,
         order_index: uploadingLesson.order_index,
@@ -890,7 +832,7 @@ export function LessonList({ lessons }: LessonListProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
+          <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
             {lessons.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 Nenhuma aula cadastrada ainda.
