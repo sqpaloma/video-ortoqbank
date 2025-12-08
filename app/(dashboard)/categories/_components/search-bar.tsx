@@ -23,7 +23,7 @@ export function SearchBar({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-1/3">
+    <form onSubmit={handleSubmit} className="w-full">
       <div className="relative">
         <Search
           className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
@@ -34,7 +34,7 @@ export function SearchBar({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={placeholder}
-          className="pl-11 pr-4 h-11 rounded-full border"
+          className="pl-11 pr-4 h-14 rounded-full border"
         />
       </div>
     </form>

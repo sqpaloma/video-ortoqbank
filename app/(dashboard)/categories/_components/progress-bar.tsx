@@ -9,7 +9,7 @@ interface ProgressBarProps {
 
 export function ProgressBar({ label, progress }: ProgressBarProps) {
   return (
-    <div className="w-full max-w-md">
+    <div className="w-full h-14 flex flex-col justify-center">
       <div className="flex justify-between items-center mb-2">
         <span className="text-sm font-medium text-foreground">{label}</span>
         <span className="text-lg font-bold text-foreground">{progress}%</span>

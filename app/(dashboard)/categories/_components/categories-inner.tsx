@@ -40,18 +40,20 @@ export function CategoriesInner({ preloadedCategories, initialProgress }: Catego
     : categories;
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header com progresso e estrela */}
-      <div className="py-6 px-48 flex items-center justify-center mb-6 relative">
-        <SidebarTrigger className="absolute left-6 text-blue-brand hover:text-blue-brand-dark hover:bg-blue-brand-light" />
-        <ProgressBar label="Progresso Total" progress={initialProgress} />
-        
-      </div>
+    <div className="min-h-screen bg-white relative">
+      {/* Sidebar trigger no canto */}
+      <SidebarTrigger className="absolute top-6 left-6 text-blue-brand hover:text-blue-brand-dark hover:bg-blue-brand-light z-10" />
 
-      <div className="px-48 pb-4">
-        {/* Barra de pesquisa */}
-        <div className="mb-4">
-          <SearchBar onSearch={handleSearch} />
+      <div className="px-48 pb-4 pt-20">
+        {/* Barra de pesquisa com progresso total - alinhado com o grid */}
+        <div className="mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="col-span-1">
+            <SearchBar onSearch={handleSearch} />
+          </div>
+          <div className="hidden lg:block"></div>
+          <div className="col-span-1">
+            <ProgressBar label="Progresso Total" progress={initialProgress} />
+          </div>
         </div>
 
         {/* Grid de cards - 3 linhas de 3 categorias sem scroll */}
