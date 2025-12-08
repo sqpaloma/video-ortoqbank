@@ -41,8 +41,12 @@ export default function Dashboard({
   }
 
   const totalLessons = contentStats?.totalLessons || 0;
-  const progressPercent = globalProgress?.progressPercent || 0;
   const completedLessonsCount = completedCount || 0;
+  
+  // Calculate progress dynamically: (completed / total) * 100
+  const progressPercent = totalLessons > 0 
+    ? Math.round((completedLessonsCount / totalLessons) * 100)
+    : 0;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
