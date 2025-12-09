@@ -42,11 +42,11 @@ export function CategoriesInner({ preloadedCategories, initialProgress }: Catego
   return (
     <div className="min-h-screen bg-white relative">
       {/* Sidebar trigger no canto */}
-      <SidebarTrigger className="absolute top-6 left-6 text-blue-brand hover:text-blue-brand-dark hover:bg-blue-brand-light z-10" />
+      <SidebarTrigger className="absolute top-4 left-4 md:top-6 md:left-6 text-blue-brand hover:text-blue-brand-dark hover:bg-blue-brand-light z-10" />
 
-      <div className="px-42 pb-4 pt-14">
+      <div className="px-12 sm:px-16 md:px-24 lg:px-24 xl:px-42 pb-4 pt-16 md:pt-14">
         {/* Barra de pesquisa com progresso total - alinhado com o grid */}
-        <div className="mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="mb-4 md:mb-6 grid grid-cols-1 lg:grid-cols-3 gap-3">
           <div className="col-span-1">
             <SearchBar onSearch={handleSearch} />
           </div>
@@ -57,7 +57,7 @@ export function CategoriesInner({ preloadedCategories, initialProgress }: Catego
         </div>
 
         {/* Grid de cards - 3 linhas de 3 categorias sem scroll */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
           {filteredCategories.map((category) => (
             <CategoriesCard
               key={category._id}
