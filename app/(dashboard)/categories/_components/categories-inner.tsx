@@ -52,7 +52,7 @@ export function CategoriesInner({ preloadedCategories, initialProgress }: Catego
           </div>
           <div className="hidden lg:block"></div>
           <div className="col-span-1">
-            <ProgressBar label="Progresso Total" progress={initialProgress} />
+            <ProgressBar/>
           </div>
         </div>
 
