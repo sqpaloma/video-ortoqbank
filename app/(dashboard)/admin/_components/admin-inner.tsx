@@ -10,6 +10,8 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Preloaded, usePreloadedQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { parseAsStringLiteral } from "nuqs";
+import { useQueryState } from "nuqs";
 
 interface AdminInnerProps {
   preloadedCategories: Preloaded<typeof api.categories.list>;
@@ -25,6 +27,18 @@ export function AdminInner({
   const categories = usePreloadedQuery(preloadedCategories);
   const modules = usePreloadedQuery(preloadedModules);
   const lessons = usePreloadedQuery(preloadedLessons);
+  
+  const [tab, setTab] = useQueryState(
+    "tab",
+    parseAsStringLiteral(["categories", "modules", "lessons"] as const).withDefault("categories")
+  );
+
+  const handleTabChange = (value: string) => {
+    if (value === "categories" || value === "modules" || value === "lessons") {
+      setTab(value);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -36,7 +50,7 @@ export function AdminInner({
       {/* Content */}
       <div className="p-8 pb-24 md:pb-8">
         <div className="max-w-7xl mx-auto">
-          <Tabs defaultValue="categories" className="w-full">
+          <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="grid w-full grid-cols-3 mb-8">
               <TabsTrigger value="categories">Categorias</TabsTrigger>
               <TabsTrigger value="modules">Módulos</TabsTrigger>

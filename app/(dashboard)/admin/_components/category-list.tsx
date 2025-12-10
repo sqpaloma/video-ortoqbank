@@ -381,7 +381,7 @@ export function CategoryList({ categories }: CategoryListProps) {
           </div>
         </CardHeader>
         <CardContent className="pt-0">
-          <div className="space-y-2 max-h-[390px] overflow-auto pr-2">
+          <div className="space-y-2 max-h-[400px] overflow-auto pr-2">
             {categories.length === 0 ? (
               <p className="text-sm text-muted-foreground">Nenhuma categoria cadastrada ainda.</p>
             ) : isEditOrderMode ? (

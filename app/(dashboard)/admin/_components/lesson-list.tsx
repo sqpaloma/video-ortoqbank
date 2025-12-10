@@ -694,53 +694,55 @@ function LessonItem({
         </div>
       </div>
       {!isEditOrderMode && (
-        <div className="flex gap-1.5 shrink-0 flex-wrap">
-        {!lesson.videoId && (
-          <Button
-            variant="default"
-            size="sm"
-            onClick={() => onUploadVideo(lesson)}
-            title="Fazer upload de vídeo"
-            className="text-[10px] h-7 px-2"
-          >
-            <Upload className="h-3 w-3 mr-1" />
-            Upload
-          </Button>
-        )}
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-7 w-7"
-          onClick={() => onEditLesson?.(lesson)}
-          title="Editar aula"
-        >
-          <Edit className="h-3 w-3" />
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-7 w-7"
-          onClick={() =>
-            onTogglePublish(lesson._id, lesson.title, lesson.isPublished)
-          }
-          title={lesson.isPublished ? "Despublicar (Rascunho)" : "Publicar"}
-        >
-          {lesson.isPublished ? (
-            <Eye className="h-3 w-3 text-green-600" />
-          ) : (
-            <EyeOff className="h-3 w-3 text-gray-400" />
+        <div className="flex flex-col gap-1.5 shrink-0">
+          {!lesson.videoId && (
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => onUploadVideo(lesson)}
+              title="Fazer upload de vídeo"
+              className="text-[10px] h-7 px-2 w-full"
+            >
+              <Upload className="h-3 w-3 mr-1" />
+              Upload
+            </Button>
           )}
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-7 w-7"
-          onClick={() => onDelete(lesson._id, lesson.title)}
-          title="Deletar"
-        >
-          <Trash2 className="h-3 w-3 text-destructive" />
-        </Button>
-      </div>
+          <div className="flex gap-1.5">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => onEditLesson?.(lesson)}
+              title="Editar aula"
+            >
+              <Edit className="h-3 w-3" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() =>
+                onTogglePublish(lesson._id, lesson.title, lesson.isPublished)
+              }
+              title={lesson.isPublished ? "Despublicar (Rascunho)" : "Publicar"}
+            >
+              {lesson.isPublished ? (
+                <Eye className="h-3 w-3 text-green-600" />
+              ) : (
+                <EyeOff className="h-3 w-3 text-gray-400" />
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => onDelete(lesson._id, lesson.title)}
+              title="Deletar"
+            >
+              <Trash2 className="h-3 w-3 text-destructive" />
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );
