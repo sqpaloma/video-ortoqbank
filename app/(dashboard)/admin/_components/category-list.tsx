@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useMutation } from "convex/react";
@@ -10,7 +10,7 @@ import { useErrorModal } from "@/hooks/use-error-modal";
 import { useConfirmModal } from "@/hooks/use-confirm-modal";
 import { ErrorModal } from "@/components/ui/error-modal";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, GripVertical, Check, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -21,14 +21,114 @@ import {
 import { Input } from "@/components/ui/input";
 import { Id, Doc } from "@/convex/_generated/dataModel";
 import { ImageUpload } from "@/components/ui/image-upload";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { cn } from "@/lib/utils";
 
 interface CategoryListProps {
   categories: Doc<"categories">[];
 }
 
+interface SortableCategoryItemProps {
+  category: Doc<"categories">;
+  isEditOrderMode: boolean;
+  onEdit: (category: Doc<"categories">) => void;
+  onDelete: (id: Id<"categories">, title: string) => void;
+}
+
+function SortableCategoryItem({ 
+  category, 
+  isEditOrderMode, 
+  onEdit, 
+  onDelete 
+}: SortableCategoryItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: category._id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...(isEditOrderMode ? { ...attributes, ...listeners } : {})}
+      className={cn(
+        "flex items-center gap-2 p-3 border rounded-lg transition-colors",
+        isEditOrderMode && "cursor-grab active:cursor-grabbing hover:bg-accent/50",
+        !isEditOrderMode && "hover:bg-accent/50",
+        isDragging && "opacity-50 ring-2 ring-primary"
+      )}
+    >
+      {isEditOrderMode && (
+        <div className="p-1">
+          <GripVertical className="h-5 w-5 text-muted-foreground" />
+        </div>
+      )}
+      <div className="flex-1 flex items-center gap-3">
+        {category.iconUrl && (
+          <img 
+            src={category.iconUrl} 
+            alt={category.title}
+            className="w-10 h-10 object-contain rounded"
+          />
+        )}
+        <div className="flex-1">
+          <h3 className="font-semibold">{category.title}</h3>
+          <p className="text-sm text-muted-foreground line-clamp-1">
+            {category.description}
+          </p>
+        </div>
+      </div>
+      {!isEditOrderMode && (
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onEdit(category)}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => onDelete(category._id, category.title)}
+          >
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function CategoryList({ categories }: CategoryListProps) {
   const updateCategory = useMutation(api.categories.update);
   const deleteCategory = useMutation(api.categories.remove);
+  const reorderCategories = useMutation(api.categories.reorder);
   const { toast } = useToast();
   const { error, showError, hideError } = useErrorModal();
   const { confirm, showConfirm, hideConfirm } = useConfirmModal();
@@ -38,6 +138,24 @@ export function CategoryList({ categories }: CategoryListProps) {
   const [editDescription, setEditDescription] = useState("");
   const [editIconUrl, setEditIconUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Edit order mode state
+  const [isEditOrderMode, setIsEditOrderMode] = useState(false);
+  const [orderedCategories, setOrderedCategories] = useState<Doc<"categories">[]>(categories);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
+
+  // DND sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Update ordered categories when categories prop changes
+  useEffect(() => {
+    setOrderedCategories(categories);
+  }, [categories]);
 
   const handleEdit = (category: {
     _id: Id<"categories">;
@@ -121,59 +239,128 @@ export function CategoryList({ categories }: CategoryListProps) {
     );
   };
 
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setOrderedCategories((items) => {
+        const oldIndex = items.findIndex((item) => item._id === active.id);
+        const newIndex = items.findIndex((item) => item._id === over.id);
+
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
+  const handleSaveOrder = async () => {
+    setIsSavingOrder(true);
+    try {
+      // Create updates array with new positions
+      const updates = orderedCategories.map((cat, index) => ({
+        id: cat._id,
+        position: index + 1,
+      }));
+
+      await reorderCategories({ updates });
+
+      toast({
+        title: "Sucesso",
+        description: "Ordem das categorias atualizada!",
+      });
+
+      setIsEditOrderMode(false);
+    } catch (error) {
+      showError(
+        error instanceof Error ? error.message : "Erro ao salvar ordem",
+        "Erro ao salvar ordem"
+      );
+    } finally {
+      setIsSavingOrder(false);
+    }
+  };
+
+  const handleCancelOrder = () => {
+    setOrderedCategories(categories);
+    setIsEditOrderMode(false);
+  };
+
   return (
     <>
       <Card className="w-full">
         <CardHeader className="pb-4">
-          <CardTitle>Categorias Cadastradas</CardTitle>
-          <CardDescription>
-            {categories.length} {categories.length === 1 ? "categoria" : "categorias"} no sistema
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Categorias Cadastradas</CardTitle>
+              <CardDescription>
+                {categories.length} {categories.length === 1 ? "categoria" : "categorias"} no sistema
+              </CardDescription>
+            </div>
+            <div className="flex gap-2">
+              {!isEditOrderMode ? (
+                <Button
+                  variant="outline"
+                  onClick={() => setIsEditOrderMode(true)}
+                  disabled={categories.length === 0}
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Editar Ordem
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={handleCancelOrder}
+                    disabled={isSavingOrder}
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={handleSaveOrder}
+                    disabled={isSavingOrder}
+                  >
+                    <Check className="h-4 w-4 mr-2" />
+                    {isSavingOrder ? "Salvando..." : "Salvar Ordem"}
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="pt-0">
           <div className="space-y-2 max-h-[390px] overflow-auto pr-2">
             {categories.length === 0 ? (
               <p className="text-sm text-muted-foreground">Nenhuma categoria cadastrada ainda.</p>
-            ) : (
-              categories.map((category) => (
-                <div
-                  key={category._id}
-                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-colors"
+            ) : isEditOrderMode ? (
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={orderedCategories.map(cat => cat._id)}
+                  strategy={verticalListSortingStrategy}
                 >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                      {category.iconUrl && (
-                        <img 
-                          src={category.iconUrl} 
-                          alt={category.title}
-                          className="w-10 h-10 object-contain rounded"
-                        />
-                      )}
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{category.title}</h3>
-                        <p className="text-sm text-muted-foreground line-clamp-1">
-                          {category.description}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleEdit(category)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleDelete(category._id, category.title)}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
-                </div>
+                  {orderedCategories.map((category) => (
+                    <SortableCategoryItem
+                      key={category._id}
+                      category={category}
+                      isEditOrderMode={isEditOrderMode}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
+            ) : (
+              orderedCategories.map((category) => (
+                <SortableCategoryItem
+                  key={category._id}
+                  category={category}
+                  isEditOrderMode={isEditOrderMode}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
               ))
             )}
           </div>

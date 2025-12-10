@@ -21,6 +21,7 @@ export const list = query({
     const categories = await ctx.db
       .query("categories")
       .withIndex("by_position")
+      .order("asc")
       .collect();
 
     return categories;
@@ -273,6 +274,29 @@ export const remove = mutation({
 
     // Update contentStats
     await ctx.scheduler.runAfter(0, internal.contentStats.decrementCategories, { amount: 1 });
+
+    return null;
+  },
+});
+
+// Mutation para reordenar categorias
+export const reorder = mutation({
+  args: {
+    updates: v.array(
+      v.object({
+        id: v.id("categories"),
+        position: v.number(),
+      })
+    ),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    // Update all category positions
+    for (const update of args.updates) {
+      await ctx.db.patch(update.id, {
+        position: update.position,
+      });
+    }
 
     return null;
   },
