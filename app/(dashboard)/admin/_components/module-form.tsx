@@ -3,37 +3,19 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useToast } from "@/hooks/use-toast";
 import { useErrorModal } from "@/hooks/use-error-modal";
 import { ErrorModal } from "@/components/ui/error-modal";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import * as z from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Id } from "@/convex/_generated/dataModel";
-import { CheckCircle2, BookOpen } from "lucide-react";
+import { CheckCircle2Icon, BookOpenIcon } from "lucide-react";
 import { Doc } from "@/convex/_generated/dataModel";
 
 const formSchema = z.object({
@@ -101,7 +83,7 @@ export function ModuleForm({ categories, onSuccess }: ModuleFormProps) {
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <BookOpen className="h-5 w-5" />
+          <BookOpenIcon className="h-5 w-5" />
           Novo Módulo
         </CardTitle>
         <CardDescription>Adicione um novo módulo ao sistema</CardDescription>
@@ -189,7 +171,7 @@ export function ModuleForm({ categories, onSuccess }: ModuleFormProps) {
                 "Criando..."
               ) : createdModule ? (
                 <>
-                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                  <CheckCircle2Icon className="mr-2 h-4 w-4" />
                   Módulo Criado!
                 </>
               ) : (

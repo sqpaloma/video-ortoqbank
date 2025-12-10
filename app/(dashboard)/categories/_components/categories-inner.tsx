@@ -3,7 +3,6 @@
 import { ProgressBar } from "./progress-bar";
 import { SearchBar } from "./search-bar";
 import { CategoriesCard } from "./categories-card";
-import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { useState } from "react";

@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, BookOpen, Video } from "lucide-react";
+import { SearchIcon, BookOpenIcon, VideoIcon } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { useQuery } from "convex/react";
@@ -88,8 +88,7 @@ export function SearchBar({
   return (
     <form onSubmit={handleSubmit} className="w-full relative" ref={wrapperRef}>
       <div className="relative">
-        <Search
-          className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-muted-foreground z-10"
+        <SearchIcon className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-muted-foreground z-10"
           size={18}
         />
         <Input
@@ -122,7 +121,7 @@ export function SearchBar({
                   className="w-full text-left px-3 py-2.5 hover:bg-blue-50 rounded-md transition-colors group"
                 >
                   <div className="flex items-start gap-3">
-                    <BookOpen className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
+                    <BookOpenIcon className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-sm text-gray-900 group-hover:text-blue-700 truncate">
                         {module.title}
@@ -155,7 +154,7 @@ export function SearchBar({
                   className="w-full text-left px-3 py-2.5 hover:bg-green-50 rounded-md transition-colors group"
                 >
                   <div className="flex items-start gap-3">
-                    <Video className="w-5 h-5 text-green-600 mt-0.5 shrink-0" />
+                    <VideoIcon className="w-5 h-5 text-green-600 mt-0.5 shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-sm text-gray-900 group-hover:text-green-700 truncate">
                         {lesson.title}

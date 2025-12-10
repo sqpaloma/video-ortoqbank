@@ -10,39 +10,13 @@ import { useErrorModal } from "@/hooks/use-error-modal";
 import { useConfirmModal } from "@/hooks/use-confirm-modal";
 import { ErrorModal } from "@/components/ui/error-modal";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import { Edit, Trash2, GripVertical, Check, X, Eye, EyeOff } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { EditIcon, Trash2Icon, GripVerticalIcon, CheckIcon, XIcon, EyeIcon, EyeOffIcon } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Id, Doc } from "@/convex/_generated/dataModel";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
 
@@ -96,7 +70,7 @@ function SortableModuleItem({
     >
       {isEditOrderMode && (
         <div className="p-0.5">
-          <GripVertical className="h-4 w-4 text-muted-foreground" />
+          <GripVerticalIcon className="h-4 w-4 text-muted-foreground" />
         </div>
       )}
       <div className="flex-1 min-w-0">
@@ -123,9 +97,9 @@ function SortableModuleItem({
             title={module.isPublished ? "Despublicar módulo" : "Publicar módulo"}
           >
             {module.isPublished ? (
-              <Eye className="h-3 w-3 text-green-600" />
+              <EyeIcon className="h-3 w-3 text-green-600" />
             ) : (
-              <EyeOff className="h-3 w-3 text-gray-400" />
+              <EyeOffIcon className="h-3 w-3 text-gray-400" />
             )}
           </Button>
           <Button
@@ -134,7 +108,7 @@ function SortableModuleItem({
             className="h-7 w-7"
             onClick={() => onEdit(module)}
           >
-            <Edit className="h-3 w-3" />
+            <EditIcon className="h-3 w-3" />
           </Button>
           <Button
             variant="outline"
@@ -142,7 +116,7 @@ function SortableModuleItem({
             className="h-7 w-7"
             onClick={() => onDelete(module._id, module.title)}
           >
-            <Trash2 className="h-3 w-3 text-destructive" />
+            <Trash2Icon className="h-3 w-3 text-destructive" />
           </Button>
         </div>
       )}
@@ -410,7 +384,7 @@ export function ModuleList({ modules, categories }: ModuleListProps) {
                   onClick={() => setIsEditOrderMode(true)}
                   disabled={modules.length === 0}
                 >
-                  <Edit className="h-4 w-4 mr-2" />
+                  <EditIcon className="h-4 w-4 mr-2" />
                   Editar Ordem
                 </Button>
               ) : (
@@ -420,14 +394,14 @@ export function ModuleList({ modules, categories }: ModuleListProps) {
                     onClick={handleCancelOrder}
                     disabled={isSavingOrder}
                   >
-                    <X className="h-4 w-4 mr-2" />
+                    <XIcon className="h-4 w-4 mr-2" />
                     Cancelar
                   </Button>
                   <Button
                     onClick={handleSaveOrder}
                     disabled={isSavingOrder}
                   >
-                    <Check className="h-4 w-4 mr-2" />
+                    <CheckIcon className="h-4 w-4 mr-2" />
                     {isSavingOrder ? "Salvando..." : "Salvar Ordem"}
                   </Button>
                 </>

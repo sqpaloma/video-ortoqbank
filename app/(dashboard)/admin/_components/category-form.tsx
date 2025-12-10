@@ -3,13 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useToast } from "@/hooks/use-toast";
@@ -18,13 +12,8 @@ import { ErrorModal } from "@/components/ui/error-modal";
 import * as z from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
-import { CheckCircle2, FolderPlus } from "lucide-react";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { CheckCircle2Icon, FolderPlusIcon } from "lucide-react";
 import { ImageUpload } from "@/components/ui/image-upload";
 
 const formSchema = z.object({
@@ -96,7 +85,7 @@ export function CategoryForm({ onSuccess }: CategoryFormProps) {
     <Card className="w-full">
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2">
-          <FolderPlus className="h-5 w-5" />
+          <FolderPlusIcon className="h-5 w-5" />
           Nova Categoria
         </CardTitle>
         <CardDescription>
@@ -194,7 +183,7 @@ export function CategoryForm({ onSuccess }: CategoryFormProps) {
                 "Criando..."
               ) : createdCategory ? (
                 <>
-                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                  <CheckCircle2Icon className="mr-2 h-4 w-4" />
                   Categoria Criada!
                 </>
               ) : (

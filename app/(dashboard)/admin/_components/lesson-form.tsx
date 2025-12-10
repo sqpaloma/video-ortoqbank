@@ -3,37 +3,19 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { useMutation, useQuery } from "convex/react";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useToast } from "@/hooks/use-toast";
 import { useErrorModal } from "@/hooks/use-error-modal";
 import { ErrorModal } from "@/components/ui/error-modal";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Video, CheckCircle2 } from "lucide-react";
+import { VideoIcon, CheckCircle2Icon } from "lucide-react";
 import * as z from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Id, Doc } from "@/convex/_generated/dataModel";
 
 const formSchema = z.object({
@@ -114,7 +96,7 @@ export function LessonForm({ modules }: LessonFormProps) {
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Video className="h-5 w-5" />
+          <VideoIcon className="h-5 w-5" />
           Criar Nova Aula
         </CardTitle>
         <CardDescription>
@@ -229,7 +211,7 @@ export function LessonForm({ modules }: LessonFormProps) {
                 "Criando..."
               ) : createdLessonId ? (
                 <>
-                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                  <CheckCircle2Icon className="mr-2 h-4 w-4" />
                   Aula Criada!
                 </>
               ) : (

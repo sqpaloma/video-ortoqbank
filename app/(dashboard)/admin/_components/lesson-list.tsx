@@ -2,30 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useToast } from "@/hooks/use-toast";
@@ -33,40 +15,12 @@ import { useErrorModal } from "@/hooks/use-error-modal";
 import { useConfirmModal } from "@/hooks/use-confirm-modal";
 import { ErrorModal } from "@/components/ui/error-modal";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import {
-  Edit,
-  Trash2,
-  Eye,
-  EyeOff,
-  CheckCircleIcon,
-  LoaderIcon,
-  XCircleIcon,
-  ClockIcon,
-  RefreshCw,
-  Upload,
-  GripVertical,
-  Check,
-  X,
-} from "lucide-react";
+import { EditIcon, Trash2Icon, EyeIcon, EyeOffIcon, CheckCircleIcon, LoaderIcon, XCircleIcon, ClockIcon, RefreshCwIcon, UploadIcon, GripVerticalIcon, XIcon, CheckIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Id, Doc } from "@/convex/_generated/dataModel";
+import { Doc } from "@/convex/_generated/dataModel";
 import AdminVideoUploader from "@/components/bunny/admin-video-uploader";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
 
@@ -402,7 +356,7 @@ function EditLessonForm({
                   onClick={handleRemoveVideo}
                   title="Remover referência"
                 >
-                  <Trash2 className="h-4 w-4 mr-1" />
+                  <Trash2Icon className="h-4 w-4 mr-1" />
                 </Button>
               </div>
             ) : (
@@ -422,7 +376,7 @@ function EditLessonForm({
                   size="sm"
                   onClick={handleRemoveVideo}
                 >
-                  <Trash2 className="h-4 w-4 mr-1" />
+                  <Trash2Icon className="h-4 w-4 mr-1" />
                 </Button>
               </div>
             )}
@@ -464,7 +418,7 @@ function EditLessonForm({
                   </>
                 ) : (
                   <>
-                    <Upload className="h-4 w-4 mr-2" />
+                    <UploadIcon className="h-4 w-4 mr-2" />
                     Fazer Upload
                   </>
                 )}
@@ -489,7 +443,7 @@ function EditLessonForm({
             onClick={() => setShowUploader(true)}
             className="w-full"
           >
-            <Upload className="h-4 w-4 mr-2" />
+            <UploadIcon className="h-4 w-4 mr-2" />
             Fazer Upload de Vídeo
           </Button>
         )}
@@ -504,12 +458,12 @@ function EditLessonForm({
         >
           {lesson.isPublished ? (
             <>
-              <EyeOff className="h-4 w-4" />
+              <EyeOffIcon className="h-4 w-4" />
               Despublicar
             </>
           ) : (
             <>
-              <Eye className="h-4 w-4" />
+              <EyeIcon className="h-4 w-4" />
               Publicar
             </>
           )}
@@ -667,7 +621,7 @@ function LessonItem({
     <div className="flex items-center gap-2 p-2 border rounded-md hover:bg-accent/50 transition-colors">
       {isEditOrderMode && (
         <div className="p-0.5 shrink-0">
-          <GripVertical className="h-4 w-4 text-muted-foreground" />
+          <GripVerticalIcon className="h-4 w-4 text-muted-foreground" />
         </div>
       )}
       <div className="flex-1 min-w-0">
@@ -703,7 +657,7 @@ function LessonItem({
               title="Fazer upload de vídeo"
               className="text-[10px] h-7 px-2 w-full"
             >
-              <Upload className="h-3 w-3 mr-1" />
+              <UploadIcon className="h-3 w-3 mr-1" />
               Upload
             </Button>
           )}
@@ -715,7 +669,7 @@ function LessonItem({
               onClick={() => onEditLesson?.(lesson)}
               title="Editar aula"
             >
-              <Edit className="h-3 w-3" />
+              <EditIcon className="h-3 w-3" />
             </Button>
             <Button
               variant="outline"
@@ -727,9 +681,9 @@ function LessonItem({
               title={lesson.isPublished ? "Despublicar (Rascunho)" : "Publicar"}
             >
               {lesson.isPublished ? (
-                <Eye className="h-3 w-3 text-green-600" />
+                <EyeIcon className="h-3 w-3 text-green-600" />
               ) : (
-                <EyeOff className="h-3 w-3 text-gray-400" />
+                <EyeOffIcon className="h-3 w-3 text-gray-400" />
               )}
             </Button>
             <Button
@@ -739,7 +693,7 @@ function LessonItem({
               onClick={() => onDelete(lesson._id, lesson.title)}
               title="Deletar"
             >
-              <Trash2 className="h-3 w-3 text-destructive" />
+                <Trash2Icon className="h-3 w-3 text-destructive" />
             </Button>
           </div>
         </div>
@@ -1046,7 +1000,7 @@ export function LessonList({ lessons }: LessonListProps) {
                   onClick={() => setIsEditOrderMode(true)}
                   disabled={lessons.length === 0}
                 >
-                  <Edit className="h-4 w-4 mr-2" />
+                  <EditIcon className="h-4 w-4 mr-2" />
                   Editar Ordem
                 </Button>
               ) : (
@@ -1056,14 +1010,14 @@ export function LessonList({ lessons }: LessonListProps) {
                     onClick={handleCancelOrder}
                     disabled={isSavingOrder}
                   >
-                    <X className="h-4 w-4 mr-2" />
+                    <XIcon className="h-4 w-4 mr-2" />
                     Cancelar
                   </Button>
                   <Button
                     onClick={handleSaveOrder}
                     disabled={isSavingOrder}
                   >
-                    <Check className="h-4 w-4 mr-2" />
+                    <CheckIcon className="h-4 w-4 mr-2" />
                     {isSavingOrder ? "Salvando..." : "Salvar Ordem"}
                   </Button>
                 </>
