@@ -53,7 +53,7 @@ export default function ProfileInner({
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push("/")}
+            onClick={() => router.push("/categories")}
             className="text-gray-700 hover:text-gray-900 hover:bg-gray-100"
           >
             <ChevronLeft size={24} />
