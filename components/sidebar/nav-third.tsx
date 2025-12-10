@@ -22,7 +22,7 @@ interface MenuItem {
 }
 
 const items: MenuItem[] = [
-  { title: 'Suporte', url: '/suporte', icon: HeadsetIcon },
+  { title: 'Suporte', url: '/support', icon: HeadsetIcon },
 
   {
     title: 'Admin',

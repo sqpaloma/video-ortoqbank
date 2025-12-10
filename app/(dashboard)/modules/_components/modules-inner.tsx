@@ -47,6 +47,7 @@ export function ModulesInner({
   const [currentModuleId, setCurrentModuleId] = useState<Id<"modules"> | null>(
     null,
   );
+  const [nextModuleId, setNextModuleId] = useState<Id<"modules"> | null>(null);
 
   // Mutations
   const markCompleted = useMutation(api.progress.markLessonCompleted);
@@ -58,6 +59,18 @@ export function ModulesInner({
   const firstModuleLessons = useQuery(
     api.lessons.listByModule,
     modules[0] ? { moduleId: modules[0]._id } : "skip",
+  );
+
+  // Load lessons for current module
+  const currentModuleLessons = useQuery(
+    api.lessons.listByModule,
+    currentModuleId ? { moduleId: currentModuleId } : "skip",
+  );
+
+  // Load lessons for next module (for smooth transitions)
+  const nextModuleLessons = useQuery(
+    api.lessons.listByModule,
+    nextModuleId ? { moduleId: nextModuleId } : "skip",
   );
 
   // Queries for current state
@@ -95,6 +108,25 @@ export function ModulesInner({
       setExpandedModules(new Set([modules[0]._id]));
     }
   }, [firstModuleLessons, currentLessonId, modules]);
+
+  // Handle transition to first lesson of next module
+  useEffect(() => {
+    const transitionToNextModule = async () => {
+      if (nextModuleId && nextModuleLessons && nextModuleLessons.length > 0) {
+        const firstLesson = nextModuleLessons[0];
+        
+        // Only transition if we haven't already switched to this lesson
+        if (currentLessonId !== firstLesson._id) {
+          await handleLessonClick(firstLesson._id, nextModuleId);
+        }
+        
+        // Reset nextModuleId after handling
+        setNextModuleId(null);
+      }
+    };
+
+    transitionToNextModule();
+  }, [nextModuleId, nextModuleLessons, currentLessonId, user?.id]);
 
   const handleBackClick = () => {
     router.push("/categories");
@@ -167,12 +199,39 @@ export function ModulesInner({
     }
   };
 
-  const handleNextLesson = () => {
-    // TODO: Implement next lesson logic across modules
-    if (!currentLessonId || !currentModuleId) return;
-    const currentModule = modules.find((m) => m._id === currentModuleId);
-    if (!currentModule) return;
-    // For now, just a placeholder
+  const handleNextLesson = async () => {
+    if (!currentLessonId || !currentModuleId || !currentModuleLessons) return;
+
+    // Find current lesson index in current module
+    const currentLessonIndex = currentModuleLessons.findIndex(
+      (lesson) => lesson._id === currentLessonId
+    );
+
+    if (currentLessonIndex === -1) return;
+
+    // Check if there's a next lesson in current module
+    if (currentLessonIndex < currentModuleLessons.length - 1) {
+      // Go to next lesson in same module
+      const nextLesson = currentModuleLessons[currentLessonIndex + 1];
+      await handleLessonClick(nextLesson._id, currentModuleId);
+    } else {
+      // Current lesson is the last in module, try to go to first lesson of next module
+      const currentModuleIndex = modules.findIndex(
+        (m) => m._id === currentModuleId
+      );
+      
+      if (currentModuleIndex === -1 || currentModuleIndex >= modules.length - 1) {
+        // This is the last module, no next lesson
+        return;
+      }
+
+      // Get next module
+      const nextModule = modules[currentModuleIndex + 1];
+      
+      // Expand the next module and trigger loading of its lessons
+      setExpandedModules((prev) => new Set(prev).add(nextModule._id));
+      setNextModuleId(nextModule._id);
+    }
   };
 
   const isLessonCompleted = allUserProgress?.some(
