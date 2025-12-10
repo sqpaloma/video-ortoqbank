@@ -3,7 +3,7 @@ import { mutation, query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
 
-// Query para listar todas as lessons
+// Query para listar todas as lessons (ADMIN - mostra todas)
 export const list = query({
   args: {},
   returns: v.array(
@@ -27,6 +27,37 @@ export const list = query({
   ),
   handler: async (ctx) => {
     const lessons = await ctx.db.query("lessons").collect();
+    return lessons;
+  },
+});
+
+// Query para listar apenas lessons PUBLICADAS (USER)
+export const listPublished = query({
+  args: {},
+  returns: v.array(
+    v.object({
+      _id: v.id("lessons"),
+      _creationTime: v.number(),
+      moduleId: v.id("modules"),
+      title: v.string(),
+      slug: v.string(),
+      description: v.string(),
+      bunnyStoragePath: v.optional(v.string()),
+      publicUrl: v.optional(v.string()),
+      thumbnailUrl: v.optional(v.string()),
+      durationSeconds: v.number(),
+      order_index: v.number(),
+      lessonNumber: v.number(),
+      isPublished: v.boolean(),
+      tags: v.optional(v.array(v.string())),
+      videoId: v.optional(v.string()),
+    }),
+  ),
+  handler: async (ctx) => {
+    const lessons = await ctx.db
+      .query("lessons")
+      .withIndex("by_isPublished", (q) => q.eq("isPublished", true))
+      .collect();
     return lessons;
   },
 });
@@ -65,7 +96,7 @@ export const listByModule = query({
   },
 });
 
-// Query para listar apenas lessons publicadas de um módulo
+// Query para listar apenas lessons PUBLICADAS de um módulo PUBLICADO (USER)
 export const listPublishedByModule = query({
   args: { moduleId: v.id("modules") },
   returns: v.array(
@@ -88,15 +119,26 @@ export const listPublishedByModule = query({
     }),
   ),
   handler: async (ctx, args) => {
+    // Check if module is published
+    const module = await ctx.db.get(args.moduleId);
+    if (!module || !module.isPublished) {
+      return [];
+    }
+
+    // Check if category is published
+    const category = await ctx.db.get(module.categoryId);
+    if (!category || !category.isPublished) {
+      return [];
+    }
+
     const lessons = await ctx.db
       .query("lessons")
-      .withIndex("by_moduleId_and_order", (q) =>
-        q.eq("moduleId", args.moduleId),
+      .withIndex("by_moduleId_isPublished_order", (q) =>
+        q.eq("moduleId", args.moduleId).eq("isPublished", true),
       )
       .collect();
 
-    // Filtrar apenas as publicadas
-    return lessons.filter((lesson) => lesson.isPublished);
+    return lessons;
   },
 });
 

@@ -12,7 +12,7 @@ import { Preloaded, usePreloadedQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
 interface CategoriesInnerProps {
-  preloadedCategories: Preloaded<typeof api.categories.list>;
+  preloadedCategories: Preloaded<typeof api.categories.listPublished>;
   initialProgress: number;
 }
 

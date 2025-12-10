@@ -3,8 +3,8 @@ import { api } from "@/convex/_generated/api";
 import { preloadQuery } from "convex/nextjs";
 
 export default async function CategoriesPage() {
-  // Carregar categorias do Convex
-  const preloadedCategories = await preloadQuery(api.categories.list);
+  // Carregar apenas categorias PUBLICADAS do Convex
+  const preloadedCategories = await preloadQuery(api.categories.listPublished);
 
   const userProgress = 34;
 

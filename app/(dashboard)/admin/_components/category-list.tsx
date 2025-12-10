@@ -10,7 +10,7 @@ import { useErrorModal } from "@/hooks/use-error-modal";
 import { useConfirmModal } from "@/hooks/use-confirm-modal";
 import { ErrorModal } from "@/components/ui/error-modal";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import { Edit, Trash2, GripVertical, Check, X } from "lucide-react";
+import { Edit, Trash2, GripVertical, Check, X, Eye, EyeOff } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -49,13 +49,15 @@ interface SortableCategoryItemProps {
   isEditOrderMode: boolean;
   onEdit: (category: Doc<"categories">) => void;
   onDelete: (id: Id<"categories">, title: string) => void;
+  onTogglePublish: (id: Id<"categories">, title: string, currentStatus: boolean) => void;
 }
 
 function SortableCategoryItem({ 
   category, 
   isEditOrderMode, 
   onEdit, 
-  onDelete 
+  onDelete,
+  onTogglePublish 
 }: SortableCategoryItemProps) {
   const {
     attributes,
@@ -108,6 +110,18 @@ function SortableCategoryItem({
           <Button
             variant="outline"
             size="icon"
+            onClick={() => onTogglePublish(category._id, category.title, category.isPublished)}
+            title={category.isPublished ? "Despublicar categoria" : "Publicar categoria"}
+          >
+            {category.isPublished ? (
+              <Eye className="h-4 w-4 text-green-600" />
+            ) : (
+              <EyeOff className="h-4 w-4 text-gray-400" />
+            )}
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
             onClick={() => onEdit(category)}
           >
             <Edit className="h-4 w-4" />
@@ -129,6 +143,7 @@ export function CategoryList({ categories }: CategoryListProps) {
   const updateCategory = useMutation(api.categories.update);
   const deleteCategory = useMutation(api.categories.remove);
   const reorderCategories = useMutation(api.categories.reorder);
+  const togglePublishCategory = useMutation(api.categories.togglePublish);
   const { toast } = useToast();
   const { error, showError, hideError } = useErrorModal();
   const { confirm, showConfirm, hideConfirm } = useConfirmModal();
@@ -218,15 +233,22 @@ export function CategoryList({ categories }: CategoryListProps) {
     }
   };
 
-  const handleDelete = (id: Id<"categories">, title: string) => {
+  const handleDelete = async (id: Id<"categories">, title: string) => {
+    const message = `ATENÇÃO: Esta ação irá deletar permanentemente:\n\n` +
+      `• A categoria "${title}"\n` +
+      `• TODOS os módulos desta categoria\n` +
+      `• TODAS as aulas destes módulos\n\n` +
+      `Esta ação não pode ser desfeita!\n\n` +
+      `Tem certeza que deseja continuar?`;
+
     showConfirm(
-      `Tem certeza que deseja deletar a categoria "${title}"?`,
+      message,
       async () => {
         try {
           await deleteCategory({ id });
           toast({
             title: "Sucesso",
-            description: "Categoria deletada com sucesso!",
+            description: "Categoria e todo seu conteúdo foram deletados!",
           });
         } catch (error) {
           showError(
@@ -235,7 +257,41 @@ export function CategoryList({ categories }: CategoryListProps) {
           );
         }
       },
-      "Deletar categoria"
+      "DELETAR CATEGORIA E TODO SEU CONTEÚDO"
+    );
+  };
+
+  const handleTogglePublish = async (id: Id<"categories">, title: string, currentStatus: boolean) => {
+    const action = currentStatus ? "despublicar" : "publicar";
+    const message = currentStatus
+      ? `Despublicar a categoria "${title}" irá:\n\n` +
+        `• Despublicar TODOS os módulos desta categoria\n` +
+        `• Despublicar TODAS as aulas destes módulos\n\n` +
+        `Os alunos não terão mais acesso a este conteúdo.\n\n` +
+        `Deseja continuar?`
+      : `Publicar a categoria "${title}" irá:\n\n` +
+        `• Publicar TODOS os módulos desta categoria\n` +
+        `• Publicar TODAS as aulas destes módulos\n\n` +
+        `Os alunos terão acesso a todo este conteúdo.\n\n` +
+        `Deseja continuar?`;
+
+    showConfirm(
+      message,
+      async () => {
+        try {
+          const newStatus = await togglePublishCategory({ id });
+          toast({
+            title: "Sucesso",
+            description: `Categoria "${title}" ${newStatus ? "publicada" : "despublicada"} com sucesso!`,
+          });
+        } catch (error) {
+          showError(
+            error instanceof Error ? error.message : `Erro ao ${action} categoria`,
+            `Erro ao ${action} categoria`
+          );
+        }
+      },
+      `${action === "publicar" ? "📢" : "🔒"} ${action.toUpperCase()} CATEGORIA`
     );
   };
 
@@ -345,6 +401,7 @@ export function CategoryList({ categories }: CategoryListProps) {
                       isEditOrderMode={isEditOrderMode}
                       onEdit={handleEdit}
                       onDelete={handleDelete}
+                      onTogglePublish={handleTogglePublish}
                     />
                   ))}
                 </SortableContext>
@@ -357,6 +414,7 @@ export function CategoryList({ categories }: CategoryListProps) {
                   isEditOrderMode={isEditOrderMode}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
+                  onTogglePublish={handleTogglePublish}
                 />
               ))
             )}

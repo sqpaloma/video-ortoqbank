@@ -3,7 +3,7 @@ import { mutation, query, type MutationCtx } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
 
-// Query para listar todas as categorias ordenadas por position
+// Query para listar todas as categorias ordenadas por position (ADMIN - mostra todas)
 export const list = query({
   args: {},
   returns: v.array(
@@ -15,6 +15,7 @@ export const list = query({
       description: v.string(),
       position: v.number(),
       iconUrl: v.optional(v.string()),
+      isPublished: v.boolean(),
     })
   ),
   handler: async (ctx) => {
@@ -25,6 +26,32 @@ export const list = query({
       .collect();
 
     return categories;
+  },
+});
+
+// Query para listar apenas categorias PUBLICADAS (USER - mostra apenas publicadas)
+export const listPublished = query({
+  args: {},
+  returns: v.array(
+    v.object({
+      _id: v.id("categories"),
+      _creationTime: v.number(),
+      title: v.string(),
+      slug: v.string(),
+      description: v.string(),
+      position: v.number(),
+      iconUrl: v.optional(v.string()),
+      isPublished: v.boolean(),
+    })
+  ),
+  handler: async (ctx) => {
+    const categories = await ctx.db
+      .query("categories")
+      .withIndex("by_isPublished", (q) => q.eq("isPublished", true))
+      .collect();
+
+    // Sort by position
+    return categories.sort((a, b) => a.position - b.position);
   },
 });
 
@@ -40,6 +67,7 @@ export const getById = query({
       description: v.string(),
       position: v.number(),
       iconUrl: v.optional(v.string()),
+      isPublished: v.boolean(),
     }),
     v.null()
   ),
@@ -61,6 +89,7 @@ export const getBySlug = query({
       description: v.string(),
       position: v.number(),
       iconUrl: v.optional(v.string()),
+      isPublished: v.boolean(),
     }),
     v.null()
   ),
@@ -193,6 +222,7 @@ export const create = mutation({
       description: args.description,
       position: nextPosition,
       iconUrl: args.iconUrl,
+      isPublished: true, // Default to published
     });
 
     // Final verification: ensure our inserted category has the expected position
@@ -263,17 +293,83 @@ export const update = mutation({
   },
 });
 
-// Mutation para deletar uma categoria
+// Query para obter informações sobre exclusão em cascata
+export const getCascadeDeleteInfo = query({
+  args: { id: v.id("categories") },
+  returns: v.object({
+    modulesCount: v.number(),
+    lessonsCount: v.number(),
+  }),
+  handler: async (ctx, args) => {
+    // Get all modules in this category
+    const modules = await ctx.db
+      .query("modules")
+      .withIndex("by_categoryId", (q) => q.eq("categoryId", args.id))
+      .collect();
+
+    const modulesCount = modules.length;
+    let lessonsCount = 0;
+
+    // Count lessons in all modules
+    for (const module of modules) {
+      const lessons = await ctx.db
+        .query("lessons")
+        .withIndex("by_moduleId", (q) => q.eq("moduleId", module._id))
+        .collect();
+      lessonsCount += lessons.length;
+    }
+
+    return {
+      modulesCount,
+      lessonsCount,
+    };
+  },
+});
+
+// Mutation para deletar uma categoria (cascade delete)
 export const remove = mutation({
   args: {
     id: v.id("categories"),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
+    // Get all modules in this category
+    const modules = await ctx.db
+      .query("modules")
+      .withIndex("by_categoryId", (q) => q.eq("categoryId", args.id))
+      .collect();
+
+    let totalPublishedLessons = 0;
+
+    // Delete all lessons in all modules
+    for (const module of modules) {
+      const lessons = await ctx.db
+        .query("lessons")
+        .withIndex("by_moduleId", (q) => q.eq("moduleId", module._id))
+        .collect();
+
+      for (const lesson of lessons) {
+        if (lesson.isPublished) {
+          totalPublishedLessons++;
+        }
+        await ctx.db.delete(lesson._id);
+      }
+
+      // Delete the module
+      await ctx.db.delete(module._id);
+    }
+
+    // Delete the category
     await ctx.db.delete(args.id);
 
     // Update contentStats
     await ctx.scheduler.runAfter(0, internal.contentStats.decrementCategories, { amount: 1 });
+    if (modules.length > 0) {
+      await ctx.scheduler.runAfter(0, internal.contentStats.decrementModules, { amount: modules.length });
+    }
+    if (totalPublishedLessons > 0) {
+      await ctx.scheduler.runAfter(0, internal.contentStats.decrementLessons, { amount: totalPublishedLessons });
+    }
 
     return null;
   },
@@ -299,6 +395,75 @@ export const reorder = mutation({
     }
 
     return null;
+  },
+});
+
+// Mutation para alternar publicação de categoria (cascade)
+export const togglePublish = mutation({
+  args: {
+    id: v.id("categories"),
+  },
+  returns: v.boolean(),
+  handler: async (ctx, args) => {
+    const category = await ctx.db.get(args.id);
+
+    if (!category) {
+      throw new Error("Categoria não encontrada");
+    }
+
+    const newPublishStatus = !category.isPublished;
+
+    // Update category
+    await ctx.db.patch(args.id, {
+      isPublished: newPublishStatus,
+    });
+
+    // Get all modules in this category
+    const modules = await ctx.db
+      .query("modules")
+      .withIndex("by_categoryId", (q) => q.eq("categoryId", args.id))
+      .collect();
+
+    let publishedLessonsChange = 0;
+
+    // Update all modules and their lessons
+    for (const module of modules) {
+      // Update module
+      await ctx.db.patch(module._id, {
+        isPublished: newPublishStatus,
+      });
+
+      // Get and update all lessons in this module
+      const lessons = await ctx.db
+        .query("lessons")
+        .withIndex("by_moduleId", (q) => q.eq("moduleId", module._id))
+        .collect();
+
+      for (const lesson of lessons) {
+        // Only count if changing from published to unpublished or vice versa
+        if (lesson.isPublished !== newPublishStatus) {
+          await ctx.db.patch(lesson._id, {
+            isPublished: newPublishStatus,
+          });
+          publishedLessonsChange += newPublishStatus ? 1 : -1;
+        }
+      }
+    }
+
+    // Update contentStats if there were changes
+    if (publishedLessonsChange !== 0) {
+      if (publishedLessonsChange > 0) {
+        await ctx.scheduler.runAfter(0, internal.contentStats.incrementLessons, {
+          amount: publishedLessonsChange,
+        });
+      } else {
+        await ctx.scheduler.runAfter(0, internal.contentStats.decrementLessons, {
+          amount: Math.abs(publishedLessonsChange),
+        });
+      }
+    }
+
+    return newPublishStatus;
   },
 });
 

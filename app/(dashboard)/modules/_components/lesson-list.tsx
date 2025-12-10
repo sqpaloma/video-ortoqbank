@@ -30,9 +30,9 @@ export function LessonList({
   onToggle,
   onLessonClick,
 }: LessonListProps) {
-  // Load lessons for this module
+  // Load lessons for this module (only published)
   const lessons = useQuery(
-    api.lessons.listByModule,
+    api.lessons.listPublishedByModule,
     isExpanded ? { moduleId } : "skip"
   );
 

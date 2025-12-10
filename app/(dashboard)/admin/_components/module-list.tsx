@@ -10,7 +10,7 @@ import { useErrorModal } from "@/hooks/use-error-modal";
 import { useConfirmModal } from "@/hooks/use-confirm-modal";
 import { ErrorModal } from "@/components/ui/error-modal";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import { Edit, Trash2, GripVertical, Check, X } from "lucide-react";
+import { Edit, Trash2, GripVertical, Check, X, Eye, EyeOff } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -56,6 +56,7 @@ interface SortableModuleItemProps {
   isEditOrderMode: boolean;
   onEdit: (module: Doc<"modules">) => void;
   onDelete: (id: Id<"modules">, title: string) => void;
+  onTogglePublish: (id: Id<"modules">, title: string, currentStatus: boolean) => void;
   getCategoryName: (categoryId: Id<"categories">) => string;
 }
 
@@ -64,6 +65,7 @@ function SortableModuleItem({
   isEditOrderMode, 
   onEdit, 
   onDelete,
+  onTogglePublish,
   getCategoryName 
 }: SortableModuleItemProps) {
   const {
@@ -117,6 +119,19 @@ function SortableModuleItem({
             variant="outline"
             size="icon"
             className="h-7 w-7"
+            onClick={() => onTogglePublish(module._id, module.title, module.isPublished)}
+            title={module.isPublished ? "Despublicar módulo" : "Publicar módulo"}
+          >
+            {module.isPublished ? (
+              <Eye className="h-3 w-3 text-green-600" />
+            ) : (
+              <EyeOff className="h-3 w-3 text-gray-400" />
+            )}
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-7 w-7"
             onClick={() => onEdit(module)}
           >
             <Edit className="h-3 w-3" />
@@ -139,6 +154,7 @@ export function ModuleList({ modules, categories }: ModuleListProps) {
   const updateModule = useMutation(api.modules.update);
   const deleteModule = useMutation(api.modules.remove);
   const reorderModules = useMutation(api.modules.reorder);
+  const togglePublishModule = useMutation(api.modules.togglePublish);
   const { toast } = useToast();
   const { error, showError, hideError } = useErrorModal();
   const { confirm, showConfirm, hideConfirm } = useConfirmModal();
@@ -241,15 +257,21 @@ export function ModuleList({ modules, categories }: ModuleListProps) {
     }
   };
 
-  const handleDelete = (id: Id<"modules">, title: string) => {
+  const handleDelete = async (id: Id<"modules">, title: string) => {
+    const message = `ATENÇÃO: Esta ação irá deletar permanentemente:\n\n` +
+      `• O módulo "${title}"\n` +
+      `• TODAS as aulas deste módulo\n\n` +
+      `Esta ação não pode ser desfeita!\n\n` +
+      `Tem certeza que deseja continuar?`;
+
     showConfirm(
-      `Tem certeza que deseja deletar o módulo "${title}"?`,
+      message,
       async () => {
         try {
           await deleteModule({ id });
           toast({
             title: "Sucesso",
-            description: "Módulo deletado com sucesso!",
+            description: "Módulo e suas aulas foram deletados!",
           });
         } catch (error) {
           showError(
@@ -258,7 +280,39 @@ export function ModuleList({ modules, categories }: ModuleListProps) {
           );
         }
       },
-      "Deletar módulo"
+      "DELETAR MÓDULO E SUAS AULAS"
+    );
+  };
+
+  const handleTogglePublish = async (id: Id<"modules">, title: string, currentStatus: boolean) => {
+    const action = currentStatus ? "despublicar" : "publicar";
+    const message = currentStatus
+      ? `Despublicar o módulo "${title}" irá:\n\n` +
+        `• Despublicar TODAS as aulas deste módulo\n` +
+        `Os alunos não terão mais acesso a este conteúdo.\n\n` +
+        `Deseja continuar?`
+      : `Publicar o módulo "${title}" irá:\n\n` +
+        `• Publicar TODAS as aulas deste módulo\n` +
+        `Os alunos terão acesso a todo este conteúdo.\n\n` +
+        `Deseja continuar?`;
+
+    showConfirm(
+      message,
+      async () => {
+        try {
+          const newStatus = await togglePublishModule({ id });
+          toast({
+            title: "Sucesso",
+            description: `Módulo "${title}" ${newStatus ? "publicado" : "despublicado"} com sucesso!`,
+          });
+        } catch (error) {
+          showError(
+            error instanceof Error ? error.message : `Erro ao ${action} módulo`,
+            `Erro ao ${action} módulo`
+          );
+        }
+      },
+      `${action === "publicar" ? "📢" : "🔒"} ${action.toUpperCase()} MÓDULO`
     );
   };
 
@@ -346,7 +400,7 @@ export function ModuleList({ modules, categories }: ModuleListProps) {
         <CardHeader className="pb-0">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Módulos Cadastrados</CardTitle>
+          <CardTitle>Módulos Cadastrados</CardTitle>
              
             </div>
             <div className="flex gap-2">
@@ -424,6 +478,7 @@ export function ModuleList({ modules, categories }: ModuleListProps) {
                                   isEditOrderMode={isEditOrderMode}
                                   onEdit={handleEdit}
                                   onDelete={handleDelete}
+                                  onTogglePublish={handleTogglePublish}
                                   getCategoryName={getCategoryName}
                                 />
                               ))}
@@ -434,11 +489,12 @@ export function ModuleList({ modules, categories }: ModuleListProps) {
                         <div className="space-y-1.5">
                           {categoryModules.map((module) => (
                             <SortableModuleItem
-                              key={module._id}
+                  key={module._id}
                               module={module}
                               isEditOrderMode={isEditOrderMode}
                               onEdit={handleEdit}
                               onDelete={handleDelete}
+                              onTogglePublish={handleTogglePublish}
                               getCategoryName={getCategoryName}
                             />
                           ))}

@@ -740,7 +740,7 @@ function LessonItem({
         >
           <Trash2 className="h-3 w-3 text-destructive" />
         </Button>
-        </div>
+      </div>
       )}
     </div>
   );
@@ -748,6 +748,7 @@ function LessonItem({
 
 export function LessonList({ lessons }: LessonListProps) {
   const modules = useQuery(api.modules.list);
+  const categories = useQuery(api.categories.list);
   const deleteLesson = useMutation(api.lessons.remove);
   const togglePublish = useMutation(api.lessons.togglePublish);
   const markVideoAsReady = useMutation(api.videos.markAsReady);
@@ -997,13 +998,30 @@ export function LessonList({ lessons }: LessonListProps) {
     setIsEditOrderMode(false);
   };
 
-  if (modules === undefined) {
-    return <div>Carregando módulos...</div>;
+  if (modules === undefined || categories === undefined) {
+    return <div>Carregando módulos e categorias...</div>;
   }
 
-  // Get modules that have lessons (sorted by order_index)
-  const modulesWithLessons = (modules || [])
-    .filter(module => orderedLessonsByModule[module._id]?.length > 0)
+  // Group modules by category, then sort both categories and modules by their order fields
+  const categoriesWithModules = (categories || [])
+    .sort((a, b) => a.position - b.position) // Categories use 'position'
+    .map(category => ({
+      category,
+      modules: (modules || [])
+        .filter(module => 
+          module.categoryId === category._id && 
+          orderedLessonsByModule[module._id]?.length > 0
+        )
+        .sort((a, b) => a.order_index - b.order_index) // Modules use 'order_index'
+    }))
+    .filter(group => group.modules.length > 0);
+
+  // Modules without a category
+  const uncategorizedModules = (modules || [])
+    .filter(module => 
+      !module.categoryId && 
+      orderedLessonsByModule[module._id]?.length > 0
+    )
     .sort((a, b) => a.order_index - b.order_index);
 
   const getModuleName = (moduleId: string) => {
@@ -1017,7 +1035,7 @@ export function LessonList({ lessons }: LessonListProps) {
         <CardHeader className="pb-0">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Aulas Cadastradas</CardTitle>
+          <CardTitle>Aulas Cadastradas</CardTitle>
             </div>
             <div className="flex gap-2">
               {!isEditOrderMode ? (
@@ -1052,75 +1070,168 @@ export function LessonList({ lessons }: LessonListProps) {
           </div>
         </CardHeader>
         <CardContent className="pt-0">
-          <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+          <div className="space-y-4 max-h-[480px] overflow-y-auto pr-2">
             {lessons.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 Nenhuma aula cadastrada ainda.
               </p>
             ) : (
-              modulesWithLessons.map((module) => {
-                const moduleLessons = orderedLessonsByModule[module._id] || [];
-                
-                return (
-                  <div key={module._id} className="space-y-1.5">
-                    {/* Module Header */}
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-xs font-semibold text-primary uppercase tracking-wide">
-                        {module.title}
-                      </h3>
-                      <div className="flex-1 h-px bg-border" />
+              <>
+                {categoriesWithModules.map((group) => (
+                  <div key={group.category._id} className="space-y-3">
+                    {/* Category Header */}
+                    <div className="flex items-center gap-2 pt-2">
+                      <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">
+                        {group.category.title}
+                      </h2>
+                      <div className="flex-1 h-[2px] bg-border" />
                     </div>
-                    
-                    {/* Lessons for this module */}
-                    {isEditOrderMode ? (
-                      <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        onDragEnd={handleDragEnd(module._id)}
-                      >
-                        <SortableContext
-                          items={moduleLessons.map(lesson => lesson._id)}
-                          strategy={verticalListSortingStrategy}
-                        >
-                          <div className="space-y-1.5">
-                            {moduleLessons.map((lesson) => (
-                              <SortableLessonItem
-                                key={lesson._id}
-                                lesson={lesson}
-                                modules={modules || []}
-                                isEditOrderMode={isEditOrderMode}
-                                onEditLesson={handleEditLesson}
-                                onDelete={handleDelete}
-                                onTogglePublish={handleTogglePublish}
-                                onMarkVideoAsReady={handleMarkVideoAsReady}
-                                onCheckVideoStatus={handleCheckVideoStatus}
-                                onUploadVideo={handleUploadVideo}
-                              />
-                            ))}
+
+                    {/* Modules within this category */}
+                    {group.modules.map((module) => {
+                      const moduleLessons = orderedLessonsByModule[module._id] || [];
+                      
+                      return (
+                        <div key={module._id} className="space-y-1.5 pl-2">
+                          {/* Module Header */}
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-xs font-semibold text-primary uppercase tracking-wide">
+                              {module.title}
+                            </h3>
+                            <div className="flex-1 h-px bg-border" />
                           </div>
-                        </SortableContext>
-                      </DndContext>
-                    ) : (
-                      <div className="space-y-1.5">
-                        {moduleLessons.map((lesson) => (
-                          <LessonItem
-                            key={lesson._id}
-                            lesson={lesson}
-                            modules={modules || []}
-                            isEditOrderMode={isEditOrderMode}
-                            onEditLesson={handleEditLesson}
-                            onDelete={handleDelete}
-                            onTogglePublish={handleTogglePublish}
-                            onMarkVideoAsReady={handleMarkVideoAsReady}
-                            onCheckVideoStatus={handleCheckVideoStatus}
-                            onUploadVideo={handleUploadVideo}
-                          />
-                        ))}
-                      </div>
-                    )}
+                          
+                          {/* Lessons for this module */}
+                          {isEditOrderMode ? (
+                            <DndContext
+                              sensors={sensors}
+                              collisionDetection={closestCenter}
+                              onDragEnd={handleDragEnd(module._id)}
+                            >
+                              <SortableContext
+                                items={moduleLessons.map(lesson => lesson._id)}
+                                strategy={verticalListSortingStrategy}
+                              >
+                                <div className="space-y-1.5">
+                                  {moduleLessons.map((lesson) => (
+                                    <SortableLessonItem
+                                      key={lesson._id}
+                                      lesson={lesson}
+                                      modules={modules || []}
+                                      isEditOrderMode={isEditOrderMode}
+                                      onEditLesson={handleEditLesson}
+                                      onDelete={handleDelete}
+                                      onTogglePublish={handleTogglePublish}
+                                      onMarkVideoAsReady={handleMarkVideoAsReady}
+                                      onCheckVideoStatus={handleCheckVideoStatus}
+                                      onUploadVideo={handleUploadVideo}
+                                    />
+                                  ))}
+                                </div>
+                              </SortableContext>
+                            </DndContext>
+                          ) : (
+                            <div className="space-y-1.5">
+                              {moduleLessons.map((lesson) => (
+                                <LessonItem
+                                  key={lesson._id}
+                                  lesson={lesson}
+                                  modules={modules || []}
+                                  isEditOrderMode={isEditOrderMode}
+                                  onEditLesson={handleEditLesson}
+                                  onDelete={handleDelete}
+                                  onTogglePublish={handleTogglePublish}
+                                  onMarkVideoAsReady={handleMarkVideoAsReady}
+                                  onCheckVideoStatus={handleCheckVideoStatus}
+                                  onUploadVideo={handleUploadVideo}
+                                />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })
+                ))}
+
+                {/* Uncategorized Modules Section */}
+                {uncategorizedModules.length > 0 && (
+                  <div className="space-y-3">
+                    {/* Uncategorized Header */}
+                    <div className="flex items-center gap-2 pt-2">
+                      <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                        Sem Categoria
+                      </h2>
+                      <div className="flex-1 h-[2px] bg-border" />
+                    </div>
+
+                    {/* Uncategorized Modules */}
+                    {uncategorizedModules.map((module) => {
+                      const moduleLessons = orderedLessonsByModule[module._id] || [];
+                      
+                      return (
+                        <div key={module._id} className="space-y-1.5 pl-2">
+                          {/* Module Header */}
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-xs font-semibold text-primary uppercase tracking-wide">
+                              {module.title}
+                            </h3>
+                            <div className="flex-1 h-px bg-border" />
+                          </div>
+                          
+                          {/* Lessons for this module */}
+                          {isEditOrderMode ? (
+                            <DndContext
+                              sensors={sensors}
+                              collisionDetection={closestCenter}
+                              onDragEnd={handleDragEnd(module._id)}
+                            >
+                              <SortableContext
+                                items={moduleLessons.map(lesson => lesson._id)}
+                                strategy={verticalListSortingStrategy}
+                              >
+                                <div className="space-y-1.5">
+                                  {moduleLessons.map((lesson) => (
+                                    <SortableLessonItem
+                                      key={lesson._id}
+                                      lesson={lesson}
+                                      modules={modules || []}
+                                      isEditOrderMode={isEditOrderMode}
+                                      onEditLesson={handleEditLesson}
+                                      onDelete={handleDelete}
+                                      onTogglePublish={handleTogglePublish}
+                                      onMarkVideoAsReady={handleMarkVideoAsReady}
+                                      onCheckVideoStatus={handleCheckVideoStatus}
+                                      onUploadVideo={handleUploadVideo}
+                                    />
+                                  ))}
+                                </div>
+                              </SortableContext>
+                            </DndContext>
+                          ) : (
+                            <div className="space-y-1.5">
+                              {moduleLessons.map((lesson) => (
+                                <LessonItem
+                                  key={lesson._id}
+                                  lesson={lesson}
+                                  modules={modules || []}
+                                  isEditOrderMode={isEditOrderMode}
+                                  onEditLesson={handleEditLesson}
+                                  onDelete={handleDelete}
+                                  onTogglePublish={handleTogglePublish}
+                                  onMarkVideoAsReady={handleMarkVideoAsReady}
+                                  onCheckVideoStatus={handleCheckVideoStatus}
+                                  onUploadVideo={handleUploadVideo}
+                                />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
             )}
           </div>
         </CardContent>

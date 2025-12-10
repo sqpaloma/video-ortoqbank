@@ -114,6 +114,8 @@ export const getRecentViewsWithDetails = query({
         description: v.string(),
         order_index: v.number(),
         totalLessonVideos: v.number(),
+        isPublished: v.boolean(),
+        lessonCounter: v.number(),
       }),
       category: v.object({
         _id: v.id("categories"),
@@ -123,6 +125,7 @@ export const getRecentViewsWithDetails = query({
         description: v.string(),
         position: v.number(),
         iconUrl: v.optional(v.string()),
+        isPublished: v.boolean(),
       }),
     })
   ),
@@ -223,6 +226,8 @@ export const getRecentViewsWithDetails = query({
         description: string;
         order_index: number;
         totalLessonVideos: number;
+        isPublished: boolean;
+        lessonCounter: number;
       };
       category: {
         _id: Id<"categories">;
@@ -232,6 +237,7 @@ export const getRecentViewsWithDetails = query({
         description: string;
         position: number;
         iconUrl?: string;
+        isPublished: boolean;
       };
     }>;
   },

@@ -38,9 +38,11 @@ export default defineSchema({
     description: v.string(),
     position: v.number(),
     iconUrl: v.optional(v.string()),
+    isPublished: v.boolean(),
   })
     .index("by_slug", ["slug"])
-    .index("by_position", ["position"]),
+    .index("by_position", ["position"])
+    .index("by_isPublished", ["isPublished"]),
 
   // Modules table (formerly courses)
   modules: defineTable({
@@ -51,10 +53,13 @@ export default defineSchema({
     order_index: v.number(),
     totalLessonVideos: v.number(),
     lessonCounter: v.optional(v.number()), // Atomic counter for lesson order_index allocation
+    isPublished: v.boolean(),
   })
     .index("by_categoryId", ["categoryId"])
     .index("by_slug", ["slug"])
-    .index("by_categoryId_and_order", ["categoryId", "order_index"]),
+    .index("by_categoryId_and_order", ["categoryId", "order_index"])
+    .index("by_isPublished", ["isPublished"])
+    .index("by_categoryId_and_isPublished", ["categoryId", "isPublished"]),
 
   // Lessons table (video lessons)
   lessons: defineTable({
@@ -76,7 +81,8 @@ export default defineSchema({
     .index("by_slug", ["slug"])
     .index("by_moduleId_and_order", ["moduleId", "order_index"])
     .index("by_isPublished", ["isPublished"])
-    .index("by_videoId", ["videoId"]),
+    .index("by_videoId", ["videoId"])
+    .index("by_moduleId_isPublished_order", ["moduleId", "isPublished", "order_index"]),
 
   // Videos table (Bunny Stream videos)
   videos: defineTable({

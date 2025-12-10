@@ -26,7 +26,7 @@ import { Feedback } from "./feedback";
 
 
 interface ModulesInnerProps {
-  preloadedModules: Preloaded<typeof api.modules.listByCategory>;
+  preloadedModules: Preloaded<typeof api.modules.listPublishedByCategory>;
   categoryTitle: string;
 }
 
@@ -55,21 +55,21 @@ export function ModulesInner({
   const toggleFavorite = useMutation(api.favorites.toggleFavorite);
   const addRecentView = useMutation(api.recentViews.addView);
 
-  // Load lessons for first module to get the first lesson
+  // Load lessons for first module to get the first lesson (only published)
   const firstModuleLessons = useQuery(
-    api.lessons.listByModule,
+    api.lessons.listPublishedByModule,
     modules[0] ? { moduleId: modules[0]._id } : "skip",
   );
 
-  // Load lessons for current module
+  // Load lessons for current module (only published)
   const currentModuleLessons = useQuery(
-    api.lessons.listByModule,
+    api.lessons.listPublishedByModule,
     currentModuleId ? { moduleId: currentModuleId } : "skip",
   );
 
-  // Load lessons for next module (for smooth transitions)
+  // Load lessons for next module (for smooth transitions, only published)
   const nextModuleLessons = useQuery(
-    api.lessons.listByModule,
+    api.lessons.listPublishedByModule,
     nextModuleId ? { moduleId: nextModuleId } : "skip",
   );
 

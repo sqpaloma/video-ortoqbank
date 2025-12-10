@@ -19,9 +19,9 @@ export default async function ModulesPage({ params }: ModulesPageProps) {
     const { getToken } = await auth();
     const token = await getToken({ template: "convex" }).catch(() => null);
 
-    // Carregar módulos da categoria
+    // Carregar apenas módulos PUBLICADOS da categoria PUBLICADA
     const preloadedModules = await preloadQuery(
-      api.modules.listByCategory,
+      api.modules.listPublishedByCategory,
       { categoryId: categoryIdTyped },
       token ? { token } : undefined
     );
