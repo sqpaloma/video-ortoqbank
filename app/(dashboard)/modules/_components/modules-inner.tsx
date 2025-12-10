@@ -89,6 +89,12 @@ export function ModulesInner({
       : "skip",
   );
 
+  // Get progress for all modules to calculate category progress
+  const allModulesProgress = useQuery(
+    api.progress.getAllModuleProgress,
+    user?.id ? { userId: user.id } : "skip",
+  );
+
   const isFavorited = useQuery(
     api.favorites.isFavorited,
     user?.id && currentLessonId
@@ -244,18 +250,22 @@ export function ModulesInner({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Calculate global progress across all modules
+  // Calculate category progress - only for modules in this category
   const totalCompletedLessons = modules.reduce((acc, module) => {
-    // This is simplified - in production you'd query progress for each module
-    return acc;
+    const moduleProgress = allModulesProgress?.find(
+      (p) => p.moduleId === module._id
+    );
+    return acc + (moduleProgress?.completedLessonsCount || 0);
   }, 0);
+  
   const totalLessonsCount = modules.reduce(
     (acc, m) => acc + m.totalLessonVideos,
     0,
   );
+  
   const globalProgressPercent =
     totalLessonsCount > 0
-      ? (totalCompletedLessons / totalLessonsCount) * 100
+      ? Math.min(100, Math.round((totalCompletedLessons / totalLessonsCount) * 100))
       : 0;
 
   if (modules.length === 0) {
