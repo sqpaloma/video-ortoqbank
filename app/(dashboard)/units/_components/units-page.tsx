@@ -13,6 +13,9 @@ import { api } from "@/convex/_generated/api";
 import {
   ArrowLeftIcon,
   PlayCircleIcon,
+  CheckCircleIcon,
+  StarIcon,
+  ChevronRightIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -23,6 +26,8 @@ import { VideoPlayerWithWatermark } from "@/components/bunny/video-player-with-w
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { LessonInfoSection } from "./lesson-info-section";
 import { Feedback } from "./feedback";
+import { Rating } from "./rating";
+import { cn } from "@/lib/utils";
 
 
 interface UnitsPageProps {
@@ -92,14 +97,10 @@ export function UnitsPage({
     currentLessonId ? { id: currentLessonId } : "skip",
   );
 
+  // Get progress for ALL lessons (not just current unit) so all units show correct completion status
   const allUserProgress = useQuery(
-    api.progress.getUnitLessonsProgress,
-    user?.id && currentUnitId
-      ? {
-        userId: user.id,
-        unitId: currentUnitId,
-      }
-      : "skip",
+    api.progress.getCompletedLessons,
+    user?.id ? { userId: user.id } : "skip",
   );
 
   // Get progress for all units to calculate category progress
@@ -443,24 +444,79 @@ export function UnitsPage({
 
               {/* Desktop: Lesson info (no tabs) */}
               <div className="hidden md:block px-6">
-                <LessonInfoSection
-                  title={currentLesson.title}
-                  description={currentLesson.description}
-                  isCompleted={isLessonCompleted ?? false}
-                  isFavorited={isFavorited ?? false}
-                  onMarkCompleted={handleMarkCompleted}
-                  onToggleFavorite={handleToggleFavorite}
-                  onNextLesson={handleNextLesson}
-                  variant="desktop"
-                />
+                {/* Título e Descrição */}
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold mb-3">{currentLesson.title}</h2>
+                  <p className="text-base text-muted-foreground mb-6">
+                    {currentLesson.description}
+                  </p>
+                </div>
 
-                {user?.id && currentLessonId && currentUnitId && (
-                  <Feedback
-                    userId={user.id}
-                    lessonId={currentLessonId}
-                    unitId={currentUnitId}
-                  />
-                )}
+                {/* Layout de 2 colunas: Feedback à esquerda, Actions + Rating à direita */}
+                <div className="flex gap-6 items-stretch">
+                  {/* Coluna Esquerda: Feedback */}
+                  <div className="flex-1 flex">
+                    {user?.id && currentLessonId && currentUnitId && (
+                      <Feedback
+                        userId={user.id}
+                        lessonId={currentLessonId}
+                        unitId={currentUnitId}
+                      />
+                    )}
+                  </div>
+
+                  {/* Coluna Direita: Action Buttons + Rating */}
+                  <div className="flex flex-col gap-4 w-auto min-w-[200px] shrink-0">
+                    {/* Action Buttons */}
+                    <div className="flex flex-col gap-3">
+                      <div className="flex gap-3">
+                        <Button
+                          onClick={handleMarkCompleted}
+                          variant={isLessonCompleted ? "outline" : "default"}
+                          className={cn(
+                            "flex-1 lg:flex-none lg:min-w-[160px]",
+                            isLessonCompleted && "bg-white text-green-600 hover:bg-green-50 border-green-600 border-2"
+                          )}
+                        >
+                          <CheckCircleIcon
+                            size={18}
+                            className={cn("mr-2", isLessonCompleted && "text-green-600")}
+                          />
+                          {isLessonCompleted ? "Concluída" : "Marcar como concluída"}
+                        </Button>
+                        <Button
+                          onClick={handleToggleFavorite}
+                          variant="outline"
+                          className="shrink-0"
+                        >
+                          <StarIcon
+                            size={18}
+                            className={cn(isFavorited && "fill-yellow-500 text-yellow-500")}
+                          />
+                        </Button>
+                      </div>
+                      <Button
+                        onClick={handleNextLesson}
+                        variant="outline"
+                        className="w-full lg:w-auto lg:min-w-[160px]"
+                      >
+                        Próxima aula
+                        <ChevronRightIcon size={18} className="ml-2" />
+                      </Button>
+                    </div>
+
+                    {/* Rating */}
+                    {user?.id && currentLessonId && currentUnitId && (
+                      <div className="border-t pt-4">
+                        <Rating
+                          userId={user.id}
+                          lessonId={currentLessonId}
+                          unitId={currentUnitId}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </>
           ) : (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { StarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -15,8 +15,9 @@ interface RatingProps {
 }
 
 export function Rating({ userId, lessonId, unitId }: RatingProps) {
-  const [selectedRating, setSelectedRating] = useState<number | null>(null);
+  const [tempRating, setTempRating] = useState<number | null>(null);
   const [showRatingConfirm, setShowRatingConfirm] = useState(false);
+  const prevLessonIdRef = useRef(lessonId);
 
   const submitRating = useMutation(api.ratings.submitRating);
   const userRating = useQuery(
@@ -26,24 +27,24 @@ export function Rating({ userId, lessonId, unitId }: RatingProps) {
       : "skip",
   );
 
-  // Derive rating state from userRating during render
-  const [lastUserRating, setLastUserRating] = useState<typeof userRating>(undefined);
-  const [lastLessonId, setLastLessonId] = useState(lessonId);
+  // Derive the displayed rating: use temp rating if user is selecting, otherwise use saved rating
+  const displayedRating = tempRating ?? userRating?.rating ?? null;
 
-  // Detect changes and update state during render (not in effect)
-  if (userRating !== lastUserRating || lessonId !== lastLessonId) {
-    setLastUserRating(userRating);
-    setLastLessonId(lessonId);
-    if (userRating) {
-      setSelectedRating(userRating.rating);
+  // Reset temporary state when lesson changes
+  // This is a legitimate use case: resetting component state when the lesson prop changes
+  // We only update state when lessonId actually changes (not on every render)
+  useEffect(() => {
+    if (prevLessonIdRef.current !== lessonId) {
+      prevLessonIdRef.current = lessonId;
+      // Batch state updates together
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setTempRating(null);
       setShowRatingConfirm(false);
-    } else {
-      setSelectedRating(null);
     }
-  }
+  }, [lessonId]);
 
   const handleRatingClick = (rating: number) => {
-    setSelectedRating(rating);
+    setTempRating(rating);
     // Show confirm button if rating changed or if no rating exists
     if (!userRating || userRating.rating !== rating) {
       setShowRatingConfirm(true);
@@ -53,14 +54,15 @@ export function Rating({ userId, lessonId, unitId }: RatingProps) {
   };
 
   const handleConfirmRating = async () => {
-    if (!userId || !lessonId || !unitId || !selectedRating) return;
+    if (!userId || !lessonId || !unitId || !displayedRating) return;
     try {
       await submitRating({
         userId,
         lessonId,
         unitId,
-        rating: selectedRating,
+        rating: displayedRating,
       });
+      setTempRating(null);
       setShowRatingConfirm(false);
     } catch (error) {
       console.error("Error submitting rating:", error);
@@ -85,7 +87,7 @@ export function Rating({ userId, lessonId, unitId }: RatingProps) {
               size={32}
               className={cn(
                 "transition-colors",
-                selectedRating && star <= selectedRating
+                displayedRating && star <= displayedRating
                   ? "fill-yellow-500 text-yellow-500"
                   : "text-gray-300 hover:text-yellow-400"
               )}
@@ -93,7 +95,7 @@ export function Rating({ userId, lessonId, unitId }: RatingProps) {
           </button>
         ))}
       </div>
-      {showRatingConfirm && selectedRating && (
+      {showRatingConfirm && displayedRating && (
         <Button
           onClick={handleConfirmRating}
           className="w-full lg:w-auto"
