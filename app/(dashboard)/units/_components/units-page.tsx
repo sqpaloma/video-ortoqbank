@@ -97,16 +97,17 @@ export function UnitsPage({
     currentLessonId ? { id: currentLessonId } : "skip",
   );
 
-  // Get progress for ALL lessons (not just current unit) so all units show correct completion status
+  // OPTIMIZED: Get progress only for THIS category (not all 5000 lessons!)
+  const categoryId = units[0]?.categoryId;
   const allUserProgress = useQuery(
-    api.progress.queries.getCompletedLessons,
-    user?.id ? { userId: user.id } : "skip",
+    api.progress.queries.getCompletedLessonsByCategory,
+    user?.id && categoryId ? { userId: user.id, categoryId } : "skip",
   );
 
-  // Get progress for all units to calculate category progress
+  // OPTIMIZED: Get unit progress only for THIS category (not all 1000 units!)
   const allUnitsProgress = useQuery(
-    api.progress.queries.getAllUnitProgress,
-    user?.id ? { userId: user.id } : "skip",
+    api.progress.queries.getUnitProgressByCategory,
+    user?.id && categoryId ? { userId: user.id, categoryId } : "skip",
   );
 
   const isFavorited = useQuery(
