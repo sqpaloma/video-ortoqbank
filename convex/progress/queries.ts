@@ -185,7 +185,8 @@ export const getCompletedLessons = query({
 });
 
 /**
- * Get count of completed lessons (only for lessons that still exist and are published)
+ * Get count of completed published lessons
+ * OPTIMIZED: Uses userGlobalProgress aggregate table
  */
 export const getCompletedPublishedLessonsCount = query({
   args: {
@@ -193,28 +194,12 @@ export const getCompletedPublishedLessonsCount = query({
   },
   returns: v.number(),
   handler: async (ctx, args) => {
-    const completedProgress = await ctx.db
-      .query("userProgress")
-      .withIndex("by_userId_and_completed", (q) =>
-        q.eq("userId", args.userId).eq("completed", true)
-      )
-      .collect();
+    // Use the aggregate table instead of counting manually
+    const globalProgress = await ctx.db
+      .query("userGlobalProgress")
+      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .unique();
 
-    let count = 0;
-    for (const progress of completedProgress) {
-      try {
-        const lesson = await ctx.db.get(progress.lessonId);
-        // Only count if lesson exists and is published
-        if (lesson && lesson.isPublished) {
-          count++;
-        }
-      } catch (error) {
-        // Skip invalid lesson references
-        console.error(`Error checking lesson ${progress.lessonId}:`, error);
-        continue;
-      }
-    }
-
-    return count;
+    return globalProgress?.completedLessonsCount || 0;
   },
 });
