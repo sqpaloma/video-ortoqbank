@@ -268,7 +268,7 @@ http.route({
  * Events: video.uploaded, video.encoded, video.failed
  */
 http.route({
-  path: "/bunny/webhook",
+  path: "/bunny-webhook",
   method: "POST",
   handler: httpAction(async (ctx, req) => {
     try {
