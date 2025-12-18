@@ -42,7 +42,8 @@ export default defineSchema({
   })
     .index("by_slug", ["slug"])
     .index("by_position", ["position"])
-    .index("by_isPublished", ["isPublished"]),
+    .index("by_isPublished", ["isPublished"])
+    .index("by_isPublished_and_position", ["isPublished", "position"]),
 
   // Units table (formerly modules/courses)
   units: defineTable({
