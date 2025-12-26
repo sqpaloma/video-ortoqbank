@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useAction } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { uploadVideoToBunny } from "@/app/actions/bunny";
 
 interface UploadProgress {
@@ -19,6 +21,9 @@ export function useBunnyUpload() {
   });
   const [error, setError] = useState<string | null>(null);
 
+  // Convex action to create video in Bunny
+  const createVideo = useAction(api.bunny.videos.createVideo);
+
   const uploadVideo = async (
     file: File,
     title: string,
@@ -29,45 +34,21 @@ export function useBunnyUpload() {
     setProgress({ stage: "creating", percentage: 25 });
 
     try {
-      // Step 1: Create video in Bunny
-      const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL?.replace(
-        ".convex.cloud",
-        ".convex.site"
-      );
+      // Step 1: Create video in Bunny via Convex action
+      const { videoId, libraryId } = await createVideo({ title, createdBy });
 
-      if (!convexUrl) {
-        throw new Error("CONVEX_URL not configured");
-      }
-
-      const createResponse = await fetch(`${convexUrl}/bunny/create-video`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          description: "",
-          isPrivate: true,
-          createdBy,
-        }),
-      });
-
-      if (!createResponse.ok) {
-        const errorData = await createResponse.json();
-        throw new Error(errorData.error || "Failed to create video");
-      }
-
-      const { videoId, libraryId } = await createResponse.json();
       setProgress({ stage: "uploading", percentage: 50 });
 
-      // Step 2: Upload file via Server Action
+      // Step 2: Upload file via Next.js Server Action
       const formData = new FormData();
       formData.append("videoId", videoId);
       formData.append("libraryId", libraryId);
       formData.append("file", file);
 
-      const uploadResult = await uploadVideoToBunny(formData);
+      const result = await uploadVideoToBunny(formData);
 
-      if (!uploadResult.success) {
-        throw new Error(uploadResult.error || "Upload failed");
+      if (!result.success) {
+        throw new Error(result.error || "Upload failed");
       }
 
       setProgress({ stage: "complete", percentage: 100 });

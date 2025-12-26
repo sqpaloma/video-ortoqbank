@@ -1,5 +1,11 @@
 /**
  * Bunny Stream Video Management Actions
+ *
+ * Flow:
+ * 1. Convex Action creates video in Bunny → returns videoId/libraryId
+ * 2. Next.js Server Action uploads file to Bunny (keeps API key on server)
+ * 3. Bunny processes and sends webhook
+ * 4. Webhook updates Convex DB with video URLs
  */
 
 import { v } from "convex/values";
@@ -7,8 +13,8 @@ import { action } from "../_generated/server";
 import { api } from "../_generated/api";
 
 /**
- * Create a new video in Bunny Stream library
- * Returns the video ID and upload credentials
+ * Create a new video in Bunny Stream
+ * Returns videoId and libraryId for the upload step
  */
 export const createVideo = action({
   args: {
@@ -18,7 +24,6 @@ export const createVideo = action({
   returns: v.object({
     videoId: v.string(),
     libraryId: v.string(),
-    title: v.string(),
   }),
   handler: async (ctx, args) => {
     const apiKey = process.env.BUNNY_API_KEY;
@@ -28,7 +33,7 @@ export const createVideo = action({
       throw new Error("Bunny credentials not configured (BUNNY_API_KEY, BUNNY_LIBRARY_ID)");
     }
 
-    // Create video in Bunny
+    // Create video slot in Bunny
     const response = await fetch(
       `https://video.bunnycdn.com/library/${libraryId}/videos`,
       {
@@ -49,28 +54,17 @@ export const createVideo = action({
     const videoData = await response.json();
     const videoId = videoData.guid;
 
-    // Save video to Convex database
-    try {
-      await ctx.runMutation(api.videos.create, {
-        videoId,
-        libraryId,
-        title: args.title,
-        description: "",
-        createdBy: args.createdBy,
-        isPrivate: true,
-        status: "uploading",
-      });
-    } catch (dbError) {
-      console.error("Failed to save video to database:", dbError);
-      // Video is created in Bunny but not saved in DB
-      // Continue anyway so upload can proceed
-    }
-
-    return {
+    // Save video record to Convex (status: uploading)
+    await ctx.runMutation(api.videos.create, {
       videoId,
       libraryId,
       title: args.title,
-    };
+      description: "",
+      createdBy: args.createdBy,
+      isPrivate: true,
+      status: "uploading",
+    });
+
+    return { videoId, libraryId };
   },
 });
-

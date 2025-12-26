@@ -1,10 +1,8 @@
 /**
  * Convex HTTP Router
  *
- * Only used for external webhooks that require HTTP endpoints.
- * For client-side operations, use Convex actions instead:
- * - api.bunny.tokens.getSignedEmbedUrl - Get signed embed URL
- * - api.bunny.videos.createVideo - Create video in Bunny
+ * Only used for receiving webhooks from third parties.
+ * For calling external APIs, use Convex actions instead.
  */
 
 import { httpRouter } from "convex/server";
