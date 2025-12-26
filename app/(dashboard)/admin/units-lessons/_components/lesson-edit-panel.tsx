@@ -77,6 +77,7 @@ export function LessonEditPanel({
         description,
         lessonNumber,
         tags: tagsArray.length > 0 ? tagsArray : undefined,
+        videoId: currentVideoId,
       });
     } finally {
       setIsSubmitting(false);
