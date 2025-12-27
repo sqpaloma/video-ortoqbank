@@ -1,4 +1,4 @@
-import ProfileInner from "./_components/profile-inner";
+import ProfileInner from "./_components/profile-page";
 import { api } from "@/convex/_generated/api";
 import { preloadQuery } from "convex/nextjs";
 import { auth } from "@clerk/nextjs/server";
