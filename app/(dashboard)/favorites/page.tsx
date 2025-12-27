@@ -1,6 +1,6 @@
 "use client";
 
-import { FavoritesInner } from "./_components/favorites-inner";
+import { FavoritesInner } from "./_components/favorites-page";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useUser } from "@clerk/nextjs";
