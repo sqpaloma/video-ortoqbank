@@ -31,11 +31,9 @@ describe("Feedback", () => {
       />
     );
 
-    const label = screen.getByText("Deixe seu feedback ou tire uma dúvida");
-    expect(label).toBeDefined();
-
     const textarea = screen.getByLabelText("Campo de feedback");
     expect(textarea).toBeDefined();
+    expect(textarea).toHaveAttribute("placeholder", "Digite seu feedback ou dúvida aqui...");
 
     const sendButton = screen.getByLabelText("Enviar feedback");
     expect(sendButton).toBeDefined();
