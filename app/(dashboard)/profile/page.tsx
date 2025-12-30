@@ -2,8 +2,12 @@ import ProfileInner from "./_components/profile-page";
 import { api } from "@/convex/_generated/api";
 import { preloadQuery } from "convex/nextjs";
 import { auth } from "@clerk/nextjs/server";
+import { requireVideoAccess } from "@/lib/access";
 
 export default async function ProfilePage() {
+  // Verifica acesso pago antes de carregar conteúdo
+  await requireVideoAccess();
+
   // Obter token de autenticação para Convex
   const { userId, getToken } = await auth();
   const token = await getToken({ template: "convex" }).catch((error) => {

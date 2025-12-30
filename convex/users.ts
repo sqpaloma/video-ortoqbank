@@ -301,3 +301,41 @@ export async function requireAdmin(
     throw new Error("Unauthorized: Admin access required");
   }
 }
+
+// ============================================================================
+// ADMIN QUERIES AND MUTATIONS
+// ============================================================================
+
+/**
+ * Get all users (admin only)
+ */
+export const getUsers = query({
+  args: { limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+
+    const users = await ctx.db
+      .query("users")
+      .order("desc")
+      .take(args.limit || 100);
+
+    return users;
+  },
+});
+
+/**
+ * Set user role (admin only)
+ */
+export const setRole = mutation({
+  args: {
+    userId: v.id("users"),
+    role: v.optional(v.union(v.literal("user"), v.literal("admin")))
+  },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+
+    await ctx.db.patch(args.userId, {
+      role: args.role || "user",
+    });
+  },
+});
