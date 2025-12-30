@@ -3,6 +3,7 @@ import { api } from "@/convex/_generated/api";
 import { preloadQuery } from "convex/nextjs";
 import { auth } from "@clerk/nextjs/server";
 import { Id } from "@/convex/_generated/dataModel";
+import { requireVideoAccess } from "@/lib/access";
 
 interface UnitsPageProps {
   params: Promise<{
@@ -11,6 +12,9 @@ interface UnitsPageProps {
 }
 
 export default async function Page({ params }: UnitsPageProps) {
+  // Verifica acesso pago antes de carregar conteúdo
+  await requireVideoAccess();
+
   const { categoryId } = await params;
   const categoryIdTyped = categoryId as Id<"categories">;
 

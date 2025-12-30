@@ -327,10 +327,8 @@ export function UnitsLessonsPage({
           </Button>
         </Link>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold">Gerenciar Unidades e Aulas</h1>
-          <p className="text-sm text-muted-foreground">
-            Selecione uma categoria para gerenciar seus unidades e aulas
-          </p>
+          <h1 className="text-2xl font-semibold">Gerenciar Unidades e Aulas</h1>
+
         </div>
       </div>
 

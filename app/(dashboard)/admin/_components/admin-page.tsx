@@ -2,7 +2,7 @@
 
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import { FolderIcon, LayersIcon, ArrowRightIcon } from "lucide-react";
+import { FolderIcon, LayersIcon, ArrowRightIcon, DollarSignIcon, PercentIcon, UsersIcon, BookIcon } from "lucide-react";
 import Link from "next/link";
 
 export function AdminHub() {
@@ -25,15 +25,38 @@ export function AdminHub() {
             color: "text-purple-600",
             bgColor: "bg-purple-50",
         },
-        // Add more admin pages here as needed
-        // {
-        //   title: "Nova Página",
-        //   description: "Descrição da nova página",
-        //   icon: IconName,
-        //   href: "/admin/nova-pagina",
-        //   color: "text-green-600",
-        //   bgColor: "bg-green-50",
-        // },
+        {
+            title: "Planos de Preços",
+            description: "Gerencie os planos de preços do sistema",
+            icon: DollarSignIcon,
+            href: "/admin/pricing-plans",
+            color: "text-green-600",
+            bgColor: "bg-green-50",
+        },
+        {
+            title: "Cupons",
+            description: "Gerencie os cupons do sistema",
+            icon: PercentIcon,
+            href: "/admin/coupons",
+            color: "text-red-600",
+            bgColor: "bg-red-50",
+        },
+        {
+            title: "Usuários",
+            description: "Gerencie os usuários do sistema",
+            icon: UsersIcon,
+            href: "/admin/users",
+            color: "text-yellow-600",
+            bgColor: "bg-yellow-50",
+        },
+        {
+            title: "Lista de Espera",
+            description: "Gerencie a lista de espera do sistema",
+            icon: BookIcon,
+            href: "/admin/waitlist",
+            color: "text-blue-600",
+            bgColor: "bg-blue-50",
+        }
     ];
 
     return (
@@ -54,11 +77,7 @@ export function AdminHub() {
             {/* Content */}
             <div className="p-8 pb-24 md:pb-8">
                 <div className="max-w-7xl mx-auto">
-                    <div className="mb-8">
-                        <p className="text-muted-foreground">
-                            Selecione uma área para gerenciar
-                        </p>
-                    </div>
+
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {adminPages.map((page) => {
@@ -82,12 +101,7 @@ export function AdminHub() {
                         })}
                     </div>
 
-                    {/* Empty state for future pages */}
-                    <div className="mt-12 p-6 border-2 border-dashed rounded-lg text-center">
-                        <p className="text-sm text-muted-foreground">
-                            Mais páginas administrativas podem ser adicionadas aqui
-                        </p>
-                    </div>
+
                 </div>
             </div>
         </div>

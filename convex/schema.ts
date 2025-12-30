@@ -214,4 +214,89 @@ export default defineSchema({
     .index("by_userId", ["userId"])
     .index("by_lessonId", ["lessonId"])
     .index("by_userId_and_lessonId", ["userId", "lessonId"]),
+// Admin-managed coupons for checkout
+coupons: defineTable({
+  code: v.string(), // store uppercase
+  type: v.union(
+    v.literal('percentage'),
+    v.literal('fixed'),
+    v.literal('fixed_price'),
+  ),
+  value: v.number(),
+  description: v.string(),
+  active: v.boolean(),
+  validFrom: v.optional(v.number()), // epoch ms
+  validUntil: v.optional(v.number()), // epoch ms
+  // Usage limits
+  currentUses: v.optional(v.number()), // Current total usage count
+}).index('by_code', ['code']),
+
+// Coupon usage tracking
+couponUsage: defineTable({
+  couponId: v.id('coupons'),
+  couponCode: v.string(),
+  orderId: v.id('pendingOrders'),
+  userEmail: v.string(),
+  userCpf: v.string(),
+  discountAmount: v.number(),
+  originalPrice: v.number(),
+  finalPrice: v.number(),
+  usedAt: v.number(),
+})
+  .index('by_coupon', ['couponId'])
+  .index('by_coupon_user', ['couponCode', 'userCpf'])
+  .index('by_email', ['userEmail'])
+  .index('by_cpf', ['userCpf']),
+
+//pricing plans
+pricingPlans: defineTable({
+  name: v.string(),
+  badge: v.string(),
+  originalPrice: v.optional(v.string()), // Marketing strikethrough price
+  price: v.string(),
+  installments: v.string(),
+  installmentDetails: v.string(),
+  description: v.string(),
+  features: v.array(v.string()),
+  buttonText: v.string(),
+  // Extended fields for product identification and access control
+  productId: v.string(), // e.g., "ortoqbank_2025", "ortoqbank_2026", "premium_pack" - REQUIRED
+  category: v.optional(v.union(v.literal("year_access"), v.literal("premium_pack"), v.literal("addon"))),
+  year: v.optional(v.number()), // 2025, 2026, 2027, etc. - kept for productId naming/identification
+  // Pricing (converted to numbers for calculations)
+  regularPriceNum: v.optional(v.number()),
+  pixPriceNum: v.optional(v.number()),
+  // Access control - year-based
+  accessYears: v.optional(v.array(v.number())), // Array of years user gets access to (e.g., [2026, 2027])
+  isActive: v.optional(v.boolean()),
+  displayOrder: v.optional(v.number()),
+})
+  .index("by_product_id", ["productId"])
+  .index("by_category", ["category"])
+  .index("by_year", ["year"])
+  .index("by_active", ["isActive"]),
+// Waitlist - tracks users interested in OrtoClub TEOT
+waitlist: defineTable({
+  name: v.string(),
+  email: v.string(),
+  whatsapp: v.string(),
+  instagram: v.optional(v.string()),
+  residencyLevel: v.union(
+    v.literal("R1"),
+    v.literal("R2"),
+    v.literal("R3"),
+    v.literal("Já concluí")
+  ),
+  subspecialty: v.union(
+    v.literal("Pediátrica"),
+    v.literal("Tumor"),
+    v.literal("Quadril"),
+    v.literal("Joelho"),
+    v.literal("Ombro e Cotovelo"),
+    v.literal("Mão"),
+    v.literal("Coluna"),
+    v.literal("Pé e Tornozelo")
+  ),
+})
+  .index("by_email", ["email"])
 });

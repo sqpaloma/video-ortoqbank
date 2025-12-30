@@ -17,19 +17,21 @@ import type * as feedback from "../feedback.js";
 import type * as http from "../http.js";
 import type * as lessons from "../lessons.js";
 import type * as myFunctions from "../myFunctions.js";
+import type * as pricingPlans from "../pricingPlans.js";
 import type * as progress_helpers from "../progress/helpers.js";
 import type * as progress_index from "../progress/index.js";
 import type * as progress_mutations from "../progress/mutations.js";
 import type * as progress_queries from "../progress/queries.js";
+import type * as promoCoupons from "../promoCoupons.js";
 import type * as ratings from "../ratings.js";
 import type * as recentViews from "../recentViews.js";
 import type * as search from "../search.js";
 import type * as seed from "../seed.js";
 import type * as units from "../units.js";
 import type * as userAccess from "../userAccess.js";
-import type * as userAdmin from "../userAdmin.js";
 import type * as users from "../users.js";
 import type * as videos from "../videos.js";
+import type * as waitlist from "../waitlist.js";
 
 import type {
   ApiFromModules,
@@ -47,19 +49,21 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   lessons: typeof lessons;
   myFunctions: typeof myFunctions;
+  pricingPlans: typeof pricingPlans;
   "progress/helpers": typeof progress_helpers;
   "progress/index": typeof progress_index;
   "progress/mutations": typeof progress_mutations;
   "progress/queries": typeof progress_queries;
+  promoCoupons: typeof promoCoupons;
   ratings: typeof ratings;
   recentViews: typeof recentViews;
   search: typeof search;
   seed: typeof seed;
   units: typeof units;
   userAccess: typeof userAccess;
-  userAdmin: typeof userAdmin;
   users: typeof users;
   videos: typeof videos;
+  waitlist: typeof waitlist;
 }>;
 
 /**
