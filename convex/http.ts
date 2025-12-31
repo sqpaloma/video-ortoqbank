@@ -161,5 +161,91 @@ http.route({
     }
   }),
 });
+// AsaaS webhook handler
+http.route({
+  path: '/webhooks/asaas',
+  method: 'POST',
+  handler: httpAction(async (ctx, request) => {
+    try {
+      // Get webhook body
+      const rawBody = await request.text();
+      
+      // Validate webhook authentication (required for both sandbox and production)
+      const asaasSignature = request.headers.get('asaas-access-token') || 
+                           request.headers.get('authorization') ||
+                           request.headers.get('x-asaas-signature');
+      
+      const webhookSecret = process.env.ASAAS_WEBHOOK_SECRET;
+      
+      // Log headers for debugging
+      console.log('AsaaS Webhook Headers:', {
+        'asaas-access-token': request.headers.get('asaas-access-token'),
+        'authorization': request.headers.get('authorization'),
+        'x-asaas-signature': request.headers.get('x-asaas-signature'),
+        'content-type': request.headers.get('content-type'),
+      });
+
+      // ALWAYS require webhook secret to be configured
+      if (!webhookSecret) {
+        console.error('ASAAS_WEBHOOK_SECRET environment variable not configured');
+        return new Response('Server configuration error', { status: 500 });
+      }
+
+      // ALWAYS require authentication header
+      if (!asaasSignature) {
+        console.error('Missing AsaaS authentication header');
+        return new Response('Unauthorized - Missing authentication', { status: 401 });
+      }
+
+      // ALWAYS validate signature
+      if (asaasSignature !== webhookSecret) {
+        console.error('Invalid AsaaS webhook signature');
+        return new Response('Unauthorized - Invalid signature', { status: 401 });
+      }
+      
+      console.log('✅ Webhook authentication successful');
+
+      const body = JSON.parse(rawBody);
+      const { event, payment, checkout } = body;
+
+      console.log(`AsaaS webhook received: ${event}`, {
+        paymentId: payment?.id,
+        checkoutId: checkout?.id,
+      });
+
+      // Log the full webhook payload for debugging
+      console.log('Full AsaaS webhook payload:', JSON.stringify(body, null, 2));
+
+      // Process Asaas webhook events with switch case structure
+      switch (event) {
+        case 'PAYMENT_CONFIRMED': // intentional fallthrough
+        case 'PAYMENT_RECEIVED': {
+          try {
+            console.log(`Processing ${event} event - payment with customer data`);
+            await ctx.runAction(internal.payments.processAsaasWebhook, {
+              event,
+              payment,
+              rawWebhookData: body,
+            });
+          } catch (error) {
+            console.error(`Error processing ${event}:`, error);
+          }
+          break;
+        }
+
+        default: {
+          console.log(`Ignoring AsaaS webhook event: ${event}`);
+          return new Response('Event ignored', { status: 200 });
+        }
+      }
+
+      return new Response('OK', { status: 200 });
+
+    } catch (error) {
+      console.error('Error processing AsaaS webhook:', error);
+      return new Response('Webhook processing failed', { status: 500 });
+    }
+  }),
+});
 
 export default http;

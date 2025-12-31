@@ -229,6 +229,7 @@ coupons: defineTable({
   validUntil: v.optional(v.number()), // epoch ms
   // Usage limits
   currentUses: v.optional(v.number()), // Current total usage count
+  maxUses: v.optional(v.number()), // Maximum total uses allowed
 }).index('by_code', ['code']),
 
 // Coupon usage tracking
@@ -298,5 +299,90 @@ waitlist: defineTable({
     v.literal("Pé e Tornozelo")
   ),
 })
+  .index("by_email", ["email"]),
+
+// Pending orders - orders waiting for payment confirmation
+pendingOrders: defineTable({
+  email: v.string(),
+  cpf: v.string(),
+  name: v.string(),
+  productId: v.string(),
+  status: v.string(), // 'pending', 'processing', 'completed', 'failed', 'expired', 'provisioned'
+  originalPrice: v.number(),
+  finalPrice: v.number(),
+  couponCode: v.optional(v.string()),
+  couponDiscount: v.optional(v.number()),
+  pixDiscount: v.optional(v.number()),
+  paymentMethod: v.string(), // 'PIX' or 'CREDIT_CARD'
+  phone: v.optional(v.string()),
+  mobilePhone: v.optional(v.string()),
+  postalCode: v.optional(v.string()),
+  address: v.optional(v.string()),
+  addressNumber: v.optional(v.string()),
+  createdAt: v.number(),
+  expiresAt: v.number(),
+  asaasPaymentId: v.optional(v.string()),
+  installmentCount: v.optional(v.number()),
+  pixData: v.optional(v.object({
+    qrPayload: v.optional(v.string()),
+    qrCodeBase64: v.optional(v.string()),
+    expirationDate: v.optional(v.string()),
+  })),
+  userId: v.optional(v.string()), // Clerk user ID after registration
+  provisionedAt: v.optional(v.number()), // When access was granted
+  paidAt: v.optional(v.number()), // When payment was confirmed
+  accountEmail: v.optional(v.string()), // Email used for account creation (may differ from order email)
+  externalReference: v.optional(v.string()), // External reference for payment gateway
+})
   .index("by_email", ["email"])
+  .index("by_cpf", ["cpf"])
+  .index("by_status", ["status"])
+  .index("by_asaasPaymentId", ["asaasPaymentId"])
+  .index("by_userId", ["userId"]),
+
+// Email invitations - tracking for Clerk invitation emails
+emailInvitations: defineTable({
+  orderId: v.id('pendingOrders'),
+  email: v.string(),
+  customerName: v.string(),
+  status: v.string(), // 'pending', 'sent', 'failed', 'accepted'
+  retrierRunId: v.optional(v.string()),
+  retryCount: v.number(),
+  clerkInvitationId: v.optional(v.string()),
+  sentAt: v.optional(v.number()),
+  errorMessage: v.optional(v.string()),
+  errorDetails: v.optional(v.string()),
+  acceptedAt: v.optional(v.number()),
+})
+  .index("by_email", ["email"])
+  .index("by_orderId", ["orderId"])
+  .index("by_status", ["status"]),
+
+// Invoices - fiscal invoices for orders
+invoices: defineTable({
+  orderId: v.id('pendingOrders'),
+  asaasPaymentId: v.string(),
+  status: v.string(), // 'pending', 'processing', 'success', 'error'
+  municipalServiceId: v.string(), // Asaas fiscal service ID
+  serviceDescription: v.string(),
+  value: v.number(), // Total invoice value
+  installmentNumber: v.optional(v.number()), // For installment payments
+  totalInstallments: v.optional(v.number()), // Total number of installments
+  customerName: v.string(),
+  customerEmail: v.string(),
+  customerCpfCnpj: v.string(),
+  customerPhone: v.optional(v.string()),
+  customerMobilePhone: v.optional(v.string()),
+  customerPostalCode: v.optional(v.string()),
+  customerAddress: v.optional(v.string()),
+  customerAddressNumber: v.optional(v.string()),
+  asaasInvoiceId: v.optional(v.string()),
+  createdAt: v.number(),
+  processedAt: v.optional(v.number()),
+  issuedAt: v.optional(v.number()), // When invoice was issued
+  errorMessage: v.optional(v.string()),
+})
+  .index("by_order", ["orderId"])
+  .index("by_asaasPaymentId", ["asaasPaymentId"])
+  .index("by_status", ["status"]),
 });

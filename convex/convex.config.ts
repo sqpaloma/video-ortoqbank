@@ -1,6 +1,7 @@
 // Convex Configuration
 import { defineApp } from "convex/server";
 import aggregate from "@convex-dev/aggregate/convex.config";
+import actionRetrier from "@convex-dev/action-retrier/convex.config";
 
 const app = defineApp();
 
@@ -9,5 +10,8 @@ const app = defineApp();
 app.use(aggregate, { name: "aggregateLessons" });
 app.use(aggregate, { name: "aggregateUnits" });
 app.use(aggregate, { name: "aggregateCategories" });
+
+// Configure action retrier for reliable external API calls
+app.use(actionRetrier);
 
 export default app;

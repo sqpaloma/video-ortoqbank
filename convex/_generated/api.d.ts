@@ -9,14 +9,17 @@
  */
 
 import type * as aggregate from "../aggregate.js";
+import type * as asaas from "../asaas.js";
 import type * as bunny_utils from "../bunny/utils.js";
 import type * as bunny_videos from "../bunny/videos.js";
 import type * as categories from "../categories.js";
 import type * as favorites from "../favorites.js";
 import type * as feedback from "../feedback.js";
 import type * as http from "../http.js";
+import type * as invoices from "../invoices.js";
 import type * as lessons from "../lessons.js";
 import type * as myFunctions from "../myFunctions.js";
+import type * as payments from "../payments.js";
 import type * as pricingPlans from "../pricingPlans.js";
 import type * as progress_helpers from "../progress/helpers.js";
 import type * as progress_index from "../progress/index.js";
@@ -25,6 +28,7 @@ import type * as progress_queries from "../progress/queries.js";
 import type * as promoCoupons from "../promoCoupons.js";
 import type * as ratings from "../ratings.js";
 import type * as recentViews from "../recentViews.js";
+import type * as retrier from "../retrier.js";
 import type * as search from "../search.js";
 import type * as seed from "../seed.js";
 import type * as units from "../units.js";
@@ -41,14 +45,17 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   aggregate: typeof aggregate;
+  asaas: typeof asaas;
   "bunny/utils": typeof bunny_utils;
   "bunny/videos": typeof bunny_videos;
   categories: typeof categories;
   favorites: typeof favorites;
   feedback: typeof feedback;
   http: typeof http;
+  invoices: typeof invoices;
   lessons: typeof lessons;
   myFunctions: typeof myFunctions;
+  payments: typeof payments;
   pricingPlans: typeof pricingPlans;
   "progress/helpers": typeof progress_helpers;
   "progress/index": typeof progress_index;
@@ -57,6 +64,7 @@ declare const fullApi: ApiFromModules<{
   promoCoupons: typeof promoCoupons;
   ratings: typeof ratings;
   recentViews: typeof recentViews;
+  retrier: typeof retrier;
   search: typeof search;
   seed: typeof seed;
   units: typeof units;
@@ -648,6 +656,53 @@ export declare const components: {
           value: any;
         },
         any
+      >;
+    };
+  };
+  actionRetrier: {
+    public: {
+      cancel: FunctionReference<
+        "mutation",
+        "internal",
+        { runId: string },
+        boolean
+      >;
+      cleanup: FunctionReference<
+        "mutation",
+        "internal",
+        { runId: string },
+        any
+      >;
+      start: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          functionArgs: any;
+          functionHandle: string;
+          options: {
+            base: number;
+            initialBackoffMs: number;
+            logLevel: "DEBUG" | "INFO" | "WARN" | "ERROR";
+            maxFailures: number;
+            onComplete?: string;
+            runAfter?: number;
+            runAt?: number;
+          };
+        },
+        string
+      >;
+      status: FunctionReference<
+        "query",
+        "internal",
+        { runId: string },
+        | { type: "inProgress" }
+        | {
+            result:
+              | { returnValue: any; type: "success" }
+              | { error: string; type: "failed" }
+              | { type: "canceled" };
+            type: "completed";
+          }
       >;
     };
   };

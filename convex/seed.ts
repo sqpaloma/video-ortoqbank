@@ -341,7 +341,7 @@ export const clearLessons = internalMutation({
 });
 
 /**
- * Seed everything (categories -> units -> lessons)
+ * Seed everything (categories -> units -> lessons -> pricing plans)
  */
 export const seedAll = internalMutation({
   args: {},
@@ -350,6 +350,7 @@ export const seedAll = internalMutation({
     await ctx.runMutation(internal.seed.seedCategories, {});
     await ctx.runMutation(internal.seed.seedUnits, {});
     await ctx.runMutation(internal.seed.seedLessons, {});
+    await ctx.runMutation(internal.seed.seedPricingPlans, {});
     await ctx.runMutation(api.seed.initializeContentStats, {});
     return null;
   },
@@ -390,6 +391,18 @@ export const initializeContentStats = mutation({
   returns: v.null(),
   handler: async (ctx) => {
     await ctx.runMutation(internal.aggregate.recalculate, {});
+    return null;
+  },
+});
+
+/**
+ * Seed pricing plans (public mutation for easy access)
+ */
+export const seedPricingPlansPublic = mutation({
+  args: {},
+  returns: v.null(),
+  handler: async (ctx) => {
+    await ctx.runMutation(internal.seed.seedPricingPlans, {});
     return null;
   },
 });
@@ -516,6 +529,125 @@ export const recreateUnits = internalMutation({
       await ctx.db.delete(unit._id);
     }
     await ctx.runMutation(internal.seed.seedUnits, {});
+    return null;
+  },
+});
+
+/**
+ * Seed the database with sample pricing plans
+ */
+export const seedPricingPlans = internalMutation({
+  args: {},
+  returns: v.null(),
+  handler: async (ctx) => {
+    // Check if pricing plans already exist
+    const existingPlans = await ctx.db.query("pricingPlans").first();
+    if (existingPlans) {
+      return null;
+    }
+
+    // Sample pricing plans
+    const pricingPlans = [
+      {
+        name: "Plano Básico",
+        badge: "1",
+        originalPrice: "R$ 1.497,00",
+        price: "R$ 997,00",
+        installments: "12x de R$ 83,08",
+        installmentDetails: "ou R$ 897,30 à vista no PIX",
+        description: "Ideal para quem está começando a preparação para o TEOT",
+        features: [
+          "Acesso a todas as videoaulas",
+          "Material complementar em PDF",
+          "Acesso por 12 meses",
+          "Suporte via email",
+        ],
+        buttonText: "Assinar Agora",
+        productId: "ortoqbank_basico_2025",
+        category: "year_access" as const,
+        year: 2025,
+        regularPriceNum: 997.0,
+        pixPriceNum: 897.3,
+        accessYears: [2025],
+        isActive: true,
+        displayOrder: 1,
+      },
+      {
+        name: "Plano Premium",
+        badge: "2",
+        originalPrice: "R$ 1.997,00",
+        price: "R$ 1.497,00",
+        installments: "12x de R$ 124,75",
+        installmentDetails: "ou R$ 1.347,30 à vista no PIX",
+        description: "Para quem quer se preparar com mais recursos e suporte",
+        features: [
+          "Acesso a todas as videoaulas",
+          "Material complementar em PDF",
+          "Acesso por 12 meses",
+          "Suporte prioritário",
+          "Simulados exclusivos",
+          "Grupo VIP de estudos",
+        ],
+        buttonText: "Assinar Agora",
+        productId: "ortoqbank_premium_2025",
+        category: "premium_pack" as const,
+        year: 2025,
+        regularPriceNum: 1497.0,
+        pixPriceNum: 1347.3,
+        accessYears: [2025],
+        isActive: true,
+        displayOrder: 2,
+      },
+      {
+        name: "Plano Completo",
+        badge: "3",
+        originalPrice: "R$ 2.497,00",
+        price: "R$ 1.997,00",
+        installments: "12x de R$ 166,42",
+        installmentDetails: "ou R$ 1.797,30 à vista no PIX",
+        description: "A opção mais completa para sua aprovação no TEOT",
+        features: [
+          "Acesso a todas as videoaulas",
+          "Material complementar em PDF",
+          "Acesso por 24 meses",
+          "Suporte prioritário 24/7",
+          "Simulados exclusivos",
+          "Grupo VIP de estudos",
+          "Mentoria individual mensal",
+          "Revisões ao vivo",
+        ],
+        buttonText: "Assinar Agora",
+        productId: "ortoqbank_completo_2025",
+        category: "year_access" as const,
+        year: 2025,
+        regularPriceNum: 1997.0,
+        pixPriceNum: 1797.3,
+        accessYears: [2025, 2026],
+        isActive: true,
+        displayOrder: 3,
+      },
+    ];
+
+    for (const plan of pricingPlans) {
+      await ctx.db.insert("pricingPlans", plan);
+    }
+
+    return null;
+  },
+});
+
+/**
+ * Limpa todos os planos de preço (for testing)
+ */
+export const clearPricingPlans = internalMutation({
+  args: {},
+  returns: v.null(),
+  handler: async (ctx) => {
+    const plans = await ctx.db.query("pricingPlans").collect();
+    for (const plan of plans) {
+      await ctx.db.delete(plan._id);
+    }
+
     return null;
   },
 });

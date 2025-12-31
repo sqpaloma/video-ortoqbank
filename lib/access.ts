@@ -28,14 +28,10 @@ export async function requireVideoAccess(redirectTo = "/purchase"): Promise<true
   const token = await getToken({ template: "convex" }).catch(() => null);
 
   // Verifica acesso no Convex (fonte de verdade)
-  // IMPORTANTE: skipCache para sempre verificar em tempo real
   const hasAccess = await fetchQuery(
     api.userAccess.checkUserHasVideoAccessByClerkId,
     { clerkUserId: userId },
-    { 
-      ...(token ? { token } : {}),
-      skipCache: true  // Sempre verifica em tempo real, não usa cache
-    }
+    token ? { token } : undefined
   );
 
   if (!hasAccess) {
@@ -72,10 +68,7 @@ export async function checkVideoAccess(): Promise<{
   const hasAccess = await fetchQuery(
     api.userAccess.checkUserHasVideoAccessByClerkId,
     { clerkUserId: userId },
-    { 
-      ...(token ? { token } : {}),
-      skipCache: true  // Sempre verifica em tempo real
-    }
+    token ? { token } : undefined
   );
 
   return { hasAccess, userId };
