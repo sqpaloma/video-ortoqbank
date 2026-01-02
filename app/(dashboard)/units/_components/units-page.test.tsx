@@ -33,7 +33,9 @@ vi.mock("@clerk/nextjs", () => ({
 }));
 
 // Mock Convex hooks
-const mockUsePreloadedQuery = vi.fn(() => [{ _id: "unit-1", title: "Test Unit" }]); // Return at least one unit
+const mockUsePreloadedQuery = vi.fn(() => [
+  { _id: "unit-1", title: "Test Unit" },
+]); // Return at least one unit
 const mockUseQuery = vi.fn(() => null);
 const mockUseMutation = vi.fn(() => vi.fn(() => Promise.resolve()));
 
@@ -52,11 +54,15 @@ describe("UnitsPage", () => {
   it("should render", () => {
     renderWithProviders(
       <UnitsPage
-        preloadedUnits={api.units.listPublishedByCategory as unknown as Preloaded<typeof api.units.listPublishedByCategory>}
+        preloadedUnits={
+          api.units.listPublishedByCategory as unknown as Preloaded<
+            typeof api.units.listPublishedByCategory
+          >
+        }
         categoryTitle="Test Category"
-      />
+      />,
     );
     // The component shows categoryTitle in the header
     expect(screen.getByText(/Test Category/)).toBeInTheDocument();
   });
-});         
+});

@@ -1,12 +1,22 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ChevronDownIcon, ChevronRightIcon, GripVerticalIcon, PencilIcon, EyeIcon, EyeOffIcon } from "lucide-react";
+import {
+  ChevronDownIcon,
+  ChevronRightIcon,
+  GripVerticalIcon,
+  PencilIcon,
+  EyeIcon,
+  EyeOffIcon,
+} from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
 import { DndContext, closestCenter } from "@dnd-kit/core";
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { LessonTreeItem } from "./lesson-tree-item";
 import { UnitTreeItemProps } from "./types";
 
@@ -45,7 +55,8 @@ export function UnitTreeItem({
       style={style}
       className={cn(
         "space-y-1",
-        isItemDragging && "opacity-50 ring-2 ring-primary rounded-lg shadow-lg z-50"
+        isItemDragging &&
+          "opacity-50 ring-2 ring-primary rounded-lg shadow-lg z-50",
       )}
     >
       {/* Unit Header */}
@@ -68,9 +79,7 @@ export function UnitTreeItem({
             <ChevronRightIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
           )}
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-sm truncate">
-              {unit.title}
-            </p>
+            <p className="font-medium text-sm truncate">{unit.title}</p>
             <p className="text-xs text-muted-foreground">
               {unitLessons.length} {unitLessons.length === 1 ? "aula" : "aulas"}
             </p>

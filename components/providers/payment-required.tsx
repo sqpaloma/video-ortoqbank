@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useQuery } from 'convex/react';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useQuery } from "convex/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
-import { api } from '../../convex/_generated/api';
+import { api } from "../../convex/_generated/api";
 
 interface PaymentRequiredProps {
   children: React.ReactNode;
@@ -14,12 +14,12 @@ interface PaymentRequiredProps {
 /**
  * Client Component para verificar acesso pago.
  * Use isso para proteger conteúdo em Client Components.
- * 
+ *
  * Para Server Components, use `requireVideoAccess()` de `@/lib/access`
  */
 export function PaymentRequired({
   children,
-  redirectTo = '/purchase',
+  redirectTo = "/purchase",
 }: PaymentRequiredProps) {
   const router = useRouter();
   const hasAccess = useQuery(api.userAccess.checkUserHasVideoAccess);

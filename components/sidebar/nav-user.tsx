@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { UserButton, useUser } from '@clerk/nextjs';
+import { UserButton, useUser } from "@clerk/nextjs";
 
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from '@/components/ui/sidebar';
+} from "@/components/ui/sidebar";
 
 export default function NavUser() {
   const { user } = useUser();
@@ -22,7 +22,9 @@ export default function NavUser() {
           className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:hidden"
           onClick={(e) => {
             // Find and click the UserButton inside
-            const buttonElement = (e.currentTarget as HTMLElement).querySelector('button');
+            const buttonElement = (
+              e.currentTarget as HTMLElement
+            ).querySelector("button");
             if (buttonElement) {
               buttonElement.click();
             }

@@ -1,28 +1,28 @@
-'use client';
+"use client";
 
-import { useMutation, useQuery } from 'convex/react';
-import { useMemo, useState } from 'react';
-import Link from 'next/link';
-import { ArrowLeftIcon } from 'lucide-react';
+import { useMutation, useQuery } from "convex/react";
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { ArrowLeftIcon } from "lucide-react";
 
-import { Button } from '@/components/ui/button';
-import { api } from '@/convex/_generated/api';
-import { Id } from '@/convex/_generated/dataModel';
+import { Button } from "@/components/ui/button";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 
-import { CouponForm, CouponFormData, CouponType } from './coupon-form';
-import { CouponListItem } from './coupon-list-item';
+import { CouponForm, CouponFormData, CouponType } from "./coupon-form";
+import { CouponListItem } from "./coupon-list-item";
 
 const toEpoch = (s: string | undefined) =>
   s ? new Date(s).getTime() : undefined;
 
 const initialFormData: CouponFormData = {
-  code: '',
-  type: 'percentage' as CouponType,
+  code: "",
+  type: "percentage" as CouponType,
   value: 15,
-  description: '',
+  description: "",
   active: true,
-  validFrom: '',
-  validUntil: '',
+  validFrom: "",
+  validUntil: "",
 };
 
 export function CouponsPage() {
@@ -42,7 +42,7 @@ export function CouponsPage() {
       value: Number(form.value),
       description:
         form.description ||
-        `${form.value}${form.type === 'percentage' ? '% off' : ''}`,
+        `${form.value}${form.type === "percentage" ? "% off" : ""}`,
       active: form.active,
       validFrom: toEpoch(form.validFrom),
       validUntil: toEpoch(form.validUntil),
@@ -50,12 +50,12 @@ export function CouponsPage() {
     setForm(initialFormData);
   }
 
-  async function handleToggleActive(id: Id<'coupons'>, active: boolean) {
+  async function handleToggleActive(id: Id<"coupons">, active: boolean) {
     await updateCoupon({ id, active });
   }
 
-  async function handleDelete(id: Id<'coupons'>) {
-    if (!confirm('Excluir cupom?')) return;
+  async function handleDelete(id: Id<"coupons">) {
+    if (!confirm("Excluir cupom?")) return;
     await removeCoupon({ id });
   }
 
@@ -78,7 +78,7 @@ export function CouponsPage() {
       />
 
       <div className="grid gap-3">
-        {coupons.map(coupon => (
+        {coupons.map((coupon) => (
           <CouponListItem
             key={coupon._id}
             coupon={coupon}

@@ -1,9 +1,8 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 
-import { useSession } from '@/components/providers/session-provider';
-
+import { useSession } from "@/components/providers/session-provider";
 
 export default function AdminLayout({
   children,
@@ -15,7 +14,7 @@ export default function AdminLayout({
 
   // Redirect non-admins immediately when data is loaded
   if (!isLoading && !isAdmin) {
-    router.push('/');
+    router.push("/");
     return null; // Don't render anything while redirecting
   }
 
@@ -34,11 +33,9 @@ export default function AdminLayout({
   }
 
   return (
-
     <div className="space-y-6 p-2 md:p-6">
-
       {/* Page content */}
       {children}
-    </div >
+    </div>
   );
 }

@@ -16,7 +16,7 @@ export function CategoriesCard({
   title = "",
   description = "",
   onClick = () => {},
-  }: CategoriesCardProps) {
+}: CategoriesCardProps) {
   return (
     <Card
       onClick={onClick}
@@ -25,12 +25,7 @@ export function CategoriesCard({
       {/* Image at the very top - taller and more prominent */}
       <div className="relative w-full h-40 overflow-hidden rounded-t-lg `bg-gradient-to-br` from-primary/20 via-primary/10 to-primary/5">
         {imageUrl ? (
-          <Image 
-            src={imageUrl} 
-            alt={title} 
-            fill 
-            className="object-cover" 
-          />
+          <Image src={imageUrl} alt={title} fill className="object-cover" />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <PlayCircle size={48} className="text-primary/30 md:w-16 md:h-16" />
@@ -51,4 +46,3 @@ export function CategoriesCard({
     </Card>
   );
 }
-

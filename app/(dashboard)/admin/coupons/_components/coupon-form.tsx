@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 
-export type CouponType = 'percentage' | 'fixed' | 'fixed_price';
+export type CouponType = "percentage" | "fixed" | "fixed_price";
 
 export type CouponFormData = {
   code: string;
@@ -32,7 +32,12 @@ interface CouponFormProps {
   nowIso: string;
 }
 
-export function CouponForm({ form, onChange, onSubmit, nowIso }: CouponFormProps) {
+export function CouponForm({
+  form,
+  onChange,
+  onSubmit,
+  nowIso,
+}: CouponFormProps) {
   const updateForm = (updates: Partial<CouponFormData>) => {
     onChange({ ...form, ...updates });
   };
@@ -47,7 +52,7 @@ export function CouponForm({ form, onChange, onSubmit, nowIso }: CouponFormProps
           <Label>Código</Label>
           <Input
             value={form.code}
-            onChange={e => updateForm({ code: e.target.value.toUpperCase() })}
+            onChange={(e) => updateForm({ code: e.target.value.toUpperCase() })}
             placeholder="EX: SOMOS1K"
           />
         </div>
@@ -73,14 +78,14 @@ export function CouponForm({ form, onChange, onSubmit, nowIso }: CouponFormProps
             type="number"
             step="0.01"
             value={form.value}
-            onChange={e => updateForm({ value: Number(e.target.value) })}
+            onChange={(e) => updateForm({ value: Number(e.target.value) })}
           />
         </div>
         <div className="space-y-2">
           <Label>Descrição</Label>
           <Input
             value={form.description}
-            onChange={e => updateForm({ description: e.target.value })}
+            onChange={(e) => updateForm({ description: e.target.value })}
             placeholder="Descrição mostrada no checkout"
           />
         </div>
@@ -89,7 +94,7 @@ export function CouponForm({ form, onChange, onSubmit, nowIso }: CouponFormProps
           <div className="flex items-center gap-2">
             <Switch
               checked={form.active}
-              onCheckedChange={v => updateForm({ active: !!v })}
+              onCheckedChange={(v) => updateForm({ active: !!v })}
             />
           </div>
         </div>
@@ -99,7 +104,7 @@ export function CouponForm({ form, onChange, onSubmit, nowIso }: CouponFormProps
             type="datetime-local"
             value={form.validFrom}
             max={form.validUntil || undefined}
-            onChange={e => updateForm({ validFrom: e.target.value })}
+            onChange={(e) => updateForm({ validFrom: e.target.value })}
             placeholder={nowIso}
           />
         </div>
@@ -109,7 +114,7 @@ export function CouponForm({ form, onChange, onSubmit, nowIso }: CouponFormProps
             type="datetime-local"
             value={form.validUntil}
             min={form.validFrom || undefined}
-            onChange={e => updateForm({ validUntil: e.target.value })}
+            onChange={(e) => updateForm({ validUntil: e.target.value })}
             placeholder={nowIso}
           />
         </div>

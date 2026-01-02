@@ -28,7 +28,11 @@ export const current = query({
       clerkUserId: v.string(),
       onboardingCompleted: v.boolean(),
       role: v.union(v.literal("user"), v.literal("admin")),
-      status: v.union(v.literal("active"), v.literal("inactive"), v.literal("suspended")),
+      status: v.union(
+        v.literal("active"),
+        v.literal("inactive"),
+        v.literal("suspended"),
+      ),
       hasActiveYearAccess: v.boolean(),
       paid: v.boolean(),
       paymentDate: v.optional(v.number()),
@@ -37,11 +41,11 @@ export const current = query({
         v.literal("pending"),
         v.literal("completed"),
         v.literal("failed"),
-        v.literal("refunded")
+        v.literal("refunded"),
       ),
       testeId: v.optional(v.string()),
     }),
-    v.null()
+    v.null(),
   ),
   handler: async (context) => {
     return await getCurrentUser(context);
@@ -101,7 +105,11 @@ export const getUserByClerkId = internalQuery({
       clerkUserId: v.string(),
       onboardingCompleted: v.boolean(),
       role: v.union(v.literal("user"), v.literal("admin")),
-      status: v.union(v.literal("active"), v.literal("inactive"), v.literal("suspended")),
+      status: v.union(
+        v.literal("active"),
+        v.literal("inactive"),
+        v.literal("suspended"),
+      ),
       hasActiveYearAccess: v.boolean(),
       paid: v.boolean(),
       paymentDate: v.optional(v.number()),
@@ -110,11 +118,11 @@ export const getUserByClerkId = internalQuery({
         v.literal("pending"),
         v.literal("completed"),
         v.literal("failed"),
-        v.literal("refunded")
+        v.literal("refunded"),
       ),
       testeId: v.optional(v.string()),
     }),
-    v.null()
+    v.null(),
   ),
   handler: async (ctx, args) => {
     return await userByClerkUserId(ctx, args.clerkUserId);
@@ -135,17 +143,23 @@ export const upsertFromClerk = internalMutation({
       id: v.string(),
       first_name: v.optional(v.string()),
       last_name: v.optional(v.string()),
-      email_addresses: v.optional(v.array(v.object({
-        email_address: v.string(),
-      }))),
+      email_addresses: v.optional(
+        v.array(
+          v.object({
+            email_address: v.string(),
+          }),
+        ),
+      ),
       image_url: v.optional(v.string()),
-      public_metadata: v.optional(v.object({
-        paid: v.optional(v.boolean()),
-        paymentId: v.optional(v.union(v.string(), v.number())),
-        paymentDate: v.optional(v.number()),
-        paymentStatus: v.optional(v.string()),
-        hasActiveYearAccess: v.optional(v.boolean()),
-      })),
+      public_metadata: v.optional(
+        v.object({
+          paid: v.optional(v.boolean()),
+          paymentId: v.optional(v.union(v.string(), v.number())),
+          paymentDate: v.optional(v.number()),
+          paymentStatus: v.optional(v.string()),
+          hasActiveYearAccess: v.optional(v.boolean()),
+        }),
+      ),
     }),
   },
   returns: v.union(v.id("users"), v.null()),
@@ -174,7 +188,12 @@ export const upsertFromClerk = internalMutation({
             paid: true,
             paymentId: publicMetadata.paymentId?.toString(),
             paymentDate: publicMetadata.paymentDate,
-            paymentStatus: (publicMetadata.paymentStatus as "pending" | "completed" | "failed" | "refunded") || "completed",
+            paymentStatus:
+              (publicMetadata.paymentStatus as
+                | "pending"
+                | "completed"
+                | "failed"
+                | "refunded") || "completed",
             hasActiveYearAccess: publicMetadata.hasActiveYearAccess === true,
           }
         : {
@@ -206,7 +225,12 @@ export const upsertFromClerk = internalMutation({
         paid: true,
         paymentId: publicMetadata.paymentId?.toString(),
         paymentDate: publicMetadata.paymentDate,
-        paymentStatus: (publicMetadata.paymentStatus as "pending" | "completed" | "failed" | "refunded") || "completed",
+        paymentStatus:
+          (publicMetadata.paymentStatus as
+            | "pending"
+            | "completed"
+            | "failed"
+            | "refunded") || "completed",
         hasActiveYearAccess: publicMetadata.hasActiveYearAccess === true,
       });
     }
@@ -239,7 +263,7 @@ export const deleteFromClerk = internalMutation({
 
     if (user === null) {
       console.warn(
-        `Can't delete user, there is none for Clerk user ID: ${clerkUserId}`
+        `Can't delete user, there is none for Clerk user ID: ${clerkUserId}`,
       );
     } else {
       await context.db.delete(user._id);
@@ -290,7 +314,7 @@ async function userByClerkUserId(context: QueryContext, clerkUserId: string) {
  * This helper is exported for use in other files
  */
 export async function requireAdmin(
-  context: QueryContext | MutationCtx
+  context: QueryContext | MutationCtx,
 ): Promise<void> {
   const user = await getCurrentUser(context);
   if (!user) {
@@ -329,7 +353,7 @@ export const getUsers = query({
 export const setRole = mutation({
   args: {
     userId: v.id("users"),
-    role: v.optional(v.union(v.literal("user"), v.literal("admin")))
+    role: v.optional(v.union(v.literal("user"), v.literal("admin"))),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);

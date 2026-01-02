@@ -27,7 +27,7 @@ export function useBunnyUpload() {
   const uploadVideo = async (
     file: File,
     title: string,
-    createdBy: string
+    createdBy: string,
   ): Promise<BunnyUploadResult> => {
     setIsUploading(true);
     setError(null);

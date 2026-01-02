@@ -2,18 +2,41 @@
 
 import { useState, useMemo } from "react";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import { Preloaded, usePreloadedQuery, useQuery, useMutation } from "convex/react";
+import {
+  Preloaded,
+  usePreloadedQuery,
+  useQuery,
+  useMutation,
+} from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { ArrowLeftIcon, PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { Id, Doc } from "@/convex/_generated/dataModel";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useErrorModal } from "@/hooks/use-error-modal";
 import { ErrorModal } from "@/components/ui/error-modal";
-import { KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
+import {
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 
 // Import refactored components
@@ -37,7 +60,8 @@ export function UnitsLessonsPage({
   const { error, showError, hideError } = useErrorModal();
 
   // State for selected category - starts as null
-  const [selectedCategoryId, setSelectedCategoryId] = useState<Id<"categories"> | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] =
+    useState<Id<"categories"> | null>(null);
 
   // State for expanded units in left sidebar
   const [expandedUnits, setExpandedUnits] = useState<Set<string>>(new Set());
@@ -47,10 +71,13 @@ export function UnitsLessonsPage({
   const [showCreateLessonModal, setShowCreateLessonModal] = useState(false);
 
   // State for editing
-  const [editMode, setEditMode] = useState<EditMode>({ type: 'none' });
+  const [editMode, setEditMode] = useState<EditMode>({ type: "none" });
 
   // State for drag and drop reordering
-  const [draggedLessons, setDraggedLessons] = useState<Record<string, Doc<"lessons">[]> | null>(null);
+  const [draggedLessons, setDraggedLessons] = useState<Record<
+    string,
+    Doc<"lessons">[]
+  > | null>(null);
   const [draggedUnits, setDraggedUnits] = useState<Doc<"units">[] | null>(null);
   const [isDraggingLesson, setIsDraggingLesson] = useState(false);
   const [isDraggingUnit, setIsDraggingUnit] = useState(false);
@@ -60,18 +87,18 @@ export function UnitsLessonsPage({
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   // Query units and lessons based on selected category
   const units = useQuery(
     api.units.listByCategory,
-    selectedCategoryId ? { categoryId: selectedCategoryId } : "skip"
+    selectedCategoryId ? { categoryId: selectedCategoryId } : "skip",
   );
 
   const lessons = useQuery(
     api.lessons.listByCategory,
-    selectedCategoryId ? { categoryId: selectedCategoryId } : "skip"
+    selectedCategoryId ? { categoryId: selectedCategoryId } : "skip",
   );
 
   // Mutations
@@ -84,7 +111,9 @@ export function UnitsLessonsPage({
 
   // Compute sorted units and lessons from server data
   const localUnits = useMemo(() => {
-    const sorted = draggedUnits || (units ? [...units].sort((a, b) => a.order_index - b.order_index) : []);
+    const sorted =
+      draggedUnits ||
+      (units ? [...units].sort((a, b) => a.order_index - b.order_index) : []);
     return sorted;
   }, [units, draggedUnits]);
 
@@ -153,7 +182,7 @@ export function UnitsLessonsPage({
       } catch (error) {
         showError(
           error instanceof Error ? error.message : "Erro ao reordenar unidades",
-          "Erro ao reordenar unidades"
+          "Erro ao reordenar unidades",
         );
         // Revert on error
         setDraggedUnits(null);
@@ -161,58 +190,63 @@ export function UnitsLessonsPage({
     }
   };
 
-  const handleDragEndLessons = (unitId: string) => async (event: DragEndEvent) => {
-    const { active, over } = event;
-    setIsDraggingLesson(false);
+  const handleDragEndLessons =
+    (unitId: string) => async (event: DragEndEvent) => {
+      const { active, over } = event;
+      setIsDraggingLesson(false);
 
-    if (over && active.id !== over.id) {
-      const unitLessons = localLessons[unitId] || [];
-      const oldIndex = unitLessons.findIndex((item) => item._id === active.id);
-      const newIndex = unitLessons.findIndex((item) => item._id === over.id);
+      if (over && active.id !== over.id) {
+        const unitLessons = localLessons[unitId] || [];
+        const oldIndex = unitLessons.findIndex(
+          (item) => item._id === active.id,
+        );
+        const newIndex = unitLessons.findIndex((item) => item._id === over.id);
 
-      const reorderedLessons = arrayMove(unitLessons, oldIndex, newIndex);
+        const reorderedLessons = arrayMove(unitLessons, oldIndex, newIndex);
 
-      // Update local state immediately for smooth UI
-      setDraggedLessons((prev) => ({
-        ...(prev || localLessons),
-        [unitId]: reorderedLessons,
-      }));
-
-      // Save to database
-      try {
-        const updates = reorderedLessons.map((lesson, index) => ({
-          id: lesson._id,
-          order_index: index,
+        // Update local state immediately for smooth UI
+        setDraggedLessons((prev) => ({
+          ...(prev || localLessons),
+          [unitId]: reorderedLessons,
         }));
 
-        await reorderLessons({ updates });
+        // Save to database
+        try {
+          const updates = reorderedLessons.map((lesson, index) => ({
+            id: lesson._id,
+            order_index: index,
+          }));
 
-        toast({
-          title: "Sucesso",
-          description: "Ordem das aulas atualizada!",
-        });
+          await reorderLessons({ updates });
 
-        // Clear dragged state after successful save
-        setDraggedLessons(null);
-      } catch (error) {
-        showError(
-          error instanceof Error ? error.message : "Erro ao reordenar aulas",
-          "Erro ao reordenar aulas"
-        );
-        // Revert on error
-        setDraggedLessons(null);
+          toast({
+            title: "Sucesso",
+            description: "Ordem das aulas atualizada!",
+          });
+
+          // Clear dragged state after successful save
+          setDraggedLessons(null);
+        } catch (error) {
+          showError(
+            error instanceof Error ? error.message : "Erro ao reordenar aulas",
+            "Erro ao reordenar aulas",
+          );
+          // Revert on error
+          setDraggedLessons(null);
+        }
       }
-    }
-  };
+    };
 
-  const selectedCategory = categories.find((cat) => cat._id === selectedCategoryId);
+  const selectedCategory = categories.find(
+    (cat) => cat._id === selectedCategoryId,
+  );
 
   const handleEditUnit = (unit: Doc<"units">) => {
-    setEditMode({ type: 'unit', unit });
+    setEditMode({ type: "unit", unit });
   };
 
   const handleEditLesson = (lesson: Doc<"lessons">) => {
-    setEditMode({ type: 'lesson', lesson });
+    setEditMode({ type: "lesson", lesson });
   };
 
   const handleTogglePublishUnit = async (unitId: Id<"units">) => {
@@ -225,7 +259,7 @@ export function UnitsLessonsPage({
     } catch (error) {
       showError(
         error instanceof Error ? error.message : "Erro ao atualizar status",
-        "Erro ao atualizar status"
+        "Erro ao atualizar status",
       );
     }
   };
@@ -240,13 +274,17 @@ export function UnitsLessonsPage({
     } catch (error) {
       showError(
         error instanceof Error ? error.message : "Erro ao atualizar status",
-        "Erro ao atualizar status"
+        "Erro ao atualizar status",
       );
     }
   };
 
-  const handleSaveUnit = async (data: { categoryId: Id<"categories">; title: string; description: string }) => {
-    if (editMode.type !== 'unit') return;
+  const handleSaveUnit = async (data: {
+    categoryId: Id<"categories">;
+    title: string;
+    description: string;
+  }) => {
+    if (editMode.type !== "unit") return;
 
     try {
       await updateUnit({
@@ -262,11 +300,11 @@ export function UnitsLessonsPage({
         description: "Unidade atualizada com sucesso!",
       });
 
-      setEditMode({ type: 'none' });
+      setEditMode({ type: "none" });
     } catch (error) {
       showError(
         error instanceof Error ? error.message : "Erro ao atualizar unidade",
-        "Erro ao atualizar unidade"
+        "Erro ao atualizar unidade",
       );
     }
   };
@@ -279,7 +317,7 @@ export function UnitsLessonsPage({
     tags?: string[];
     videoId?: string;
   }) => {
-    if (editMode.type !== 'lesson') return;
+    if (editMode.type !== "lesson") return;
 
     try {
       await updateLesson({
@@ -300,11 +338,11 @@ export function UnitsLessonsPage({
         description: "Aula atualizada com sucesso!",
       });
 
-      setEditMode({ type: 'none' });
+      setEditMode({ type: "none" });
     } catch (error) {
       showError(
         error instanceof Error ? error.message : "Erro ao atualizar aula",
-        "Erro ao atualizar aula"
+        "Erro ao atualizar aula",
       );
     }
   };
@@ -313,10 +351,11 @@ export function UnitsLessonsPage({
     <div className="min-h-screen bg-white relative">
       {/* Sidebar trigger - follows sidebar position */}
       <SidebarTrigger
-        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-blue-brand hover:text-blue-brand-dark hover:bg-blue-brand-light transition-[left] duration-200 ease-linear z-10 ${state === "collapsed"
-          ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
-          : "left-[calc(var(--sidebar-width)+0.25rem)]"
-          }`}
+        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-blue-brand hover:text-blue-brand-dark hover:bg-blue-brand-light transition-[left] duration-200 ease-linear z-10 ${
+          state === "collapsed"
+            ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
+            : "left-[calc(var(--sidebar-width)+0.25rem)]"
+        }`}
       />
 
       {/* Header */}
@@ -328,7 +367,6 @@ export function UnitsLessonsPage({
         </Link>
         <div className="flex-1">
           <h1 className="text-2xl font-semibold">Gerenciar Unidades e Aulas</h1>
-
         </div>
       </div>
 
@@ -341,7 +379,9 @@ export function UnitsLessonsPage({
             </label>
             <Select
               value={selectedCategoryId || ""}
-              onValueChange={(value) => setSelectedCategoryId(value as Id<"categories">)}
+              onValueChange={(value) =>
+                setSelectedCategoryId(value as Id<"categories">)
+              }
             >
               <SelectTrigger className="w-full max-w-md bg-white">
                 <SelectValue placeholder="Selecione uma categoria" />
@@ -404,26 +444,30 @@ export function UnitsLessonsPage({
 
           {/* Right Content Area - Edit Forms or Empty State */}
           <div className="flex-1 overflow-y-auto p-8">
-            {editMode.type === 'none' ? (
+            {editMode.type === "none" ? (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center text-muted-foreground space-y-2">
-                  <p className="text-lg">Selecione uma unidade ou aula para editar</p>
-                  <p className="text-sm">Clique no ícone de lápis ao lado de cada item</p>
+                  <p className="text-lg">
+                    Selecione uma unidade ou aula para editar
+                  </p>
+                  <p className="text-sm">
+                    Clique no ícone de lápis ao lado de cada item
+                  </p>
                 </div>
               </div>
-            ) : editMode.type === 'unit' ? (
+            ) : editMode.type === "unit" ? (
               <UnitEditPanel
                 unit={editMode.unit}
                 categories={categories}
                 onSave={handleSaveUnit}
-                onCancel={() => setEditMode({ type: 'none' })}
+                onCancel={() => setEditMode({ type: "none" })}
               />
             ) : (
               <LessonEditPanel
                 lesson={editMode.lesson}
                 units={units || []}
                 onSave={handleSaveLesson}
-                onCancel={() => setEditMode({ type: 'none' })}
+                onCancel={() => setEditMode({ type: "none" })}
               />
             )}
           </div>
@@ -453,7 +497,10 @@ export function UnitsLessonsPage({
       </Dialog>
 
       {/* Create Lesson Modal */}
-      <Dialog open={showCreateLessonModal} onOpenChange={setShowCreateLessonModal}>
+      <Dialog
+        open={showCreateLessonModal}
+        onOpenChange={setShowCreateLessonModal}
+      >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Criar Nova Aula</DialogTitle>
@@ -462,7 +509,10 @@ export function UnitsLessonsPage({
             </DialogDescription>
           </DialogHeader>
           {units && units.length > 0 ? (
-            <LessonForm units={units} onSuccess={() => setShowCreateLessonModal(false)} />
+            <LessonForm
+              units={units}
+              onSuccess={() => setShowCreateLessonModal(false)}
+            />
           ) : (
             <p className="text-sm text-muted-foreground text-center py-4">
               Crie uma unidade primeiro para poder adicionar aulas

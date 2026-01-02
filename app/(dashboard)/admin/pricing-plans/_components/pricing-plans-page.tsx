@@ -1,39 +1,39 @@
-'use client';
+"use client";
 
-import { useMutation, useQuery } from 'convex/react';
-import { ArrowLeftIcon, Plus } from 'lucide-react';
-import { useState } from 'react';
-import Link from 'next/link';
+import { useMutation, useQuery } from "convex/react";
+import { ArrowLeftIcon, Plus } from "lucide-react";
+import { useState } from "react";
+import Link from "next/link";
 
-import { Button } from '@/components/ui/button';
-import { api } from '@/convex/_generated/api';
-import { Doc, Id } from '@/convex/_generated/dataModel';
+import { Button } from "@/components/ui/button";
+import { api } from "@/convex/_generated/api";
+import { Doc, Id } from "@/convex/_generated/dataModel";
 
-import { FormData } from './pricing-plan-form-fields';
-import { CreatePlanCard } from './create-plan-card';
-import { EditPlanCard } from './edit-plan-card';
-import { PricingPlanCard } from './pricing-plan-card';
+import { FormData } from "./pricing-plan-form-fields";
+import { CreatePlanCard } from "./create-plan-card";
+import { EditPlanCard } from "./edit-plan-card";
+import { PricingPlanCard } from "./pricing-plan-card";
 
-type PricingPlan = Doc<'pricingPlans'>;
+type PricingPlan = Doc<"pricingPlans">;
 
 const initialFormData: FormData = {
-  name: '',
-  badge: '',
-  originalPrice: '',
-  price: '',
-  installments: '',
-  installmentDetails: '',
-  description: '',
-  features: '',
-  buttonText: '',
-  productId: '',
-  category: '',
-  year: '',
-  regularPriceNum: '',
-  pixPriceNum: '',
-  accessYears: '',
+  name: "",
+  badge: "",
+  originalPrice: "",
+  price: "",
+  installments: "",
+  installmentDetails: "",
+  description: "",
+  features: "",
+  buttonText: "",
+  productId: "",
+  category: "",
+  year: "",
+  regularPriceNum: "",
+  pixPriceNum: "",
+  accessYears: "",
   isActive: true,
-  displayOrder: '',
+  displayOrder: "",
 };
 
 export function PricingPlansPage() {
@@ -56,16 +56,16 @@ export function PricingPlansPage() {
       installments: plan.installments,
       installmentDetails: plan.installmentDetails,
       description: plan.description,
-      features: plan.features.join('\n'),
+      features: plan.features.join("\n"),
       buttonText: plan.buttonText,
       productId: plan.productId,
-      category: plan.category || '',
-      year: plan.year?.toString() || '',
-      regularPriceNum: plan.regularPriceNum?.toString() || '',
-      pixPriceNum: plan.pixPriceNum?.toString() || '',
-      accessYears: plan.accessYears?.join(',') || '',
+      category: plan.category || "",
+      year: plan.year?.toString() || "",
+      regularPriceNum: plan.regularPriceNum?.toString() || "",
+      pixPriceNum: plan.pixPriceNum?.toString() || "",
+      accessYears: plan.accessYears?.join(",") || "",
       isActive: plan.isActive ?? true,
-      displayOrder: plan.displayOrder?.toString() || '',
+      displayOrder: plan.displayOrder?.toString() || "",
     });
   }
 
@@ -75,34 +75,43 @@ export function PricingPlansPage() {
   }
 
   function processFormData(formData: FormData | Partial<FormData>) {
-    const features = (formData.features || '')
-      .split('\n')
-      .map(f => f.trim())
-      .filter(f => f.length > 0);
+    const features = (formData.features || "")
+      .split("\n")
+      .map((f) => f.trim())
+      .filter((f) => f.length > 0);
 
     const year = formData.year ? Number.parseInt(formData.year, 10) : undefined;
-    const regularPriceNum = formData.regularPriceNum ? Number.parseFloat(formData.regularPriceNum) : undefined;
-    const pixPriceNum = formData.pixPriceNum ? Number.parseFloat(formData.pixPriceNum) : undefined;
-    const accessYears = formData.accessYears
-      ? formData.accessYears.split(',').map(y => Number.parseInt(y.trim(), 10)).filter(y => !Number.isNaN(y))
+    const regularPriceNum = formData.regularPriceNum
+      ? Number.parseFloat(formData.regularPriceNum)
       : undefined;
-    const displayOrder = formData.displayOrder ? Number.parseInt(formData.displayOrder, 10) : undefined;
+    const pixPriceNum = formData.pixPriceNum
+      ? Number.parseFloat(formData.pixPriceNum)
+      : undefined;
+    const accessYears = formData.accessYears
+      ? formData.accessYears
+          .split(",")
+          .map((y) => Number.parseInt(y.trim(), 10))
+          .filter((y) => !Number.isNaN(y))
+      : undefined;
+    const displayOrder = formData.displayOrder
+      ? Number.parseInt(formData.displayOrder, 10)
+      : undefined;
 
     const category = formData.category
-      ? (formData.category as 'year_access' | 'premium_pack' | 'addon')
+      ? (formData.category as "year_access" | "premium_pack" | "addon")
       : undefined;
 
     return {
-      name: formData.name?.trim() || '',
-      badge: formData.badge?.trim() || '',
+      name: formData.name?.trim() || "",
+      badge: formData.badge?.trim() || "",
       originalPrice: formData.originalPrice?.trim() || undefined,
-      price: formData.price?.trim() || '',
-      installments: formData.installments?.trim() || '',
-      installmentDetails: formData.installmentDetails?.trim() || '',
-      description: formData.description?.trim() || '',
+      price: formData.price?.trim() || "",
+      installments: formData.installments?.trim() || "",
+      installmentDetails: formData.installmentDetails?.trim() || "",
+      description: formData.description?.trim() || "",
       features,
-      buttonText: formData.buttonText?.trim() || '',
-      productId: formData.productId?.trim() || '',
+      buttonText: formData.buttonText?.trim() || "",
+      productId: formData.productId?.trim() || "",
       category,
       year,
       regularPriceNum,
@@ -115,17 +124,28 @@ export function PricingPlansPage() {
 
   async function handleSavePlan(isEdit: boolean = false) {
     if (isEdit) {
-      if (!editingId || !editForm.name?.trim() || !editForm.price?.trim() || !editForm.productId?.trim()) return;
+      if (
+        !editingId ||
+        !editForm.name?.trim() ||
+        !editForm.price?.trim() ||
+        !editForm.productId?.trim()
+      )
+        return;
 
       const planData = processFormData(editForm as FormData);
       await savePlan({
-        id: editingId as Id<'pricingPlans'>,
+        id: editingId as Id<"pricingPlans">,
         ...planData,
       });
 
       cancelEdit();
     } else {
-      if (!createForm.name.trim() || !createForm.price.trim() || !createForm.productId.trim()) return;
+      if (
+        !createForm.name.trim() ||
+        !createForm.price.trim() ||
+        !createForm.productId.trim()
+      )
+        return;
 
       const planData = processFormData(createForm);
       await savePlan(planData);
@@ -136,8 +156,8 @@ export function PricingPlansPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm('Excluir plano de preços?')) return;
-    await removePlan({ id: id as Id<'pricingPlans'> });
+    if (!confirm("Excluir plano de preços?")) return;
+    await removePlan({ id: id as Id<"pricingPlans"> });
   }
 
   return (
@@ -165,7 +185,9 @@ export function PricingPlansPage() {
           {isCreating && (
             <CreatePlanCard
               form={createForm}
-              onChange={(form: Partial<FormData>) => setCreateForm(form as FormData)}
+              onChange={(form: Partial<FormData>) =>
+                setCreateForm(form as FormData)
+              }
               onSave={() => handleSavePlan(false)}
               onCancel={() => setIsCreating(false)}
             />

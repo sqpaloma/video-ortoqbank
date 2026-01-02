@@ -113,9 +113,7 @@ export const listByUnit = query({
   handler: async (ctx, args) => {
     const lessons = await ctx.db
       .query("lessons")
-      .withIndex("by_unitId_and_order", (q) =>
-        q.eq("unitId", args.unitId),
-      )
+      .withIndex("by_unitId_and_order", (q) => q.eq("unitId", args.unitId))
       .take(100);
 
     return lessons;
@@ -149,11 +147,11 @@ export const listByCategory = query({
     // Use the categoryId index for efficient querying
     const lessons = await ctx.db
       .query("lessons")
-      .withIndex("by_categoryId_and_order", (q) => 
-        q.eq("categoryId", args.categoryId)
+      .withIndex("by_categoryId_and_order", (q) =>
+        q.eq("categoryId", args.categoryId),
       )
       .collect();
-    
+
     return lessons;
   },
 });
@@ -315,11 +313,11 @@ export const create = mutation({
     if (!unit) {
       throw new Error("Unidade não encontrada");
     }
-    
+
     // Initialize lessonCounter if it doesn't exist (for backward compatibility)
     const currentCounter = unit.lessonCounter ?? 0;
     const nextOrderIndex = currentCounter;
-    
+
     // Atomically increment both the counter and totalLessonVideos
     await ctx.db.patch(args.unitId, {
       lessonCounter: currentCounter + 1,
@@ -510,7 +508,7 @@ export const reorder = mutation({
       v.object({
         id: v.id("lessons"),
         order_index: v.number(),
-      })
+      }),
     ),
   },
   returns: v.null(),
@@ -548,7 +546,9 @@ export const backfillCategoryId = mutation({
       // Get the unit to find the categoryId
       const unit = await ctx.db.get(lesson.unitId);
       if (!unit) {
-        console.warn(`Unit ${lesson.unitId} not found for lesson ${lesson._id}`);
+        console.warn(
+          `Unit ${lesson.unitId} not found for lesson ${lesson._id}`,
+        );
         skipped++;
         continue;
       }

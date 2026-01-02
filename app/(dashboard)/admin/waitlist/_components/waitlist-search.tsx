@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Download, Search } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Download, Search } from "lucide-react";
 
 interface WaitlistSearchProps {
   searchInput: string;
@@ -26,8 +26,8 @@ export function WaitlistSearch({
       <Input
         placeholder="Buscar por nome, email, WhatsApp ou Instagram..."
         value={searchInput}
-        onChange={e => onSearchInputChange(e.target.value)}
-        onKeyDown={e => e.key === 'Enter' && onSearch()}
+        onChange={(e) => onSearchInputChange(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && onSearch()}
         className="max-w-md"
       />
       <Button onClick={onSearch} size="default">

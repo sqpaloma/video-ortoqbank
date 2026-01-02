@@ -1,13 +1,13 @@
-import { v } from 'convex/values';
+import { v } from "convex/values";
 
-import { mutation, query } from './_generated/server';
-import { requireAdmin } from './users';
+import { mutation, query } from "./_generated/server";
+import { requireAdmin } from "./users";
 
 export const getPricingPlans = query({
   args: {},
   returns: v.array(
     v.object({
-      _id: v.id('pricingPlans'),
+      _id: v.id("pricingPlans"),
       _creationTime: v.number(),
       name: v.string(),
       badge: v.string(),
@@ -21,10 +21,10 @@ export const getPricingPlans = query({
       productId: v.string(),
       category: v.optional(
         v.union(
-          v.literal('year_access'),
-          v.literal('premium_pack'),
-          v.literal('addon')
-        )
+          v.literal("year_access"),
+          v.literal("premium_pack"),
+          v.literal("addon"),
+        ),
       ),
       year: v.optional(v.number()),
       regularPriceNum: v.optional(v.number()),
@@ -32,61 +32,66 @@ export const getPricingPlans = query({
       accessYears: v.optional(v.array(v.number())),
       isActive: v.optional(v.boolean()),
       displayOrder: v.optional(v.number()),
-    })
+    }),
   ),
   handler: async (ctx) => {
-    return await ctx.db.query('pricingPlans').order('asc').collect();
+    return await ctx.db.query("pricingPlans").order("asc").collect();
   },
 });
 
 export const savePricingPlan = mutation({
-    args: {
-      id: v.optional(v.id('pricingPlans')), // Se não fornecido, cria novo
-      name: v.string(),
-      badge: v.string(),
-      originalPrice: v.optional(v.string()), // Marketing strikethrough price
-      price: v.string(),
-      installments: v.string(),
-      installmentDetails: v.string(),
-      description: v.string(),
-      features: v.array(v.string()),
-      buttonText: v.string(),
-      // Extended fields for product identification
-      productId: v.string(), // Required since schema now requires it
-      category: v.optional(v.union(v.literal("year_access"), v.literal("premium_pack"), v.literal("addon"))),
-      year: v.optional(v.number()),
-      regularPriceNum: v.optional(v.number()),
-      pixPriceNum: v.optional(v.number()),
-      accessYears: v.optional(v.array(v.number())),
-      isActive: v.optional(v.boolean()),
-      displayOrder: v.optional(v.number()),
-    },
-    returns: v.id('pricingPlans'),
-    handler: async (ctx, args) => {
-      // Verificação de admin usando a função existente do users.ts
-      await requireAdmin(ctx);
-      
-      const { id, ...planData } = args;
-      
-      if (id) {
-        // Editar plano existente
-        await ctx.db.patch(id, planData);
-        return id;
-      } else {
-        // Criar novo plano
-        return await ctx.db.insert('pricingPlans', planData);
-      }
-    },
-  });
-  
+  args: {
+    id: v.optional(v.id("pricingPlans")), // Se não fornecido, cria novo
+    name: v.string(),
+    badge: v.string(),
+    originalPrice: v.optional(v.string()), // Marketing strikethrough price
+    price: v.string(),
+    installments: v.string(),
+    installmentDetails: v.string(),
+    description: v.string(),
+    features: v.array(v.string()),
+    buttonText: v.string(),
+    // Extended fields for product identification
+    productId: v.string(), // Required since schema now requires it
+    category: v.optional(
+      v.union(
+        v.literal("year_access"),
+        v.literal("premium_pack"),
+        v.literal("addon"),
+      ),
+    ),
+    year: v.optional(v.number()),
+    regularPriceNum: v.optional(v.number()),
+    pixPriceNum: v.optional(v.number()),
+    accessYears: v.optional(v.array(v.number())),
+    isActive: v.optional(v.boolean()),
+    displayOrder: v.optional(v.number()),
+  },
+  returns: v.id("pricingPlans"),
+  handler: async (ctx, args) => {
+    // Verificação de admin usando a função existente do users.ts
+    await requireAdmin(ctx);
+
+    const { id, ...planData } = args;
+
+    if (id) {
+      // Editar plano existente
+      await ctx.db.patch(id, planData);
+      return id;
+    } else {
+      // Criar novo plano
+      return await ctx.db.insert("pricingPlans", planData);
+    }
+  },
+});
 
 export const removePricingPlan = mutation({
-  args: { id: v.id('pricingPlans') },
+  args: { id: v.id("pricingPlans") },
   returns: v.null(),
   handler: async (ctx, args) => {
     // Verificação de admin usando a função existente do users.ts
     await requireAdmin(ctx);
-    
+
     await ctx.db.delete(args.id);
     return null;
   },
@@ -99,7 +104,7 @@ export const getActiveProducts = query({
   args: {},
   returns: v.array(
     v.object({
-      _id: v.id('pricingPlans'),
+      _id: v.id("pricingPlans"),
       _creationTime: v.number(),
       name: v.string(),
       badge: v.string(),
@@ -113,10 +118,10 @@ export const getActiveProducts = query({
       productId: v.string(),
       category: v.optional(
         v.union(
-          v.literal('year_access'),
-          v.literal('premium_pack'),
-          v.literal('addon')
-        )
+          v.literal("year_access"),
+          v.literal("premium_pack"),
+          v.literal("addon"),
+        ),
       ),
       year: v.optional(v.number()),
       regularPriceNum: v.optional(v.number()),
@@ -124,7 +129,7 @@ export const getActiveProducts = query({
       accessYears: v.optional(v.array(v.number())),
       isActive: v.optional(v.boolean()),
       displayOrder: v.optional(v.number()),
-    })
+    }),
   ),
   handler: async (ctx) => {
     return await ctx.db
@@ -141,7 +146,7 @@ export const getByProductId = query({
   args: { productId: v.string() },
   returns: v.union(
     v.object({
-      _id: v.id('pricingPlans'),
+      _id: v.id("pricingPlans"),
       _creationTime: v.number(),
       name: v.string(),
       badge: v.string(),
@@ -155,10 +160,10 @@ export const getByProductId = query({
       productId: v.string(),
       category: v.optional(
         v.union(
-          v.literal('year_access'),
-          v.literal('premium_pack'),
-          v.literal('addon')
-        )
+          v.literal("year_access"),
+          v.literal("premium_pack"),
+          v.literal("addon"),
+        ),
       ),
       year: v.optional(v.number()),
       regularPriceNum: v.optional(v.number()),
@@ -167,7 +172,7 @@ export const getByProductId = query({
       isActive: v.optional(v.boolean()),
       displayOrder: v.optional(v.number()),
     }),
-    v.null()
+    v.null(),
   ),
   handler: async (ctx, args) => {
     return await ctx.db

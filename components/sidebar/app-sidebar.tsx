@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   Sidebar,
@@ -6,14 +6,14 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-} from '@/components/ui/sidebar';
+} from "@/components/ui/sidebar";
 
-import NavLogo from './nav-logo';
-import NavMain from './nav-main';
+import NavLogo from "./nav-logo";
+import NavMain from "./nav-main";
 
-import NavThird from './nav-third';
-import NavUser from './nav-user';
-import QuestionsPromo from './questions-promo';
+import NavThird from "./nav-third";
+import NavUser from "./nav-user";
+import QuestionsPromo from "./questions-promo";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -23,7 +23,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain />
- 
       </SidebarContent>
       <SidebarFooter>
         <QuestionsPromo />

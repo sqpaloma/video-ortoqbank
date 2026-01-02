@@ -21,7 +21,7 @@ export const submitRating = mutation({
     const existingRating = await ctx.db
       .query("lessonRatings")
       .withIndex("by_userId_and_lessonId", (q) =>
-        q.eq("userId", args.userId).eq("lessonId", args.lessonId)
+        q.eq("userId", args.userId).eq("lessonId", args.lessonId),
       )
       .first();
 
@@ -64,13 +64,13 @@ export const getUserRating = query({
       rating: v.number(),
       createdAt: v.number(),
     }),
-    v.null()
+    v.null(),
   ),
   handler: async (ctx, args) => {
     const rating = await ctx.db
       .query("lessonRatings")
       .withIndex("by_userId_and_lessonId", (q) =>
-        q.eq("userId", args.userId).eq("lessonId", args.lessonId)
+        q.eq("userId", args.userId).eq("lessonId", args.lessonId),
       )
       .first();
 
@@ -108,4 +108,3 @@ export const getLessonAverageRating = query({
     };
   },
 });
-

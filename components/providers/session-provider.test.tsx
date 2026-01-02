@@ -8,8 +8,12 @@ vi.mock("convex/react", () => ({
 }));
 
 describe("SessionProvider", () => {
-    it("should render", () => {
-        render(<SessionProvider><div>Test Children</div></SessionProvider>);
-        expect(screen.getByText("Test Children")).toBeInTheDocument();
-    });
-});         
+  it("should render", () => {
+    render(
+      <SessionProvider>
+        <div>Test Children</div>
+      </SessionProvider>,
+    );
+    expect(screen.getByText("Test Children")).toBeInTheDocument();
+  });
+});

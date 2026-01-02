@@ -11,10 +11,5 @@ export default async function CategoriesPage() {
   // This simplifies the component and avoids conditional hook patterns
   const preloadedCategories = await preloadQuery(api.categories.listPublished);
 
-  return (
-    <CategoriesInner
-      preloadedCategories={preloadedCategories}
-    />
-  );
+  return <CategoriesInner preloadedCategories={preloadedCategories} />;
 }
-

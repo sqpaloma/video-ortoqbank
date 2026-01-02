@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { HeadsetIcon, type LucideIcon, UserCircleIcon } from 'lucide-react';
-import Link from 'next/link';
+import { HeadsetIcon, type LucideIcon, UserCircleIcon } from "lucide-react";
+import Link from "next/link";
 
 import {
   SidebarGroup,
@@ -10,9 +10,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from '../ui/sidebar';
+} from "../ui/sidebar";
 
-type UserRole = 'admin' | 'moderator' | 'user';
+type UserRole = "admin" | "moderator" | "user";
 
 interface MenuItem {
   title: string;
@@ -22,13 +22,13 @@ interface MenuItem {
 }
 
 const items: MenuItem[] = [
-  { title: 'Suporte', url: '/support', icon: HeadsetIcon },
+  { title: "Suporte", url: "/support", icon: HeadsetIcon },
 
   {
-    title: 'Admin',
-    url: '/admin',
+    title: "Admin",
+    url: "/admin",
     icon: UserCircleIcon,
-    requiredRoles: ['admin'],
+    requiredRoles: ["admin"],
   },
   // Example of a future item that could be available to both admins and moderators
   // {
@@ -46,7 +46,7 @@ export default function NavThird() {
     <SidebarGroup>
       <SidebarGroupLabel>Usuário</SidebarGroupLabel>
       <SidebarMenu>
-        {items.map(item => (
+        {items.map((item) => (
           <SidebarMenuItem key={item.title}>
             <SidebarMenuButton asChild>
               <Link

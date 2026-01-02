@@ -6,7 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Id } from "@/convex/_generated/dataModel";
 import { UnitEditPanelProps } from "./types";
 
@@ -56,7 +62,11 @@ export function UnitEditPanel({
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="edit-unit-category">Categoria *</Label>
-              <Select value={categoryId} onValueChange={setCategoryId} disabled={isSubmitting}>
+              <Select
+                value={categoryId}
+                onValueChange={setCategoryId}
+                disabled={isSubmitting}
+              >
                 <SelectTrigger id="edit-unit-category">
                   <SelectValue placeholder="Selecione uma categoria" />
                 </SelectTrigger>

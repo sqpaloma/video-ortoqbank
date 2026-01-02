@@ -1,7 +1,10 @@
 "use client";
 
 import { DndContext, closestCenter } from "@dnd-kit/core";
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { UnitTreeItem } from "./unit-tree-item";
 import { UnitsTreeSidebarProps } from "./types";
 import { Id } from "@/convex/_generated/dataModel";

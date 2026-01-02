@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { Button } from '@/components/ui/button';
-import { Save, X } from 'lucide-react';
-import { FormData, PricingPlanFormFields } from './pricing-plan-form-fields';
+import { Button } from "@/components/ui/button";
+import { Save, X } from "lucide-react";
+import { FormData, PricingPlanFormFields } from "./pricing-plan-form-fields";
 
 interface EditPlanCardProps {
   planId: string;
@@ -12,7 +12,13 @@ interface EditPlanCardProps {
   onCancel: () => void;
 }
 
-export function EditPlanCard({ planId, form, onChange, onSave, onCancel }: EditPlanCardProps) {
+export function EditPlanCard({
+  planId,
+  form,
+  onChange,
+  onSave,
+  onCancel,
+}: EditPlanCardProps) {
   return (
     <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
       <PricingPlanFormFields

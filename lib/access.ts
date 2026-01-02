@@ -5,10 +5,10 @@ import { api } from "@/convex/_generated/api";
 
 /**
  * Verifica se o usuário atual tem acesso pago ao conteúdo de vídeo.
- * 
+ *
  * @param redirectTo - URL para redirecionar se não tiver acesso (default: /purchase)
  * @returns true se tem acesso, ou redireciona automaticamente
- * 
+ *
  * @example
  * // Em um Server Component:
  * export default async function ProtectedPage() {
@@ -16,7 +16,9 @@ import { api } from "@/convex/_generated/api";
  *   // ... resto do código só executa se tiver acesso
  * }
  */
-export async function requireVideoAccess(redirectTo = "/purchase"): Promise<true> {
+export async function requireVideoAccess(
+  redirectTo = "/purchase",
+): Promise<true> {
   const { userId, getToken } = await auth();
 
   // Se não está logado, redireciona para compra
@@ -31,7 +33,7 @@ export async function requireVideoAccess(redirectTo = "/purchase"): Promise<true
   const hasAccess = await fetchQuery(
     api.userAccess.checkUserHasVideoAccessByClerkId,
     { clerkUserId: userId },
-    token ? { token } : {}
+    token ? { token } : {},
   );
 
   if (!hasAccess) {
@@ -44,9 +46,9 @@ export async function requireVideoAccess(redirectTo = "/purchase"): Promise<true
 /**
  * Verifica acesso sem redirecionar automaticamente.
  * Útil quando você precisa fazer lógica condicional.
- * 
+ *
  * @returns { hasAccess: boolean, userId: string | null }
- * 
+ *
  * @example
  * const { hasAccess, userId } = await checkVideoAccess();
  * if (!hasAccess) {
@@ -68,9 +70,8 @@ export async function checkVideoAccess(): Promise<{
   const hasAccess = await fetchQuery(
     api.userAccess.checkUserHasVideoAccessByClerkId,
     { clerkUserId: userId },
-    token ? { token } : {}
+    token ? { token } : {},
   );
 
   return { hasAccess, userId };
 }
-

@@ -10,14 +10,42 @@ import { useErrorModal } from "@/hooks/use-error-modal";
 import { useConfirmModal } from "@/hooks/use-confirm-modal";
 import { ErrorModal } from "@/components/ui/error-modal";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
-import { EditIcon, Trash2Icon, GripVerticalIcon, CheckIcon, XIcon, EyeIcon, EyeOffIcon } from "lucide-react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  EditIcon,
+  Trash2Icon,
+  GripVerticalIcon,
+  CheckIcon,
+  XIcon,
+  EyeIcon,
+  EyeOffIcon,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Id, Doc } from "@/convex/_generated/dataModel";
 import { ImageUpload } from "@/components/ui/image-upload";
 import Image from "next/image";
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +58,11 @@ interface SortableCategoryItemProps {
   isEditOrderMode: boolean;
   onEdit: (category: Doc<"categories">) => void;
   onDelete: (id: Id<"categories">, title: string) => void;
-  onTogglePublish: (id: Id<"categories">, title: string, currentStatus: boolean) => void;
+  onTogglePublish: (
+    id: Id<"categories">,
+    title: string,
+    currentStatus: boolean,
+  ) => void;
 }
 
 function SortableCategoryItem({
@@ -38,7 +70,7 @@ function SortableCategoryItem({
   isEditOrderMode,
   onEdit,
   onDelete,
-  onTogglePublish
+  onTogglePublish,
 }: SortableCategoryItemProps) {
   const {
     attributes,
@@ -61,9 +93,10 @@ function SortableCategoryItem({
       {...(isEditOrderMode ? { ...attributes, ...listeners } : {})}
       className={cn(
         "flex items-center gap-2 p-3 border rounded-lg transition-colors",
-        isEditOrderMode && "cursor-grab active:cursor-grabbing hover:bg-accent/50",
+        isEditOrderMode &&
+          "cursor-grab active:cursor-grabbing hover:bg-accent/50",
         !isEditOrderMode && "hover:bg-accent/50",
-        isDragging && "opacity-50 ring-2 ring-primary"
+        isDragging && "opacity-50 ring-2 ring-primary",
       )}
     >
       {isEditOrderMode && (
@@ -93,8 +126,18 @@ function SortableCategoryItem({
           <Button
             variant="outline"
             size="icon"
-            onClick={() => onTogglePublish(category._id, category.title, category.isPublished)}
-            title={category.isPublished ? "Despublicar categoria" : "Publicar categoria"}
+            onClick={() =>
+              onTogglePublish(
+                category._id,
+                category.title,
+                category.isPublished,
+              )
+            }
+            title={
+              category.isPublished
+                ? "Despublicar categoria"
+                : "Publicar categoria"
+            }
           >
             {category.isPublished ? (
               <EyeIcon className="h-4 w-4 text-green-600" />
@@ -131,7 +174,8 @@ export function CategoryList({ categories }: CategoryListProps) {
   const { error, showError, hideError } = useErrorModal();
   const { confirm, showConfirm, hideConfirm } = useConfirmModal();
 
-  const [editingCategory, setEditingCategory] = useState<Id<"categories"> | null>(null);
+  const [editingCategory, setEditingCategory] =
+    useState<Id<"categories"> | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editIconUrl, setEditIconUrl] = useState("");
@@ -140,7 +184,8 @@ export function CategoryList({ categories }: CategoryListProps) {
 
   // Edit order mode state
   const [isEditOrderMode, setIsEditOrderMode] = useState(false);
-  const [orderedCategories, setOrderedCategories] = useState<Doc<"categories">[]>(categories);
+  const [orderedCategories, setOrderedCategories] =
+    useState<Doc<"categories">[]>(categories);
   const [isSavingOrder, setIsSavingOrder] = useState(false);
 
   // DND sensors
@@ -148,7 +193,7 @@ export function CategoryList({ categories }: CategoryListProps) {
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   // Update ordered categories when categories prop changes
@@ -185,14 +230,20 @@ export function CategoryList({ categories }: CategoryListProps) {
     }
 
     if (editDescription.trim().length < 10) {
-      showError("A descrição deve ter pelo menos 10 caracteres", "Descrição inválida");
+      showError(
+        "A descrição deve ter pelo menos 10 caracteres",
+        "Descrição inválida",
+      );
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      const iconUrlToSave = editIconUrl && editIconUrl.trim() !== "" ? editIconUrl.trim() : undefined;
+      const iconUrlToSave =
+        editIconUrl && editIconUrl.trim() !== ""
+          ? editIconUrl.trim()
+          : undefined;
 
       await updateCategory({
         id: editingCategory,
@@ -210,7 +261,7 @@ export function CategoryList({ categories }: CategoryListProps) {
     } catch (error) {
       showError(
         error instanceof Error ? error.message : "Erro ao atualizar categoria",
-        "Erro ao atualizar categoria"
+        "Erro ao atualizar categoria",
       );
     } finally {
       setIsSubmitting(false);
@@ -218,7 +269,8 @@ export function CategoryList({ categories }: CategoryListProps) {
   };
 
   const handleDelete = async (id: Id<"categories">, title: string) => {
-    const message = `ATENÇÃO: Esta ação irá deletar permanentemente:\n\n` +
+    const message =
+      `ATENÇÃO: Esta ação irá deletar permanentemente:\n\n` +
       `• A categoria "${title}"\n` +
       `• TODOS os módulos desta categoria\n` +
       `• TODAS as aulas destes módulos\n\n` +
@@ -236,28 +288,34 @@ export function CategoryList({ categories }: CategoryListProps) {
           });
         } catch (error) {
           showError(
-            error instanceof Error ? error.message : "Erro ao deletar categoria",
-            "Erro ao deletar categoria"
+            error instanceof Error
+              ? error.message
+              : "Erro ao deletar categoria",
+            "Erro ao deletar categoria",
           );
         }
       },
-      "DELETAR CATEGORIA E TODO SEU CONTEÚDO"
+      "DELETAR CATEGORIA E TODO SEU CONTEÚDO",
     );
   };
 
-  const handleTogglePublish = async (id: Id<"categories">, title: string, currentStatus: boolean) => {
+  const handleTogglePublish = async (
+    id: Id<"categories">,
+    title: string,
+    currentStatus: boolean,
+  ) => {
     const action = currentStatus ? "despublicar" : "publicar";
     const message = currentStatus
       ? `Despublicar a categoria "${title}" irá:\n\n` +
-      `• Despublicar TODOS os módulos desta categoria\n` +
-      `• Despublicar TODAS as aulas destes módulos\n\n` +
-      `Os alunos não terão mais acesso a este conteúdo.\n\n` +
-      `Deseja continuar?`
+        `• Despublicar TODOS os módulos desta categoria\n` +
+        `• Despublicar TODAS as aulas destes módulos\n\n` +
+        `Os alunos não terão mais acesso a este conteúdo.\n\n` +
+        `Deseja continuar?`
       : `Publicar a categoria "${title}" irá:\n\n` +
-      `• Publicar TODOS os módulos desta categoria\n` +
-      `• Publicar TODAS as aulas destes módulos\n\n` +
-      `Os alunos terão acesso a todo este conteúdo.\n\n` +
-      `Deseja continuar?`;
+        `• Publicar TODOS os módulos desta categoria\n` +
+        `• Publicar TODAS as aulas destes módulos\n\n` +
+        `Os alunos terão acesso a todo este conteúdo.\n\n` +
+        `Deseja continuar?`;
 
     showConfirm(
       message,
@@ -270,12 +328,14 @@ export function CategoryList({ categories }: CategoryListProps) {
           });
         } catch (error) {
           showError(
-            error instanceof Error ? error.message : `Erro ao ${action} categoria`,
-            `Erro ao ${action} categoria`
+            error instanceof Error
+              ? error.message
+              : `Erro ao ${action} categoria`,
+            `Erro ao ${action} categoria`,
           );
         }
       },
-      `${action === "publicar" ? "📢" : "🔒"} ${action.toUpperCase()} CATEGORIA`
+      `${action === "publicar" ? "📢" : "🔒"} ${action.toUpperCase()} CATEGORIA`,
     );
   };
 
@@ -312,7 +372,7 @@ export function CategoryList({ categories }: CategoryListProps) {
     } catch (error) {
       showError(
         error instanceof Error ? error.message : "Erro ao salvar ordem",
-        "Erro ao salvar ordem"
+        "Erro ao salvar ordem",
       );
     } finally {
       setIsSavingOrder(false);
@@ -352,10 +412,7 @@ export function CategoryList({ categories }: CategoryListProps) {
                     <XIcon className="h-4 w-4 mr-2" />
                     Cancelar
                   </Button>
-                  <Button
-                    onClick={handleSaveOrder}
-                    disabled={isSavingOrder}
-                  >
+                  <Button onClick={handleSaveOrder} disabled={isSavingOrder}>
                     <CheckIcon className="h-4 w-4 mr-2" />
                     {isSavingOrder ? "Salvando..." : "Salvar Ordem"}
                   </Button>
@@ -367,7 +424,9 @@ export function CategoryList({ categories }: CategoryListProps) {
         <CardContent className="pt-0">
           <div className="space-y-2 max-h-[400px] overflow-auto pr-2">
             {categories.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Nenhuma categoria cadastrada ainda.</p>
+              <p className="text-sm text-muted-foreground">
+                Nenhuma categoria cadastrada ainda.
+              </p>
             ) : isEditOrderMode ? (
               <DndContext
                 sensors={sensors}
@@ -375,7 +434,7 @@ export function CategoryList({ categories }: CategoryListProps) {
                 onDragEnd={handleDragEnd}
               >
                 <SortableContext
-                  items={orderedCategories.map(cat => cat._id)}
+                  items={orderedCategories.map((cat) => cat._id)}
                   strategy={verticalListSortingStrategy}
                 >
                   {orderedCategories.map((category) => (
@@ -407,7 +466,10 @@ export function CategoryList({ categories }: CategoryListProps) {
       </Card>
 
       {/* Dialog de edição */}
-      <Dialog open={editingCategory !== null} onOpenChange={() => setEditingCategory(null)}>
+      <Dialog
+        open={editingCategory !== null}
+        onOpenChange={() => setEditingCategory(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Editar Categoria</DialogTitle>
@@ -437,7 +499,9 @@ export function CategoryList({ categories }: CategoryListProps) {
             </div>
 
             <div>
-              <label className="text-sm font-medium">Ícone da Categoria (opcional)</label>
+              <label className="text-sm font-medium">
+                Ícone da Categoria (opcional)
+              </label>
               <ImageUpload
                 value={editIconUrl}
                 onChange={setEditIconUrl}
@@ -468,7 +532,11 @@ export function CategoryList({ categories }: CategoryListProps) {
                 disabled={isSubmitting || isImageUploading}
                 className="flex-1"
               >
-                {isImageUploading ? "Enviando imagem..." : isSubmitting ? "Salvando..." : "Salvar"}
+                {isImageUploading
+                  ? "Enviando imagem..."
+                  : isSubmitting
+                    ? "Salvando..."
+                    : "Salvar"}
               </Button>
             </div>
           </form>
@@ -492,4 +560,3 @@ export function CategoryList({ categories }: CategoryListProps) {
     </>
   );
 }
-

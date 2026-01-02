@@ -1,23 +1,23 @@
-'use client';
+"use client";
 
-import { GraduationCap, LayoutGrid, Menu, User } from 'lucide-react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { GraduationCap, LayoutGrid, Menu, User } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
-import { Button } from '@/components/ui/button';
-import { useSidebar } from '@/components/ui/sidebar';
-import { cn } from '@/lib/utils';
+import { Button } from "@/components/ui/button";
+import { useSidebar } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 
 // Define the main navigation items (excluding Home/Menu trigger)
 const navItems = [
-  { href: '/categories', label: 'Cursos', icon: LayoutGrid, prefetch: true },
+  { href: "/categories", label: "Cursos", icon: LayoutGrid, prefetch: true },
   {
-    href: '/favorites',
-    label: 'Favoritos',
+    href: "/favorites",
+    label: "Favoritos",
     icon: GraduationCap,
     prefetch: true,
   },
-  { href: '/profile', label: 'Perfil', icon: User, prefetch: true },
+  { href: "/profile", label: "Perfil", icon: User, prefetch: true },
   // Add more items if necessary
 ] as const;
 
@@ -38,7 +38,7 @@ export function MobileBottomNav() {
       </Button>
 
       {/* Mapped Navigation Items */}
-      {navItems.map(item => {
+      {navItems.map((item) => {
         const Icon = item.icon;
         const isActive = pathname === item.href;
 
@@ -52,10 +52,10 @@ export function MobileBottomNav() {
             <Button
               variant="ghost"
               className={cn(
-                'flex h-full flex-col items-center justify-center gap-1 rounded-none px-2 text-xs',
+                "flex h-full flex-col items-center justify-center gap-1 rounded-none px-2 text-xs",
                 isActive
-                  ? 'text-primary'
-                  : 'text-muted-foreground hover:text-primary',
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-primary",
               )}
             >
               <Icon className="h-5 w-5" />

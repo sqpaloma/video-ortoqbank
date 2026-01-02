@@ -17,11 +17,11 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("MobileBottomNav", () => {
-    it("should render", () => {
-        renderWithProviders(<MobileBottomNav />);
-        expect(screen.getByText("Menu")).toBeInTheDocument();
-        expect(screen.getByText("Cursos")).toBeInTheDocument();
-        expect(screen.getByText("Favoritos")).toBeInTheDocument();
-        expect(screen.getByText("Perfil")).toBeInTheDocument();
-    });
-});     
+  it("should render", () => {
+    renderWithProviders(<MobileBottomNav />);
+    expect(screen.getByText("Menu")).toBeInTheDocument();
+    expect(screen.getByText("Cursos")).toBeInTheDocument();
+    expect(screen.getByText("Favoritos")).toBeInTheDocument();
+    expect(screen.getByText("Perfil")).toBeInTheDocument();
+  });
+});

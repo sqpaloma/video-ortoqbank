@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   Table,
@@ -7,10 +7,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Doc } from '@/convex/_generated/dataModel';
+} from "@/components/ui/table";
+import { Doc } from "@/convex/_generated/dataModel";
 
-type WaitlistEntry = Doc<'waitlist'>;
+type WaitlistEntry = Doc<"waitlist">;
 
 interface WaitlistTableProps {
   entries: WaitlistEntry[];
@@ -18,7 +18,11 @@ interface WaitlistTableProps {
   hasSearchQuery: boolean;
 }
 
-export function WaitlistTable({ entries, isLoading, hasSearchQuery }: WaitlistTableProps) {
+export function WaitlistTable({
+  entries,
+  isLoading,
+  hasSearchQuery,
+}: WaitlistTableProps) {
   return (
     <div className="rounded-md border">
       <Table>
@@ -49,18 +53,18 @@ export function WaitlistTable({ entries, isLoading, hasSearchQuery }: WaitlistTa
                 className="py-6 text-center text-muted-foreground"
               >
                 {hasSearchQuery
-                  ? 'Nenhuma inscricao encontrada'
-                  : 'Nenhuma inscricao na lista de espera'}
+                  ? "Nenhuma inscricao encontrada"
+                  : "Nenhuma inscricao na lista de espera"}
               </TableCell>
             </TableRow>
           ) : (
-            entries.map(entry => (
+            entries.map((entry) => (
               <TableRow key={entry._id}>
                 <TableCell className="font-medium">{entry.name}</TableCell>
                 <TableCell>{entry.email}</TableCell>
                 <TableCell>{entry.whatsapp}</TableCell>
                 <TableCell>
-                  {entry.instagram ? `@${entry.instagram}` : '-'}
+                  {entry.instagram ? `@${entry.instagram}` : "-"}
                 </TableCell>
                 <TableCell>{entry.residencyLevel}</TableCell>
                 <TableCell>{entry.subspecialty}</TableCell>

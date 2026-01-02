@@ -27,7 +27,9 @@ describe("SearchBar", () => {
   it("should render search bar with default placeholder", () => {
     render(<SearchBar />);
 
-    const input = screen.getByPlaceholderText("Pesquise por temas, subtemas e grupos...");
+    const input = screen.getByPlaceholderText(
+      "Pesquise por temas, subtemas e grupos...",
+    );
     expect(input).toBeDefined();
   });
 
@@ -49,7 +51,9 @@ describe("SearchBar", () => {
     const user = userEvent.setup();
     render(<SearchBar />);
 
-    const input = screen.getByPlaceholderText("Pesquise por temas, subtemas e grupos...") as HTMLInputElement;
+    const input = screen.getByPlaceholderText(
+      "Pesquise por temas, subtemas e grupos...",
+    ) as HTMLInputElement;
     await user.type(input, "test query");
 
     expect(input.value).toBe("test query");
@@ -61,7 +65,9 @@ describe("SearchBar", () => {
 
     render(<SearchBar onSearch={mockOnSearch} />);
 
-    const input = screen.getByPlaceholderText("Pesquise por temas, subtemas e grupos...");
+    const input = screen.getByPlaceholderText(
+      "Pesquise por temas, subtemas e grupos...",
+    );
     await user.type(input, "test query");
     await user.keyboard("{Enter}");
 
@@ -75,7 +81,9 @@ describe("SearchBar", () => {
 
     render(<SearchBar />);
 
-    const input = screen.getByPlaceholderText("Pesquise por temas, subtemas e grupos...");
+    const input = screen.getByPlaceholderText(
+      "Pesquise por temas, subtemas e grupos...",
+    );
     await user.type(input, "test query");
     await user.keyboard("{Enter}");
 
@@ -89,7 +97,9 @@ describe("SearchBar", () => {
 
     render(<SearchBar onSearch={mockOnSearch} />);
 
-    const input = screen.getByPlaceholderText("Pesquise por temas, subtemas e grupos...") as HTMLInputElement;
+    const input = screen.getByPlaceholderText(
+      "Pesquise por temas, subtemas e grupos...",
+    ) as HTMLInputElement;
     await user.type(input, "test query");
     await user.keyboard("{Enter}");
 
@@ -107,7 +117,9 @@ describe("SearchBar", () => {
 
     render(<SearchBar onSearch={mockOnSearch} />);
 
-    const input = screen.getByPlaceholderText("Pesquise por temas, subtemas e grupos...");
+    const input = screen.getByPlaceholderText(
+      "Pesquise por temas, subtemas e grupos...",
+    );
     // Submit the form with empty query (input is already empty)
     await user.click(input);
     await user.keyboard("{Enter}");
@@ -116,4 +128,3 @@ describe("SearchBar", () => {
     expect(input).toBeDefined();
   });
 });
-

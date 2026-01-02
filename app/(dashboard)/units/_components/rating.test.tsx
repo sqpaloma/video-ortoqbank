@@ -29,7 +29,7 @@ describe("Rating", () => {
         userId={mockUserId}
         lessonId={mockLessonId}
         unitId={mockUnitId}
-      />
+      />,
     );
 
     const label = screen.getByText("O que você achou desta aula?");
@@ -46,7 +46,7 @@ describe("Rating", () => {
         userId={mockUserId}
         lessonId={mockLessonId}
         unitId={mockUnitId}
-      />
+      />,
     );
 
     const stars = screen.getAllByRole("button", { name: /avaliar com/i });
@@ -67,7 +67,7 @@ describe("Rating", () => {
         userId={mockUserId}
         lessonId={mockLessonId}
         unitId={mockUnitId}
-      />
+      />,
     );
 
     const stars = screen.getAllByRole("button", { name: /avaliar com/i });
@@ -106,7 +106,7 @@ describe("Rating", () => {
         userId={mockUserId}
         lessonId={mockLessonId}
         unitId={mockUnitId}
-      />
+      />,
     );
 
     // All 5 stars should be filled
@@ -131,7 +131,7 @@ describe("Rating", () => {
         userId={mockUserId}
         lessonId={mockLessonId}
         unitId={mockUnitId}
-      />
+      />,
     );
 
     const stars = screen.getAllByRole("button", { name: /avaliar com/i });
@@ -143,4 +143,3 @@ describe("Rating", () => {
     });
   });
 });
-

@@ -1,21 +1,27 @@
-'use client';
+"use client";
 
-import { CheckCircle, Clock, RefreshCw, XCircle } from 'lucide-react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useCallback, useEffect, useState } from 'react';
+import { CheckCircle, Clock, RefreshCw, XCircle } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useState } from "react";
 
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
-type PaymentStatus = 'pending' | 'confirmed' | 'failed' | 'expired' | 'error';
+type PaymentStatus = "pending" | "confirmed" | "failed" | "expired" | "error";
 
 function CheckoutStatusContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const paymentId = searchParams.get('payment');
+  const paymentId = searchParams.get("payment");
 
-  const [status, setStatus] = useState<PaymentStatus>('pending');
+  const [status, setStatus] = useState<PaymentStatus>("pending");
   const [isLoading, setIsLoading] = useState(true);
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
 
@@ -29,9 +35,12 @@ function CheckoutStatusContent() {
     const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
     try {
-      const response = await fetch(`/api/asaas/payments/status?id=${paymentId}`, {
-        signal: controller.signal,
-      });
+      const response = await fetch(
+        `/api/asaas/payments/status?id=${paymentId}`,
+        {
+          signal: controller.signal,
+        },
+      );
 
       clearTimeout(timeoutId);
 
@@ -39,54 +48,60 @@ function CheckoutStatusContent() {
         const data = await response.json();
 
         // Validate API response structure and status value
-        const validStatuses: PaymentStatus[] = ['pending', 'confirmed', 'failed', 'expired', 'error'];
+        const validStatuses: PaymentStatus[] = [
+          "pending",
+          "confirmed",
+          "failed",
+          "expired",
+          "error",
+        ];
         if (data.status && validStatuses.includes(data.status)) {
           setStatus(data.status);
         } else {
           // Only log sensitive data in non-production environments
-          if (process.env.NODE_ENV !== 'production') {
-            console.error('Invalid status received from API:', {
+          if (process.env.NODE_ENV !== "production") {
+            console.error("Invalid status received from API:", {
               receivedStatus: data.status,
               paymentIdPresent: !!paymentId,
             });
           } else {
-            console.error('Invalid status received from API');
+            console.error("Invalid status received from API");
           }
-          setStatus('error');
+          setStatus("error");
         }
         setLastChecked(new Date());
       } else {
         // Log only non-PII fields; remove paymentId from production logs
-        if (process.env.NODE_ENV !== 'production') {
-          console.error('Payment status check failed:', {
+        if (process.env.NODE_ENV !== "production") {
+          console.error("Payment status check failed:", {
             status: response.status,
             statusText: response.statusText,
             paymentIdPresent: !!paymentId,
           });
         } else {
-          console.error('Payment status check failed:', {
+          console.error("Payment status check failed:", {
             status: response.status,
             statusText: response.statusText,
           });
         }
-        setStatus('error');
+        setStatus("error");
         setLastChecked(new Date());
       }
     } catch (error) {
       clearTimeout(timeoutId);
 
       // Handle timeout/abort errors appropriately
-      if (error instanceof Error && error.name === 'AbortError') {
-        console.error('Payment status check timed out after 30 seconds');
+      if (error instanceof Error && error.name === "AbortError") {
+        console.error("Payment status check timed out after 30 seconds");
       } else {
         // Only include detailed error info in non-production
-        if (process.env.NODE_ENV !== 'production') {
-          console.error('Error checking payment status:', error);
+        if (process.env.NODE_ENV !== "production") {
+          console.error("Error checking payment status:", error);
         } else {
-          console.error('Error checking payment status');
+          console.error("Error checking payment status");
         }
       }
-      setStatus('error');
+      setStatus("error");
       setLastChecked(new Date());
     } finally {
       setIsLoading(false);
@@ -98,7 +113,7 @@ function CheckoutStatusContent() {
 
     // Auto-refresh every 10 seconds if payment is pending
     const interval = setInterval(() => {
-      if (status === 'pending') {
+      if (status === "pending") {
         checkPaymentStatus();
       }
     }, 10_000);
@@ -108,19 +123,19 @@ function CheckoutStatusContent() {
 
   const getStatusIcon = () => {
     switch (status) {
-      case 'confirmed': {
+      case "confirmed": {
         return <CheckCircle className="w-12 h-12 text-green-600" />;
       }
-      case 'pending': {
+      case "pending": {
         return <Clock className="w-12 h-12 text-yellow-600" />;
       }
-      case 'failed': {
+      case "failed": {
         return <XCircle className="w-12 h-12 text-red-600" />;
       }
-      case 'expired': {
+      case "expired": {
         return <XCircle className="w-12 h-12 text-gray-600" />;
       }
-      case 'error': {
+      case "error": {
         return <XCircle className="w-12 h-12 text-red-600" />;
       }
       default: {
@@ -131,69 +146,69 @@ function CheckoutStatusContent() {
 
   const getStatusTitle = () => {
     switch (status) {
-      case 'confirmed': {
-        return 'Pagamento Confirmado!';
+      case "confirmed": {
+        return "Pagamento Confirmado!";
       }
-      case 'pending': {
-        return 'Aguardando Pagamento';
+      case "pending": {
+        return "Aguardando Pagamento";
       }
-      case 'failed': {
-        return 'Pagamento Falhou';
+      case "failed": {
+        return "Pagamento Falhou";
       }
-      case 'expired': {
-        return 'Pagamento Expirado';
+      case "expired": {
+        return "Pagamento Expirado";
       }
-      case 'error': {
-        return 'Erro ao Verificar Pagamento';
+      case "error": {
+        return "Erro ao Verificar Pagamento";
       }
       default: {
-        return 'Verificando Status...';
+        return "Verificando Status...";
       }
     }
   };
 
   const getStatusDescription = () => {
     switch (status) {
-      case 'confirmed': {
-        return 'Seu pagamento foi processado com sucesso!';
+      case "confirmed": {
+        return "Seu pagamento foi processado com sucesso!";
       }
-      case 'pending': {
-        return 'Ainda estamos aguardando a confirmação do seu pagamento PIX';
+      case "pending": {
+        return "Ainda estamos aguardando a confirmação do seu pagamento PIX";
       }
-      case 'failed': {
-        return 'Houve um problema com seu pagamento';
+      case "failed": {
+        return "Houve um problema com seu pagamento";
       }
-      case 'expired': {
-        return 'O prazo para pagamento expirou';
+      case "expired": {
+        return "O prazo para pagamento expirou";
       }
-      case 'error': {
-        return 'Não foi possível verificar o status do pagamento no momento';
+      case "error": {
+        return "Não foi possível verificar o status do pagamento no momento";
       }
       default: {
-        return 'Verificando o status do seu pagamento...';
+        return "Verificando o status do seu pagamento...";
       }
     }
   };
 
   const getStatusColor = () => {
     switch (status) {
-      case 'confirmed': {
-        return 'text-green-600';
+      case "confirmed": {
+        return "text-green-600";
       }
-      case 'pending': {
-        return 'text-yellow-600';
+      case "pending": {
+        return "text-yellow-600";
       }
-      case 'failed': {
-        return 'text-red-600';
+      case "failed": {
+        return "text-red-600";
       }
-      case 'expired': {
-        return 'text-gray-600';
+      case "expired": {
+        return "text-gray-600";
       }
-      case 'error': {
-        return 'text-red-600';
+      case "error": {
+        return "text-red-600";
       }
       default: {
-        return 'text-gray-600';
+        return "text-gray-600";
       }
     }
   };
@@ -206,11 +221,13 @@ function CheckoutStatusContent() {
             <CardContent className="pt-6">
               <div className="text-center">
                 <XCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
-                <h2 className="text-xl font-semibold mb-2">ID de Pagamento Não Encontrado</h2>
+                <h2 className="text-xl font-semibold mb-2">
+                  ID de Pagamento Não Encontrado
+                </h2>
                 <p className="text-gray-600 mb-4">
                   Não foi possível encontrar o ID do pagamento na URL.
                 </p>
-                <Button onClick={() => router.push('/')}>
+                <Button onClick={() => router.push("/")}>
                   Voltar ao Início
                 </Button>
               </div>
@@ -226,38 +243,35 @@ function CheckoutStatusContent() {
       <div className="container mx-auto px-4 max-w-2xl">
         <Card>
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4">
-              {getStatusIcon()}
-            </div>
+            <div className="mx-auto mb-4">{getStatusIcon()}</div>
             <CardTitle className={`text-2xl ${getStatusColor()}`}>
               {getStatusTitle()}
             </CardTitle>
-            <CardDescription>
-              {getStatusDescription()}
-            </CardDescription>
+            <CardDescription>{getStatusDescription()}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Status-specific content */}
-            {status === 'confirmed' && (
+            {status === "confirmed" && (
               <Alert className="border-green-200 bg-green-50">
                 <CheckCircle className="h-4 w-4 text-green-600" />
                 <AlertDescription className="text-green-800">
-                  <strong>Sucesso!</strong> Você receberá um email com instruções para criar sua conta.
+                  <strong>Sucesso!</strong> Você receberá um email com
+                  instruções para criar sua conta.
                 </AlertDescription>
               </Alert>
             )}
 
-            {status === 'pending' && (
+            {status === "pending" && (
               <Alert className="border-yellow-200 bg-yellow-50">
                 <Clock className="h-4 w-4 text-yellow-600" />
                 <AlertDescription className="text-yellow-800">
-                  <strong>Aguardando...</strong> Seu pagamento PIX ainda está sendo processado.
-                  Isso pode levar alguns minutos.
+                  <strong>Aguardando...</strong> Seu pagamento PIX ainda está
+                  sendo processado. Isso pode levar alguns minutos.
                 </AlertDescription>
               </Alert>
             )}
 
-            {status === 'failed' && (
+            {status === "failed" && (
               <Alert variant="destructive">
                 <XCircle className="h-4 w-4" />
                 <AlertDescription>
@@ -267,7 +281,7 @@ function CheckoutStatusContent() {
               </Alert>
             )}
 
-            {status === 'expired' && (
+            {status === "expired" && (
               <Alert className="border-gray-200 bg-gray-50">
                 <XCircle className="h-4 w-4 text-gray-600" />
                 <AlertDescription className="text-gray-800">
@@ -277,12 +291,13 @@ function CheckoutStatusContent() {
               </Alert>
             )}
 
-            {status === 'error' && (
+            {status === "error" && (
               <Alert variant="destructive">
                 <XCircle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Erro:</strong> Não foi possível verificar o status do pagamento.
-                  Tente verificar novamente ou entre em contato com o suporte.
+                  <strong>Erro:</strong> Não foi possível verificar o status do
+                  pagamento. Tente verificar novamente ou entre em contato com o
+                  suporte.
                 </AlertDescription>
               </Alert>
             )}
@@ -291,16 +306,21 @@ function CheckoutStatusContent() {
             <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="font-semibold mb-2">Informações do Pagamento</h3>
               <div className="space-y-1 text-sm text-gray-600">
-                <p><strong>ID do Pagamento:</strong> {paymentId}</p>
+                <p>
+                  <strong>ID do Pagamento:</strong> {paymentId}
+                </p>
                 {lastChecked && (
-                  <p><strong>Última Verificação:</strong> {lastChecked.toLocaleTimeString('pt-BR')}</p>
+                  <p>
+                    <strong>Última Verificação:</strong>{" "}
+                    {lastChecked.toLocaleTimeString("pt-BR")}
+                  </p>
                 )}
               </div>
             </div>
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              {status === 'pending' && (
+              {status === "pending" && (
                 <Button
                   onClick={checkPaymentStatus}
                   disabled={isLoading}
@@ -316,25 +336,27 @@ function CheckoutStatusContent() {
                 </Button>
               )}
 
-              {status === 'confirmed' && (
+              {status === "confirmed" && (
                 <Button
-                  onClick={() => router.push('/checkout/success?paymentId=' + paymentId)}
+                  onClick={() =>
+                    router.push("/checkout/success?paymentId=" + paymentId)
+                  }
                   className="flex items-center"
                 >
                   Continuar
                 </Button>
               )}
 
-              {(status === 'failed' || status === 'expired') && (
+              {(status === "failed" || status === "expired") && (
                 <Button
-                  onClick={() => router.push('/checkout')}
+                  onClick={() => router.push("/checkout")}
                   className="flex items-center"
                 >
                   Tentar Novamente
                 </Button>
               )}
 
-              {status === 'error' && (
+              {status === "error" && (
                 <Button
                   onClick={checkPaymentStatus}
                   disabled={isLoading}
@@ -350,18 +372,17 @@ function CheckoutStatusContent() {
                 </Button>
               )}
 
-              <Button
-                variant="outline"
-                onClick={() => router.push('/')}
-              >
+              <Button variant="outline" onClick={() => router.push("/")}>
                 Voltar ao Início
               </Button>
             </div>
 
             {/* Auto-refresh indicator */}
-            {status === 'pending' && (
+            {status === "pending" && (
               <div className="text-center text-sm text-gray-500">
-                <p>Esta página será atualizada automaticamente a cada 10 segundos</p>
+                <p>
+                  Esta página será atualizada automaticamente a cada 10 segundos
+                </p>
               </div>
             )}
           </CardContent>
@@ -373,7 +394,13 @@ function CheckoutStatusContent() {
 
 export default function CheckoutStatusPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          Loading...
+        </div>
+      }
+    >
       <CheckoutStatusContent />
     </Suspense>
   );

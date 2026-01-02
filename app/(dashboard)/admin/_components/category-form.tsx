@@ -3,7 +3,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useToast } from "@/hooks/use-toast";
@@ -12,15 +18,25 @@ import { ErrorModal } from "@/components/ui/error-modal";
 import * as z from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { CheckCircle2Icon, FolderPlusIcon } from "lucide-react";
 import { ImageUpload } from "@/components/ui/image-upload";
 
 const formSchema = z.object({
   title: z.string().min(3, "Título deve ter pelo menos 3 caracteres"),
-  description: z.string().min(10, "Descrição deve ter pelo menos 10 caracteres"),
-  iconUrl: z.string().url("URL do ícone deve ser válida").or(z.literal("")).optional(),
-
+  description: z
+    .string()
+    .min(10, "Descrição deve ter pelo menos 10 caracteres"),
+  iconUrl: z
+    .string()
+    .url("URL do ícone deve ser válida")
+    .or(z.literal(""))
+    .optional(),
 });
 
 interface CategoryFormProps {
@@ -48,7 +64,7 @@ export function CategoryForm({ onSuccess }: CategoryFormProps) {
     setIsSubmitting(true);
     // Clear any previous success message to avoid showing it alongside errors
     setCreatedCategory(false);
-    
+
     try {
       await createCategory({
         title: data.title,
@@ -64,7 +80,7 @@ export function CategoryForm({ onSuccess }: CategoryFormProps) {
       });
 
       form.reset();
-      
+
       if (onSuccess) {
         onSuccess();
       }
@@ -74,7 +90,7 @@ export function CategoryForm({ onSuccess }: CategoryFormProps) {
     } catch (error) {
       showError(
         error instanceof Error ? error.message : "Erro desconhecido",
-        "Erro ao criar categoria"
+        "Erro ao criar categoria",
       );
     } finally {
       setIsSubmitting(false);
@@ -108,7 +124,6 @@ export function CategoryForm({ onSuccess }: CategoryFormProps) {
                     autoComplete="off"
                     onChange={(e) => {
                       field.onChange(e);
-                 
                     }}
                   />
                   {fieldState.invalid && (
@@ -118,7 +133,6 @@ export function CategoryForm({ onSuccess }: CategoryFormProps) {
               )}
             />
 
-        
             {/* Description */}
             <Controller
               name="description"
@@ -176,7 +190,11 @@ export function CategoryForm({ onSuccess }: CategoryFormProps) {
             >
               Limpar
             </Button>
-            <Button type="submit" disabled={isSubmitting || isImageUploading} className="flex-1">
+            <Button
+              type="submit"
+              disabled={isSubmitting || isImageUploading}
+              className="flex-1"
+            >
               {isImageUploading ? (
                 "Enviando imagem..."
               ) : isSubmitting ? (
@@ -211,4 +229,3 @@ export function CategoryForm({ onSuccess }: CategoryFormProps) {
     </Card>
   );
 }
-

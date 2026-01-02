@@ -13,7 +13,7 @@ describe("LessonInfoSection", () => {
         onMarkCompleted={() => {}}
         onToggleFavorite={() => {}}
         onNextLesson={() => {}}
-      />
+      />,
     );
     expect(screen.getByText("Test Title")).toBeInTheDocument();
     expect(screen.getByText("Test Description")).toBeInTheDocument();

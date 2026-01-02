@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { ExternalLink } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { SidebarSeparator } from '@/components/ui/sidebar';
-import Image from 'next/image';
+import { ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { SidebarSeparator } from "@/components/ui/sidebar";
+import Image from "next/image";
 
 export default function QuestionsPromo() {
   const handleVisitClick = () => {
     // Link to Tokebank questions platform
-    window.open('https://ortoqbank.com.br/criar-teste', '_blank');
+    window.open("https://ortoqbank.com.br/criar-teste", "_blank");
   };
 
   return (
@@ -18,14 +18,18 @@ export default function QuestionsPromo() {
         {/* Icon */}
         <div className="mb-3">
           <div className="flex size-12 items-center justify-center rounded-lg">
-            <Image src="/questoes-transparente.png" alt="OrtoQBank Logo" width={52} height={52} className="rounded-sm" />
+            <Image
+              src="/questoes-transparente.png"
+              alt="OrtoQBank Logo"
+              width={52}
+              height={52}
+              className="rounded-sm"
+            />
           </div>
         </div>
 
         {/* Title */}
-        <h3 className="mb-1 text-base font-semibold text-white">
-          Questões?
-        </h3>
+        <h3 className="mb-1 text-base font-semibold text-white">Questões?</h3>
 
         {/* Description */}
         <p className="mb-4 text-sm leading-relaxed text-white">
@@ -51,12 +55,12 @@ export default function QuestionsPromo() {
             className="cursor-pointer transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-white/50 rounded-sm"
             aria-label="Acessar questões"
           >
-            <Image 
-              src="/questoes-transparente.png" 
-              alt="Questões" 
-              width={40} 
-              height={40} 
-              className="rounded-sm" 
+            <Image
+              src="/questoes-transparente.png"
+              alt="Questões"
+              width={40}
+              height={40}
+              className="rounded-sm"
             />
           </button>
         </div>

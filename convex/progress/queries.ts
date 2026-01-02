@@ -19,13 +19,13 @@ export const getLessonProgress = query({
       completed: v.boolean(),
       completedAt: v.optional(v.number()),
     }),
-    v.null()
+    v.null(),
   ),
   handler: async (ctx, args) => {
     const progress = await ctx.db
       .query("userProgress")
       .withIndex("by_userId_and_lessonId", (q) =>
-        q.eq("userId", args.userId).eq("lessonId", args.lessonId)
+        q.eq("userId", args.userId).eq("lessonId", args.lessonId),
       )
       .unique();
 
@@ -52,13 +52,13 @@ export const getUnitProgress = query({
       progressPercent: v.number(),
       updatedAt: v.number(),
     }),
-    v.null()
+    v.null(),
   ),
   handler: async (ctx, args) => {
     const progress = await ctx.db
       .query("unitProgress")
       .withIndex("by_userId_and_unitId", (q) =>
-        q.eq("userId", args.userId).eq("unitId", args.unitId)
+        q.eq("userId", args.userId).eq("unitId", args.unitId),
       )
       .unique();
 
@@ -82,7 +82,7 @@ export const getGlobalProgress = query({
       progressPercent: v.number(),
       updatedAt: v.number(),
     }),
-    v.null()
+    v.null(),
   ),
   handler: async (ctx, args) => {
     const progress = await ctx.db
@@ -111,13 +111,13 @@ export const getUnitLessonsProgress = query({
       unitId: v.id("units"),
       completed: v.boolean(),
       completedAt: v.optional(v.number()),
-    })
+    }),
   ),
   handler: async (ctx, args) => {
     const progress = await ctx.db
       .query("userProgress")
       .withIndex("by_userId_and_unitId", (q) =>
-        q.eq("userId", args.userId).eq("unitId", args.unitId)
+        q.eq("userId", args.userId).eq("unitId", args.unitId),
       )
       .collect();
 
@@ -142,7 +142,7 @@ export const getAllUnitProgress = query({
       totalLessonVideos: v.number(),
       progressPercent: v.number(),
       updatedAt: v.number(),
-    })
+    }),
   ),
   handler: async (ctx, args) => {
     const progress = await ctx.db
@@ -170,13 +170,13 @@ export const getCompletedLessons = query({
       unitId: v.id("units"),
       completed: v.boolean(),
       completedAt: v.optional(v.number()),
-    })
+    }),
   ),
   handler: async (ctx, args) => {
     const progress = await ctx.db
       .query("userProgress")
       .withIndex("by_userId_and_completed", (q) =>
-        q.eq("userId", args.userId).eq("completed", true)
+        q.eq("userId", args.userId).eq("completed", true),
       )
       .collect();
 
@@ -223,7 +223,7 @@ export const getUnitProgressByCategory = query({
       totalLessonVideos: v.number(),
       progressPercent: v.number(),
       updatedAt: v.number(),
-    })
+    }),
   ),
   handler: async (ctx, args) => {
     // Get units for this category
@@ -232,7 +232,7 @@ export const getUnitProgressByCategory = query({
       .withIndex("by_categoryId", (q) => q.eq("categoryId", args.categoryId))
       .take(200);
 
-    const unitIds = new Set(units.map(u => u._id));
+    const unitIds = new Set(units.map((u) => u._id));
 
     // Get progress only for these units
     const allProgress = await ctx.db
@@ -240,7 +240,7 @@ export const getUnitProgressByCategory = query({
       .withIndex("by_userId", (q) => q.eq("userId", args.userId))
       .collect();
 
-    return allProgress.filter(p => unitIds.has(p.unitId));
+    return allProgress.filter((p) => unitIds.has(p.unitId));
   },
 });
 
@@ -261,7 +261,7 @@ export const getCompletedLessonsByCategory = query({
       unitId: v.id("units"),
       completed: v.boolean(),
       completedAt: v.optional(v.number()),
-    })
+    }),
   ),
   handler: async (ctx, args) => {
     // Get lessons for this category
@@ -270,16 +270,16 @@ export const getCompletedLessonsByCategory = query({
       .withIndex("by_categoryId", (q) => q.eq("categoryId", args.categoryId))
       .take(1000);
 
-    const lessonIds = new Set(lessons.map(l => l._id));
+    const lessonIds = new Set(lessons.map((l) => l._id));
 
     // Get completed progress only for these lessons
     const allProgress = await ctx.db
       .query("userProgress")
       .withIndex("by_userId_and_completed", (q) =>
-        q.eq("userId", args.userId).eq("completed", true)
+        q.eq("userId", args.userId).eq("completed", true),
       )
       .collect();
 
-    return allProgress.filter(p => lessonIds.has(p.lessonId));
+    return allProgress.filter((p) => lessonIds.has(p.lessonId));
   },
 });

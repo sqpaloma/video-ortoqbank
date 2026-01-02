@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import type { ComponentProps } from 'react';
-import { useState } from 'react';
+import Link from "next/link";
+import type { ComponentProps } from "react";
+import { useState } from "react";
 
 // Exclude prefetch from props to prevent external overrides
-type LinkProps = Omit<ComponentProps<typeof Link>, 'prefetch' | 'href'>;
+type LinkProps = Omit<ComponentProps<typeof Link>, "prefetch" | "href">;
 
 interface HoverPrefetchLinkProps extends LinkProps {
   href: string;

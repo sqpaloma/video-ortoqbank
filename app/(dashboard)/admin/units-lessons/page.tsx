@@ -6,9 +6,5 @@ export default async function AdminUnitsLessonsPage() {
   // Only preload categories - units and lessons will be loaded based on selected category
   const preloadedCategories = await preloadQuery(api.categories.list);
 
-  return (
-    <UnitsLessonsPage
-      preloadedCategories={preloadedCategories}
-    />
-  );
+  return <UnitsLessonsPage preloadedCategories={preloadedCategories} />;
 }

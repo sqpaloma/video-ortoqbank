@@ -16,15 +16,17 @@ vi.mock("@dnd-kit/sortable", () => ({
 }));
 
 describe("LessonTreeItem", () => {
-    it("should render", () => {
-        render(
-            <LessonTreeItem
-                lesson={{ _id: "1", title: "Test Lesson", lessonNumber: 1 } as Doc<"lessons">}
-                onEdit={() => {}}
-                onTogglePublish={() => {}}
-                isDragging={false}
-            />
-        );
-        expect(screen.getByText(/Test Lesson/)).toBeInTheDocument();
-    });
-}); 
+  it("should render", () => {
+    render(
+      <LessonTreeItem
+        lesson={
+          { _id: "1", title: "Test Lesson", lessonNumber: 1 } as Doc<"lessons">
+        }
+        onEdit={() => {}}
+        onTogglePublish={() => {}}
+        isDragging={false}
+      />,
+    );
+    expect(screen.getByText(/Test Lesson/)).toBeInTheDocument();
+  });
+});

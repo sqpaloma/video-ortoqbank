@@ -30,16 +30,12 @@ import { Rating } from "./rating";
 import { cn } from "@/lib/utils";
 import { getSignedEmbedUrl } from "@/app/actions/bunny";
 
-
 interface UnitsPageProps {
   preloadedUnits: Preloaded<typeof api.units.listPublishedByCategory>;
   categoryTitle: string;
 }
 
-export function UnitsPage({
-  preloadedUnits,
-  categoryTitle,
-}: UnitsPageProps) {
+export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
   const units = usePreloadedQuery(preloadedUnits);
   const router = useRouter();
   const { user } = useUser();
@@ -47,7 +43,9 @@ export function UnitsPage({
 
   // Mutations
   const markCompleted = useMutation(api.progress.mutations.markLessonCompleted);
-  const markIncomplete = useMutation(api.progress.mutations.markLessonIncomplete);
+  const markIncomplete = useMutation(
+    api.progress.mutations.markLessonIncomplete,
+  );
   const toggleFavorite = useMutation(api.favorites.toggleFavorite);
   const addRecentView = useMutation(api.recentViews.addView);
 
@@ -69,15 +67,11 @@ export function UnitsPage({
     return null;
   }, [firstUnitLessons, units]);
 
-  const [expandedUnits, setExpandedUnits] = useState<Set<string>>(
-    new Set(),
-  );
+  const [expandedUnits, setExpandedUnits] = useState<Set<string>>(new Set());
   const [currentLessonId, setCurrentLessonId] = useState<Id<"lessons"> | null>(
     null,
   );
-  const [currentUnitId, setCurrentUnitId] = useState<Id<"units"> | null>(
-    null,
-  );
+  const [currentUnitId, setCurrentUnitId] = useState<Id<"units"> | null>(null);
   const [nextUnitId, setNextUnitId] = useState<Id<"units"> | null>(null);
 
   // Video embed URL state
@@ -145,7 +139,10 @@ export function UnitsPage({
       setEmbedLoading(true);
       try {
         const libraryId = process.env.NEXT_PUBLIC_BUNNY_LIBRARY_ID || "566190";
-        const result = await getSignedEmbedUrl(currentLesson.videoId!, libraryId);
+        const result = await getSignedEmbedUrl(
+          currentLesson.videoId!,
+          libraryId,
+        );
         setEmbedUrl(result.embedUrl);
       } catch (error) {
         console.error("Error fetching embed URL:", error);
@@ -175,27 +172,27 @@ export function UnitsPage({
   };
 
   // Move handleLessonClick before the effect that uses it
-  const handleLessonClick = useCallback(async (
-    lessonId: Id<"lessons">,
-    unitId: Id<"units">,
-  ) => {
-    setCurrentLessonId(lessonId);
-    setCurrentUnitId(unitId);
+  const handleLessonClick = useCallback(
+    async (lessonId: Id<"lessons">, unitId: Id<"units">) => {
+      setCurrentLessonId(lessonId);
+      setCurrentUnitId(unitId);
 
-    // Register the view
-    if (user?.id) {
-      try {
-        await addRecentView({
-          userId: user.id,
-          lessonId,
-          unitId,
-          action: "started",
-        });
-      } catch (error) {
-        console.error("Error adding recent view:", error);
+      // Register the view
+      if (user?.id) {
+        try {
+          await addRecentView({
+            userId: user.id,
+            lessonId,
+            unitId,
+            action: "started",
+          });
+        } catch (error) {
+          console.error("Error adding recent view:", error);
+        }
       }
-    }
-  }, [user, addRecentView]);
+    },
+    [user, addRecentView],
+  );
 
   // Handle transition to first lesson of next unit
   useEffect(() => {
@@ -254,7 +251,7 @@ export function UnitsPage({
 
     // Find current lesson index in current unit
     const currentLessonIndex = currentUnitLessons.findIndex(
-      (lesson) => lesson._id === currentLessonId
+      (lesson) => lesson._id === currentLessonId,
     );
 
     if (currentLessonIndex === -1) return;
@@ -266,9 +263,7 @@ export function UnitsPage({
       await handleLessonClick(nextLesson._id, currentUnitId);
     } else {
       // Current lesson is the last in unit, try to go to first lesson of next unit
-      const currentUnitIndex = units.findIndex(
-        (u) => u._id === currentUnitId
-      );
+      const currentUnitIndex = units.findIndex((u) => u._id === currentUnitId);
 
       if (currentUnitIndex === -1 || currentUnitIndex >= units.length - 1) {
         // This is the last unit, no next lesson
@@ -285,13 +280,15 @@ export function UnitsPage({
   };
 
   const isLessonCompleted = allUserProgress?.some(
-    (p: { lessonId: Id<"lessons">; completed: boolean }) => p.lessonId === currentLessonId && p.completed,
+    (p: { lessonId: Id<"lessons">; completed: boolean }) =>
+      p.lessonId === currentLessonId && p.completed,
   );
 
   // Calculate category progress - only for units in this category
   const totalCompletedLessons = units.reduce((acc, unit) => {
     const unitProgress = allUnitsProgress?.find(
-      (p: { unitId: Id<"units">; completedLessonsCount: number }) => p.unitId === unit._id
+      (p: { unitId: Id<"units">; completedLessonsCount: number }) =>
+        p.unitId === unit._id,
     );
     return acc + (unitProgress?.completedLessonsCount || 0);
   }, 0);
@@ -303,7 +300,10 @@ export function UnitsPage({
 
   const globalProgressPercent =
     totalLessonsCount > 0
-      ? Math.min(100, Math.round((totalCompletedLessons / totalLessonsCount) * 100))
+      ? Math.min(
+          100,
+          Math.round((totalCompletedLessons / totalLessonsCount) * 100),
+        )
       : 0;
 
   if (units.length === 0) {
@@ -319,7 +319,9 @@ export function UnitsPage({
   return (
     <div className="min-h-screen bg-white relative">
       {/* Sidebar trigger - follows sidebar position */}
-      <SidebarTrigger className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-blue-brand hover:text-blue-brand-dark hover:bg-blue-brand-light transition-[left] duration-200 ease-linear z-10 ${state === 'collapsed' ? 'left-[calc(var(--sidebar-width-icon)+0.25rem)]' : 'left-[calc(var(--sidebar-width)+0.25rem)]'}`} />
+      <SidebarTrigger
+        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-blue-brand hover:text-blue-brand-dark hover:bg-blue-brand-light transition-[left] duration-200 ease-linear z-10 ${state === "collapsed" ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]" : "left-[calc(var(--sidebar-width)+0.25rem)]"}`}
+      />
 
       {/* Header */}
       <div className="py-4 px-6 flex items-center gap-4 border-b">
@@ -400,27 +402,37 @@ export function UnitsPage({
                       <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
                         <div className="text-center">
                           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900 mx-auto mb-3" />
-                          <p className="text-gray-600 text-sm">Carregando vídeo...</p>
+                          <p className="text-gray-600 text-sm">
+                            Carregando vídeo...
+                          </p>
                         </div>
                       </div>
                     ) : embedUrl ? (
                       <VideoPlayerWithWatermark
                         embedUrl={embedUrl}
-                        userName={user?.fullName || user?.firstName || "Usuário"}
+                        userName={
+                          user?.fullName || user?.firstName || "Usuário"
+                        }
                         userCpf={
-                          (user?.publicMetadata?.cpf as string) || "000.000.000-00"
+                          (user?.publicMetadata?.cpf as string) ||
+                          "000.000.000-00"
                         }
                       />
                     ) : (
                       <div className="aspect-video bg-red-50 rounded-lg flex items-center justify-center">
-                        <p className="text-red-600 text-sm">Erro ao carregar vídeo</p>
+                        <p className="text-red-600 text-sm">
+                          Erro ao carregar vídeo
+                        </p>
                       </div>
                     )}
                   </div>
                 ) : (
                   <div className="bg-black rounded-lg aspect-video flex items-center justify-center mb-6">
                     <div className="text-center">
-                      <PlayCircleIcon size={64} className="text-white/50 mb-2" />
+                      <PlayCircleIcon
+                        size={64}
+                        className="text-white/50 mb-2"
+                      />
                       <p className="text-white/70 text-sm">
                         Vídeo ainda não disponível
                       </p>
@@ -486,7 +498,9 @@ export function UnitsPage({
               <div className="hidden md:block px-6">
                 {/* Título e Descrição */}
                 <div className="mb-6">
-                  <h2 className="text-2xl font-bold mb-3">{currentLesson.title}</h2>
+                  <h2 className="text-2xl font-bold mb-3">
+                    {currentLesson.title}
+                  </h2>
                   <p className="text-base text-muted-foreground mb-6">
                     {currentLesson.description}
                   </p>
@@ -515,14 +529,20 @@ export function UnitsPage({
                           variant={isLessonCompleted ? "outline" : "default"}
                           className={cn(
                             "flex-1 lg:flex-none lg:min-w-[160px]",
-                            isLessonCompleted && "bg-white text-green-600 hover:bg-green-50 border-green-600 border-2"
+                            isLessonCompleted &&
+                              "bg-white text-green-600 hover:bg-green-50 border-green-600 border-2",
                           )}
                         >
                           <CheckCircleIcon
                             size={18}
-                            className={cn("mr-2", isLessonCompleted && "text-green-600")}
+                            className={cn(
+                              "mr-2",
+                              isLessonCompleted && "text-green-600",
+                            )}
                           />
-                          {isLessonCompleted ? "Concluída" : "Marcar como concluída"}
+                          {isLessonCompleted
+                            ? "Concluída"
+                            : "Marcar como concluída"}
                         </Button>
                         <Button
                           onClick={handleToggleFavorite}
@@ -531,7 +551,9 @@ export function UnitsPage({
                         >
                           <StarIcon
                             size={18}
-                            className={cn(isFavorited && "fill-yellow-500 text-yellow-500")}
+                            className={cn(
+                              isFavorited && "fill-yellow-500 text-yellow-500",
+                            )}
                           />
                         </Button>
                       </div>

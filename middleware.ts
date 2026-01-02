@@ -7,7 +7,7 @@ const isProtectedRoute = createRouteMatcher([
   "/course(.*)",
   "/favorites(.*)",
   "/profile(.*)",
-  "/purchase(.*)",  // Precisa estar logado para ver página de compra
+  "/purchase(.*)", // Precisa estar logado para ver página de compra
   "/server(.*)",
   "/units(.*)",
 ]);
@@ -26,7 +26,6 @@ export default clerkMiddleware(async (auth, req) => {
   return NextResponse.next();
 });
 
-  
 export const config = {
   matcher: [
     // Skip Next.js internals and all static files, unless found in search params
@@ -35,4 +34,3 @@ export const config = {
     "/(api|trpc)(.*)",
   ],
 };
-

@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   Dialog,
@@ -6,14 +6,14 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface ErrorModalProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  title?: string
-  message: string
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title?: string;
+  message: string;
 }
 
 export function ErrorModal({
@@ -43,5 +43,5 @@ export function ErrorModal({
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

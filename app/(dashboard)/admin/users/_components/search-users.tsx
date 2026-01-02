@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { Search, X } from 'lucide-react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useState } from 'react';
+import { Search, X } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 
 function SearchUsersContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const currentSearch = searchParams.get('search') || '';
+  const currentSearch = searchParams.get("search") || "";
   const [searchTerm, setSearchTerm] = useState(currentSearch);
 
   // Update local state when URL parameters change
@@ -41,13 +41,13 @@ function SearchUsersContent() {
             type="text"
             placeholder="Pesquisar usuários por nome ou email..."
             value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="border-input bg-background focus-visible:ring-ring w-full rounded-md border py-2 pr-4 pl-10 shadow-sm focus-visible:ring-1 focus-visible:outline-none"
           />
           {searchTerm && (
             <button
               type="button"
-              onClick={() => setSearchTerm('')}
+              onClick={() => setSearchTerm("")}
               className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
               aria-label="Limpar pesquisa"
             >

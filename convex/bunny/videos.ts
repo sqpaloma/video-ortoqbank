@@ -30,7 +30,9 @@ export const createVideo = action({
     const libraryId = process.env.BUNNY_LIBRARY_ID;
 
     if (!apiKey || !libraryId) {
-      throw new Error("Bunny credentials not configured (BUNNY_API_KEY, BUNNY_LIBRARY_ID)");
+      throw new Error(
+        "Bunny credentials not configured (BUNNY_API_KEY, BUNNY_LIBRARY_ID)",
+      );
     }
 
     // Create video slot in Bunny
@@ -43,7 +45,7 @@ export const createVideo = action({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ title: args.title }),
-      }
+      },
     );
 
     if (!response.ok) {

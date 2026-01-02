@@ -1,23 +1,23 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface ConfirmModalProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  title?: string
-  message: string
-  onConfirm: () => void | Promise<void>
-  confirmText?: string
-  cancelText?: string
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title?: string;
+  message: string;
+  onConfirm: () => void | Promise<void>;
+  confirmText?: string;
+  cancelText?: string;
 }
 
 export function ConfirmModal({
@@ -29,46 +29,50 @@ export function ConfirmModal({
   confirmText = "Confirmar",
   cancelText = "Cancelar",
 }: ConfirmModalProps) {
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const mountedRef = useRef(true)
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const mountedRef = useRef(true);
 
   // Reset state when modal opens
   useEffect(() => {
     if (open) {
-      setLoading(false)
-      setError(null)
+      setLoading(false);
+      setError(null);
     }
-  }, [open])
+  }, [open]);
 
   // Track mount status
   useEffect(() => {
-    mountedRef.current = true
+    mountedRef.current = true;
     return () => {
-      mountedRef.current = false
-    }
-  }, [])
+      mountedRef.current = false;
+    };
+  }, []);
 
   const handleConfirm = async () => {
-    if (!mountedRef.current) return
-    
-    setLoading(true)
-    setError(null)
+    if (!mountedRef.current) return;
+
+    setLoading(true);
+    setError(null);
     try {
-      await onConfirm()
+      await onConfirm();
       if (mountedRef.current) {
-        onOpenChange(false)
+        onOpenChange(false);
       }
     } catch (err) {
       if (mountedRef.current) {
-        setError(err instanceof Error ? err.message : "Ocorreu um erro ao confirmar a ação")
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Ocorreu um erro ao confirmar a ação",
+        );
       }
     } finally {
       if (mountedRef.current) {
-        setLoading(false)
+        setLoading(false);
       }
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -107,5 +111,5 @@ export function ConfirmModal({
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

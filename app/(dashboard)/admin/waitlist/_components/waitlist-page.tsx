@@ -1,23 +1,23 @@
-'use client';
+"use client";
 
-import { useQuery } from 'convex/react';
-import { useState } from 'react';
-import * as XLSX from 'xlsx';
+import { useQuery } from "convex/react";
+import { useState } from "react";
+import * as XLSX from "xlsx";
 
-import { api } from '@/convex/_generated/api';
-import { WaitlistSearch } from './waitlist-search';
-import { WaitlistTable } from './waitlist-table';
-import { Button } from '@/components/ui/button';
-import { ArrowLeftIcon } from 'lucide-react';
-import Link from 'next/link';
+import { api } from "@/convex/_generated/api";
+import { WaitlistSearch } from "./waitlist-search";
+import { WaitlistTable } from "./waitlist-table";
+import { Button } from "@/components/ui/button";
+import { ArrowLeftIcon } from "lucide-react";
+import Link from "next/link";
 
 export function WaitlistPage() {
-  const [searchInput, setSearchInput] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const entries = useQuery(api.waitlist.list);
   const isLoading = entries === undefined;
 
-  const filteredEntries = (entries ?? []).filter(entry => {
+  const filteredEntries = (entries ?? []).filter((entry) => {
     if (!searchQuery.trim()) return true;
     const search = searchQuery.toLowerCase();
     return (
@@ -35,20 +35,20 @@ export function WaitlistPage() {
   function handleExportToExcel() {
     if (!entries || entries.length === 0) return;
 
-    const excelData = filteredEntries.map(entry => ({
+    const excelData = filteredEntries.map((entry) => ({
       Nome: entry.name,
       Email: entry.email,
       WhatsApp: entry.whatsapp,
-      Instagram: entry.instagram ?? '',
-      'Nivel Residencia': entry.residencyLevel,
+      Instagram: entry.instagram ?? "",
+      "Nivel Residencia": entry.residencyLevel,
       Subespecialidade: entry.subspecialty,
     }));
 
     const ws = XLSX.utils.json_to_sheet(excelData);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Lista de Espera');
+    XLSX.utils.book_append_sheet(wb, ws, "Lista de Espera");
 
-    const date = new Date().toISOString().split('T')[0];
+    const date = new Date().toISOString().split("T")[0];
     const fileName = `waitlist-ortoqbank-${date}.xlsx`;
 
     XLSX.writeFile(wb, fileName);
@@ -75,7 +75,7 @@ export function WaitlistPage() {
 
       <p className="text-sm text-muted-foreground">
         {isLoading
-          ? 'Carregando...'
+          ? "Carregando..."
           : searchQuery.trim()
             ? `Mostrando ${filteredEntries.length} resultado(s) da busca.`
             : `Total de ${(entries ?? []).length} inscricao(oes) na lista de espera.`}

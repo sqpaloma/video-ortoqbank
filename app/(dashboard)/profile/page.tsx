@@ -18,20 +18,15 @@ export default async function ProfilePage() {
   // Pré-carregar queries que precisam de userId (se autenticado)
   const preloadedRecentViews = userId
     ? await preloadQuery(
-      api.recentViews.getRecentViewsWithDetails,
-      { userId, limit: 3 },
-      token ? { token } : undefined
-    ).catch((error) => {
-      console.error("Failed to preload recent views:", error);
-      return null;
-    })
+        api.recentViews.getRecentViewsWithDetails,
+        { userId, limit: 3 },
+        token ? { token } : undefined,
+      ).catch((error) => {
+        console.error("Failed to preload recent views:", error);
+        return null;
+      })
     : null;
 
   // Return JSX outside of try-catch to follow React rules
-  return (
-    <ProfileInner
-      preloadedRecentViews={preloadedRecentViews}
-    />
-  );
+  return <ProfileInner preloadedRecentViews={preloadedRecentViews} />;
 }
-

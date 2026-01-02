@@ -10,7 +10,9 @@ export const seedVideos = mutation({
   args: {},
   returns: v.null(),
   handler: async () => {
-    console.log("⚠️  Esta função está depreciada. Use seedLessons() ou seedAll() em vez disso.");
+    console.log(
+      "⚠️  Esta função está depreciada. Use seedLessons() ou seedAll() em vez disso.",
+    );
     console.log("A estrutura agora é: Categories -> Units -> Lessons");
     return null;
   },
@@ -24,7 +26,9 @@ export const clearUserData = mutation({
   args: {},
   returns: v.null(),
   handler: async () => {
-    console.log("⚠️  Esta função está depreciada. A tabela 'progress' foi removida.");
+    console.log(
+      "⚠️  Esta função está depreciada. A tabela 'progress' foi removida.",
+    );
     return null;
   },
 });
@@ -37,7 +41,9 @@ export const clearVideos = mutation({
   args: {},
   returns: v.null(),
   handler: async () => {
-    console.log("⚠️  Esta função está depreciada. Use clearLessons() ou clearAll() em vez disso.");
+    console.log(
+      "⚠️  Esta função está depreciada. Use clearLessons() ou clearAll() em vez disso.",
+    );
     console.log("A estrutura agora é: Categories -> Units -> Lessons");
     return null;
   },
@@ -61,42 +67,48 @@ export const seedCategories = internalMutation({
       {
         title: "Ciências Básicas em Ortopedia",
         slug: "ciencias-basicas-em-ortopedia",
-        description: "Fundamentos anatômicos, biomecânicos e fisiológicos aplicados à ortopedia",
+        description:
+          "Fundamentos anatômicos, biomecânicos e fisiológicos aplicados à ortopedia",
         position: 1,
         isPublished: true,
       },
       {
         title: "Trauma Ortopédico",
         slug: "trauma-ortopedico",
-        description: "Avaliação e tratamento de fraturas, luxações e lesões traumáticas",
+        description:
+          "Avaliação e tratamento de fraturas, luxações e lesões traumáticas",
         position: 2,
         isPublished: true,
       },
       {
         title: "Cirurgia de Mão",
         slug: "cirurgia-de-mao",
-        description: "Anatomia, patologias e técnicas cirúrgicas da mão e punho",
+        description:
+          "Anatomia, patologias e técnicas cirúrgicas da mão e punho",
         position: 3,
         isPublished: true,
       },
       {
         title: "Artroscopia",
         slug: "artroscopia",
-        description: "Técnicas minimamente invasivas para diagnóstico e tratamento articular",
+        description:
+          "Técnicas minimamente invasivas para diagnóstico e tratamento articular",
         position: 4,
         isPublished: true,
       },
       {
         title: "Coluna Vertebral",
         slug: "coluna-vertebral",
-        description: "Patologias da coluna e técnicas de tratamento conservador e cirúrgico",
+        description:
+          "Patologias da coluna e técnicas de tratamento conservador e cirúrgico",
         position: 5,
         isPublished: true,
       },
       {
         title: "Ortopedia Pediátrica",
         slug: "ortopedia-pediatrica",
-        description: "Alterações musculoesqueléticas na infância e adolescência",
+        description:
+          "Alterações musculoesqueléticas na infância e adolescência",
         position: 6,
         isPublished: true,
       },
@@ -110,14 +122,16 @@ export const seedCategories = internalMutation({
       {
         title: "Tumores Músculoesqueléticos",
         slug: "tumores-musculoesqueleticos",
-        description: "Diagnóstico e tratamento de tumores ósseos e de partes moles",
+        description:
+          "Diagnóstico e tratamento de tumores ósseos e de partes moles",
         position: 8,
         isPublished: true,
       },
       {
         title: "Reconstrução Articular",
         slug: "reconstrucao-articular",
-        description: "Artroplastias e procedimentos reconstrutivos das articulações",
+        description:
+          "Artroplastias e procedimentos reconstrutivos das articulações",
         position: 9,
         isPublished: true,
       },
@@ -162,9 +176,11 @@ export const seedUnits = internalMutation({
 
     // Get categories first
     const categories = await ctx.db.query("categories").collect();
-    
+
     if (categories.length === 0) {
-      throw new Error("Você precisa criar categorias primeiro. Execute seedCategories()");
+      throw new Error(
+        "Você precisa criar categorias primeiro. Execute seedCategories()",
+      );
     }
 
     // Create 2-3 units for each category
@@ -176,7 +192,8 @@ export const seedUnits = internalMutation({
           {
             title: "Anatomia do Sistema Musculoesquelético",
             slug: "anatomia-do-sistema-musculoesqueletico",
-            description: "Estudo detalhado da anatomia óssea, articular e muscular",
+            description:
+              "Estudo detalhado da anatomia óssea, articular e muscular",
             order_index: 0,
           },
           {
@@ -194,13 +211,15 @@ export const seedUnits = internalMutation({
           {
             title: "Fraturas de Membros Superiores",
             slug: "fraturas-de-membros-superiores",
-            description: "Avaliação e tratamento de fraturas do membro superior",
+            description:
+              "Avaliação e tratamento de fraturas do membro superior",
             order_index: 0,
           },
           {
             title: "Fraturas de Membros Inferiores",
             slug: "fraturas-de-membros-inferiores",
-            description: "Avaliação e tratamento de fraturas do membro inferior",
+            description:
+              "Avaliação e tratamento de fraturas do membro inferior",
             order_index: 1,
           },
         ],
@@ -226,8 +245,10 @@ export const seedUnits = internalMutation({
     ];
 
     for (const categoryData of unitsData) {
-      const category = categories.find(c => c.slug === categoryData.categorySlug);
-      
+      const category = categories.find(
+        (c) => c.slug === categoryData.categorySlug,
+      );
+
       if (category) {
         for (const unitData of categoryData.units) {
           await ctx.db.insert("units", {
@@ -282,15 +303,17 @@ export const seedLessons = internalMutation({
 
     // Get units first
     const units = await ctx.db.query("units").collect();
-    
+
     if (units.length === 0) {
-      throw new Error("Você precisa criar unidades primeiro. Execute seedUnits()");
+      throw new Error(
+        "Você precisa criar unidades primeiro. Execute seedUnits()",
+      );
     }
 
     // Create 3-5 lessons for each unit
     for (const unit of units) {
       const numLessons = 4; // 4 aulas por unidade
-      
+
       for (let i = 1; i <= numLessons; i++) {
         await ctx.db.insert("lessons", {
           unitId: unit._id,
@@ -298,7 +321,7 @@ export const seedLessons = internalMutation({
           title: `${unit.title} - Aula ${i}`,
           slug: `${unit.slug}-aula-${i}`,
           description: `Nesta aula você vai aprender conceitos importantes sobre ${unit.title.toLowerCase()}. Vamos explorar os fundamentos e aplicações práticas.`,
-          durationSeconds: 600 + (i * 120), // 10 min + 2 min por aula
+          durationSeconds: 600 + i * 120, // 10 min + 2 min por aula
           order_index: i,
           lessonNumber: i,
           isPublished: true,
@@ -415,7 +438,7 @@ export const migrateCategories = internalMutation({
   returns: v.null(),
   handler: async (ctx) => {
     const categories = await ctx.db.query("categories").collect();
-    
+
     for (const category of categories) {
       if (category.isPublished === undefined) {
         await ctx.db.patch(category._id, {
@@ -423,7 +446,7 @@ export const migrateCategories = internalMutation({
         });
       }
     }
-    
+
     return null;
   },
 });
@@ -436,7 +459,7 @@ export const migrateUnits = internalMutation({
   returns: v.null(),
   handler: async (ctx) => {
     const units = await ctx.db.query("units").collect();
-    
+
     for (const unit of units) {
       if (unit.isPublished === undefined) {
         await ctx.db.patch(unit._id, {
@@ -444,7 +467,7 @@ export const migrateUnits = internalMutation({
         });
       }
     }
-    
+
     return null;
   },
 });
@@ -457,7 +480,7 @@ export const cleanOrphanLessons = internalMutation({
   returns: v.null(),
   handler: async (ctx) => {
     const lessons = await ctx.db.query("lessons").collect();
-    
+
     for (const lesson of lessons) {
       // Verificar se o unidade pai existe
       const unit = await ctx.db.get(lesson.unitId);
@@ -465,7 +488,7 @@ export const cleanOrphanLessons = internalMutation({
         await ctx.db.delete(lesson._id);
       }
     }
-    
+
     return null;
   },
 });
@@ -478,11 +501,11 @@ export const deleteAllLessons = internalMutation({
   returns: v.null(),
   handler: async (ctx) => {
     const lessons = await ctx.db.query("lessons").collect();
-    
+
     for (const lesson of lessons) {
       await ctx.db.delete(lesson._id);
     }
-    
+
     return null;
   },
 });
@@ -503,11 +526,11 @@ export const debugDatabase = internalQuery({
     const units = await ctx.db.query("units").collect();
     const lessons = await ctx.db.query("lessons").collect();
 
-    const orphanedLessons = lessons.filter(l => {
-      const unit = units.find(m => m._id === l.unitId);
+    const orphanedLessons = lessons.filter((l) => {
+      const unit = units.find((m) => m._id === l.unitId);
       return !unit;
     });
-    
+
     return {
       categories: categories.length,
       units: units.length,
@@ -680,4 +703,3 @@ export const clearEverything = internalMutation({
     return null;
   },
 });
-

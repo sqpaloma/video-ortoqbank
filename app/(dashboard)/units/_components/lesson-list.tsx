@@ -3,7 +3,12 @@
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { ChevronDownIcon, ChevronRightIcon, CheckCircleIcon, CircleIcon } from "lucide-react";
+import {
+  ChevronDownIcon,
+  ChevronRightIcon,
+  CheckCircleIcon,
+  CircleIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LessonListProps {
@@ -33,12 +38,13 @@ export function LessonList({
   // Load lessons for this unit (only published)
   const lessons = useQuery(
     api.lessons.listPublishedByUnit,
-    isExpanded ? { unitId } : "skip"
+    isExpanded ? { unitId } : "skip",
   );
 
-  const completedCount = lessons?.filter((lesson) =>
-    userProgress?.some((p) => p.lessonId === lesson._id && p.completed)
-  ).length || 0;
+  const completedCount =
+    lessons?.filter((lesson) =>
+      userProgress?.some((p) => p.lessonId === lesson._id && p.completed),
+    ).length || 0;
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -76,7 +82,7 @@ export function LessonList({
           ) : (
             lessons.map((lesson) => {
               const isCompleted = userProgress?.some(
-                (p) => p.lessonId === lesson._id && p.completed
+                (p) => p.lessonId === lesson._id && p.completed,
               );
               const isActive = currentLessonId === lesson._id;
 
@@ -86,16 +92,27 @@ export function LessonList({
                   onClick={() => onLessonClick(lesson._id)}
                   className={cn(
                     "w-full p-3 flex items-start gap-3 hover:bg-blue-50 transition-colors border-b last:border-b-0",
-                    isActive && "bg-blue-50 border-l-4 border-l-primary"
+                    isActive && "bg-blue-50 border-l-4 border-l-primary",
                   )}
                 >
                   {isCompleted ? (
-                    <CheckCircleIcon size={18} className="text-green-600 shrink-0 mt-0.5" />
+                    <CheckCircleIcon
+                      size={18}
+                      className="text-green-600 shrink-0 mt-0.5"
+                    />
                   ) : (
-                    <CircleIcon size={18} className="text-gray-400 shrink-0 mt-0.5" />
+                    <CircleIcon
+                      size={18}
+                      className="text-gray-400 shrink-0 mt-0.5"
+                    />
                   )}
                   <div className="flex-1 text-left">
-                    <p className={cn("text-sm", isActive && "font-semibold text-primary")}>
+                    <p
+                      className={cn(
+                        "text-sm",
+                        isActive && "font-semibold text-primary",
+                      )}
+                    >
                       {lesson.title}
                     </p>
                     <p className="text-xs text-muted-foreground mt-0.5">
@@ -111,4 +128,3 @@ export function LessonList({
     </div>
   );
 }
-

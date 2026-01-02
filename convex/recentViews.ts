@@ -14,7 +14,11 @@ export const addView = mutation({
     userId: v.string(),
     lessonId: v.id("lessons"),
     unitId: v.id("units"),
-    action: v.union(v.literal("started"), v.literal("resumed"), v.literal("completed")),
+    action: v.union(
+      v.literal("started"),
+      v.literal("resumed"),
+      v.literal("completed"),
+    ),
   },
   returns: v.id("recentViews"),
   handler: async (ctx, args) => {
@@ -50,7 +54,7 @@ export const clearOldViews = mutation({
       .collect();
 
     const viewsToDelete = allViews.slice(args.keepCount);
-    
+
     for (const view of viewsToDelete) {
       await ctx.db.delete(view._id);
     }
@@ -89,8 +93,12 @@ export const getRecentViews = query({
       lessonId: v.id("lessons"),
       unitId: v.id("units"),
       viewedAt: v.number(),
-      action: v.union(v.literal("started"), v.literal("resumed"), v.literal("completed")),
-    })
+      action: v.union(
+        v.literal("started"),
+        v.literal("resumed"),
+        v.literal("completed"),
+      ),
+    }),
   ),
   handler: async (ctx, args) => {
     const limit = args.limit || 10;
@@ -115,7 +123,11 @@ export const getRecentViewsWithDetails = query({
       _id: v.id("recentViews"),
       _creationTime: v.number(),
       viewedAt: v.number(),
-      action: v.union(v.literal("started"), v.literal("resumed"), v.literal("completed")),
+      action: v.union(
+        v.literal("started"),
+        v.literal("resumed"),
+        v.literal("completed"),
+      ),
       isCompleted: v.boolean(),
       lesson: v.object({
         _id: v.id("lessons"),
@@ -157,7 +169,7 @@ export const getRecentViewsWithDetails = query({
         iconUrl: v.optional(v.string()),
         isPublished: v.boolean(),
       }),
-    })
+    }),
   ),
   handler: async (ctx, args) => {
     const limit = args.limit || 10;
@@ -171,7 +183,7 @@ export const getRecentViewsWithDetails = query({
       .take(50);
 
     // Group by lessonId and keep only most recent view per lesson
-    const lessonViewMap = new Map<string, typeof allViews[0]>();
+    const lessonViewMap = new Map<string, (typeof allViews)[0]>();
     for (const view of allViews) {
       if (!lessonViewMap.has(view.lessonId)) {
         lessonViewMap.set(view.lessonId, view);
@@ -187,31 +199,35 @@ export const getRecentViewsWithDetails = query({
 
     // Batch 1: Get all lessons
     const lessons = await Promise.all(
-      uniqueViews.map(v => ctx.db.get(v.lessonId))
+      uniqueViews.map((v) => ctx.db.get(v.lessonId)),
     );
-    const validLessons = lessons.filter((l): l is NonNullable<typeof l> => l !== null);
+    const validLessons = lessons.filter(
+      (l): l is NonNullable<typeof l> => l !== null,
+    );
 
     // Batch 2: Get all units
     const units = await Promise.all(
-      validLessons.map(l => ctx.db.get(l.unitId))
+      validLessons.map((l) => ctx.db.get(l.unitId)),
     );
-    const validUnits = units.filter((u): u is NonNullable<typeof u> => u !== null);
+    const validUnits = units.filter(
+      (u): u is NonNullable<typeof u> => u !== null,
+    );
 
     // Batch 3: Get all categories
     const categories = await Promise.all(
-      validUnits.map(u => ctx.db.get(u.categoryId))
+      validUnits.map((u) => ctx.db.get(u.categoryId)),
     );
 
     // Batch 4: Get all progress in parallel
     const progressResults = await Promise.all(
-      uniqueViews.map(v =>
+      uniqueViews.map((v) =>
         ctx.db
           .query("userProgress")
           .withIndex("by_userId_and_lessonId", (q) =>
-            q.eq("userId", args.userId).eq("lessonId", v.lessonId)
+            q.eq("userId", args.userId).eq("lessonId", v.lessonId),
           )
-          .unique()
-      )
+          .unique(),
+      ),
     );
 
     // Build result
@@ -221,21 +237,21 @@ export const getRecentViewsWithDetails = query({
       const lesson = lessons[i];
       if (!lesson) continue;
 
-      const unit = units.find(u => u?._id === lesson.unitId);
+      const unit = units.find((u) => u?._id === lesson.unitId);
       if (!unit) continue;
 
-      const category = categories.find(c => c?._id === unit.categoryId);
+      const category = categories.find((c) => c?._id === unit.categoryId);
       if (!category) continue;
 
       result.push({
-          _id: view._id,
-          _creationTime: view._creationTime,
-          viewedAt: view.viewedAt,
-          action: view.action,
+        _id: view._id,
+        _creationTime: view._creationTime,
+        viewedAt: view.viewedAt,
+        action: view.action,
         isCompleted: progressResults[i]?.completed || false,
-          lesson,
-          unit,
-          category,
+        lesson,
+        unit,
+        category,
       });
     }
 
@@ -256,15 +272,19 @@ export const getLastViewForLesson = query({
       lessonId: v.id("lessons"),
       unitId: v.id("units"),
       viewedAt: v.number(),
-      action: v.union(v.literal("started"), v.literal("resumed"), v.literal("completed")),
+      action: v.union(
+        v.literal("started"),
+        v.literal("resumed"),
+        v.literal("completed"),
+      ),
     }),
-    v.null()
+    v.null(),
   ),
   handler: async (ctx, args) => {
     const views = await ctx.db
       .query("recentViews")
       .withIndex("by_userId_and_lessonId", (q) =>
-        q.eq("userId", args.userId).eq("lessonId", args.lessonId)
+        q.eq("userId", args.userId).eq("lessonId", args.lessonId),
       )
       .order("desc")
       .first();
@@ -282,7 +302,7 @@ export const getUniqueViewedLessonsCount = query({
       .withIndex("by_userId", (q) => q.eq("userId", args.userId))
       .take(100);
 
-    const uniqueLessonIds = new Set(views.map(v => v.lessonId));
+    const uniqueLessonIds = new Set(views.map((v) => v.lessonId));
     return uniqueLessonIds.size;
   },
 });

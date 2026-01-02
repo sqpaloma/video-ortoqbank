@@ -33,4 +33,4 @@ describe("CategoryForm", () => {
     expect(screen.getByText("Descrição")).toBeInTheDocument();
     expect(screen.getByText("Limpar")).toBeInTheDocument();
   });
-}); 
+});

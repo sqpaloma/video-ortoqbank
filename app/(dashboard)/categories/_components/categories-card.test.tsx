@@ -9,7 +9,7 @@ describe("CategoriesCard", () => {
       <CategoriesCard
         title="Test Category"
         description="This is a test category description"
-      />
+      />,
     );
 
     const title = screen.getByText("Test Category");
@@ -28,10 +28,12 @@ describe("CategoriesCard", () => {
         title="Test Category"
         description="Test description"
         onClick={mockOnClick}
-      />
+      />,
     );
 
-    const card = screen.getByText("Test Category").closest("div[data-slot='card']");
+    const card = screen
+      .getByText("Test Category")
+      .closest("div[data-slot='card']");
     if (card) {
       await user.click(card);
       expect(mockOnClick).toHaveBeenCalledTimes(1);
@@ -51,7 +53,7 @@ describe("CategoriesCard", () => {
         title="Test Category"
         description="Test description"
         imageUrl="/test-image.jpg"
-      />
+      />,
     );
 
     const image = screen.getByAltText("Test Category");
@@ -60,10 +62,7 @@ describe("CategoriesCard", () => {
 
   it("should render PlayCircle icon when imageUrl is not provided", () => {
     const { container } = render(
-      <CategoriesCard
-        title="Test Category"
-        description="Test description"
-      />
+      <CategoriesCard title="Test Category" description="Test description" />,
     );
 
     // The PlayCircle icon should be rendered when there's no image
@@ -73,15 +72,13 @@ describe("CategoriesCard", () => {
 
   it("should apply hover styles on card", () => {
     render(
-      <CategoriesCard
-        title="Test Category"
-        description="Test description"
-      />
+      <CategoriesCard title="Test Category" description="Test description" />,
     );
 
-    const card = screen.getByText("Test Category").closest("div[data-slot='card']");
+    const card = screen
+      .getByText("Test Category")
+      .closest("div[data-slot='card']");
     expect(card?.className).toContain("hover:shadow-md");
     expect(card?.className).toContain("hover:border-primary");
   });
 });
-

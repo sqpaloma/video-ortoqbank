@@ -4,7 +4,7 @@ import { query } from "./_generated/server";
 /**
  * Search for units and lessons by title/description
  * Uses .take() to limit results and batch gets for efficiency
- * 
+ *
  * Note: Full-text search indexes would be ideal here, but requires
  * defining searchIndex in schema. For now, we use optimized filtering.
  */
@@ -18,7 +18,7 @@ export const getSuggestions = query({
         description: v.string(),
         categoryId: v.id("categories"),
         categoryTitle: v.string(),
-      })
+      }),
     ),
     lessons: v.array(
       v.object({
@@ -29,12 +29,12 @@ export const getSuggestions = query({
         unitTitle: v.string(),
         categoryId: v.id("categories"),
         categoryTitle: v.string(),
-      })
+      }),
     ),
   }),
   handler: async (ctx, args) => {
     const searchQuery = args.query.toLowerCase().trim();
-    
+
     if (!searchQuery || searchQuery.length < 2) {
       return { units: [], lessons: [] };
     }
@@ -53,56 +53,56 @@ export const getSuggestions = query({
 
     // Filter units by search query
     const matchedUnits = units
-      .filter(unit => 
-        unit.title.toLowerCase().includes(searchQuery) ||
-        unit.description.toLowerCase().includes(searchQuery)
+      .filter(
+        (unit) =>
+          unit.title.toLowerCase().includes(searchQuery) ||
+          unit.description.toLowerCase().includes(searchQuery),
       )
       .slice(0, 5);
 
     // Filter lessons by search query
     const matchedLessons = lessons
-      .filter(lesson =>
-        lesson.title.toLowerCase().includes(searchQuery) ||
-        lesson.description.toLowerCase().includes(searchQuery)
+      .filter(
+        (lesson) =>
+          lesson.title.toLowerCase().includes(searchQuery) ||
+          lesson.description.toLowerCase().includes(searchQuery),
       )
       .slice(0, 5);
 
     // Batch get categories for units
-    const unitCategoryIds = [...new Set(matchedUnits.map(u => u.categoryId))];
+    const unitCategoryIds = [...new Set(matchedUnits.map((u) => u.categoryId))];
     const unitCategories = await Promise.all(
-      unitCategoryIds.map(id => ctx.db.get(id))
+      unitCategoryIds.map((id) => ctx.db.get(id)),
     );
     const unitCategoryMap = new Map(
-      unitCategories
-        .filter(c => c && c.isPublished)
-        .map(c => [c!._id, c!])
+      unitCategories.filter((c) => c && c.isPublished).map((c) => [c!._id, c!]),
     );
 
     // Batch get units for lessons
-    const lessonUnitIds = [...new Set(matchedLessons.map(l => l.unitId))];
+    const lessonUnitIds = [...new Set(matchedLessons.map((l) => l.unitId))];
     const lessonUnits = await Promise.all(
-      lessonUnitIds.map(id => ctx.db.get(id))
+      lessonUnitIds.map((id) => ctx.db.get(id)),
     );
     const lessonUnitMap = new Map(
-      lessonUnits.filter(u => u && u.isPublished).map(u => [u!._id, u!])
+      lessonUnits.filter((u) => u && u.isPublished).map((u) => [u!._id, u!]),
     );
 
     // Batch get categories for lesson units
     const lessonCategoryIds = [
-      ...new Set(lessonUnits.filter(u => u).map(u => u!.categoryId))
+      ...new Set(lessonUnits.filter((u) => u).map((u) => u!.categoryId)),
     ];
     const lessonCategories = await Promise.all(
-      lessonCategoryIds.map(id => ctx.db.get(id))
+      lessonCategoryIds.map((id) => ctx.db.get(id)),
     );
     const lessonCategoryMap = new Map(
       lessonCategories
-        .filter(c => c && c.isPublished)
-        .map(c => [c!._id, c!])
+        .filter((c) => c && c.isPublished)
+        .map((c) => [c!._id, c!]),
     );
 
     // Build final results with category titles
     const unitsWithCategories = matchedUnits
-      .map(unit => {
+      .map((unit) => {
         const category = unitCategoryMap.get(unit.categoryId);
         if (!category) return null;
         return {
@@ -116,7 +116,7 @@ export const getSuggestions = query({
       .filter((u): u is NonNullable<typeof u> => u !== null);
 
     const lessonsWithDetails = matchedLessons
-      .map(lesson => {
+      .map((lesson) => {
         const unit = lessonUnitMap.get(lesson.unitId);
         if (!unit) return null;
         const category = lessonCategoryMap.get(unit.categoryId);
@@ -156,11 +156,11 @@ export const searchCategories = query({
       position: v.number(),
       iconUrl: v.optional(v.string()),
       isPublished: v.boolean(),
-    })
+    }),
   ),
   handler: async (ctx, args) => {
     const searchQuery = args.query.toLowerCase().trim();
-    
+
     // If no query, return all published categories (limited)
     if (!searchQuery) {
       return await ctx.db
@@ -175,9 +175,10 @@ export const searchCategories = query({
       .withIndex("by_isPublished", (q) => q.eq("isPublished", true))
       .take(20);
 
-    return categories.filter(category =>
-      category.title.toLowerCase().includes(searchQuery) ||
-      category.description.toLowerCase().includes(searchQuery)
+    return categories.filter(
+      (category) =>
+        category.title.toLowerCase().includes(searchQuery) ||
+        category.description.toLowerCase().includes(searchQuery),
     );
   },
 });

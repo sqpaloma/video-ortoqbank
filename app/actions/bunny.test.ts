@@ -23,10 +23,11 @@ describe("bunny", () => {
 
   it("should return a signed embed url", async () => {
     const result = await getSignedEmbedUrl("123", "456");
-    
+
     expect(result).toEqual({
-      embedUrl: "https://iframe.mediadelivery.net/embed/456/123?token=mocked-token&expires=1234567890",
+      embedUrl:
+        "https://iframe.mediadelivery.net/embed/456/123?token=mocked-token&expires=1234567890",
       expires: 1234567890,
     });
   });
-}); 
+});

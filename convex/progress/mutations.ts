@@ -24,7 +24,7 @@ export const markLessonCompleted = mutation({
     const existingProgress = await ctx.db
       .query("userProgress")
       .withIndex("by_userId_and_lessonId", (q) =>
-        q.eq("userId", args.userId).eq("lessonId", args.lessonId)
+        q.eq("userId", args.userId).eq("lessonId", args.lessonId),
       )
       .unique();
 
@@ -58,19 +58,19 @@ export const markLessonCompleted = mutation({
     const unitProgressDoc = await ctx.db
       .query("unitProgress")
       .withIndex("by_userId_and_unitId", (q) =>
-        q.eq("userId", args.userId).eq("unitId", lesson.unitId)
+        q.eq("userId", args.userId).eq("unitId", lesson.unitId),
       )
       .unique();
 
     const completedLessonsInUnit = await ctx.db
       .query("userProgress")
       .withIndex("by_userId_and_unitId", (q) =>
-        q.eq("userId", args.userId).eq("unitId", lesson.unitId)
+        q.eq("userId", args.userId).eq("unitId", lesson.unitId),
       )
       .collect();
 
     const completedCount = completedLessonsInUnit.filter(
-      (p) => p.completed
+      (p) => p.completed,
     ).length;
     const progressPercent =
       unit.totalLessonVideos > 0
@@ -99,7 +99,7 @@ export const markLessonCompleted = mutation({
     const allCompletedLessons = await ctx.db
       .query("userProgress")
       .withIndex("by_userId_and_completed", (q) =>
-        q.eq("userId", args.userId).eq("completed", true)
+        q.eq("userId", args.userId).eq("completed", true),
       )
       .collect();
 
@@ -156,7 +156,7 @@ export const markLessonIncomplete = mutation({
     const existingProgress = await ctx.db
       .query("userProgress")
       .withIndex("by_userId_and_lessonId", (q) =>
-        q.eq("userId", args.userId).eq("lessonId", args.lessonId)
+        q.eq("userId", args.userId).eq("lessonId", args.lessonId),
       )
       .unique();
 
@@ -178,12 +178,12 @@ export const markLessonIncomplete = mutation({
       const completedLessonsInUnit = await ctx.db
         .query("userProgress")
         .withIndex("by_userId_and_unitId", (q) =>
-          q.eq("userId", args.userId).eq("unitId", lesson.unitId)
+          q.eq("userId", args.userId).eq("unitId", lesson.unitId),
         )
         .collect();
 
       const completedCount = completedLessonsInUnit.filter(
-        (p) => p.completed
+        (p) => p.completed,
       ).length;
       const progressPercent =
         unit.totalLessonVideos > 0
@@ -193,7 +193,7 @@ export const markLessonIncomplete = mutation({
       const unitProgressDoc = await ctx.db
         .query("unitProgress")
         .withIndex("by_userId_and_unitId", (q) =>
-          q.eq("userId", args.userId).eq("unitId", lesson.unitId)
+          q.eq("userId", args.userId).eq("unitId", lesson.unitId),
         )
         .unique();
 
@@ -210,7 +210,7 @@ export const markLessonIncomplete = mutation({
     const allCompletedLessons = await ctx.db
       .query("userProgress")
       .withIndex("by_userId_and_completed", (q) =>
-        q.eq("userId", args.userId).eq("completed", true)
+        q.eq("userId", args.userId).eq("completed", true),
       )
       .collect();
 
@@ -256,7 +256,7 @@ export const recalculateGlobalProgress = mutation({
     const allCompletedLessons = await ctx.db
       .query("userProgress")
       .withIndex("by_userId_and_completed", (q) =>
-        q.eq("userId", args.userId).eq("completed", true)
+        q.eq("userId", args.userId).eq("completed", true),
       )
       .collect();
 
@@ -315,16 +315,15 @@ export const saveVideoProgress = mutation({
     const now = Date.now();
 
     // Calculate if video should be marked as completed (>90%)
-    const progressPercent = args.durationSec > 0 
-      ? (args.currentTimeSec / args.durationSec) 
-      : 0;
+    const progressPercent =
+      args.durationSec > 0 ? args.currentTimeSec / args.durationSec : 0;
     const shouldComplete = progressPercent >= 0.9;
 
     // Check if progress exists
     const existingProgress = await ctx.db
       .query("userProgress")
       .withIndex("by_userId_and_lessonId", (q) =>
-        q.eq("userId", args.userId).eq("lessonId", args.lessonId)
+        q.eq("userId", args.userId).eq("lessonId", args.lessonId),
       )
       .unique();
 
@@ -348,12 +347,13 @@ export const saveVideoProgress = mutation({
     } else {
       // Update existing progress
       const wasCompleted = existingProgress.completed;
-      
+
       await ctx.db.patch(existingProgress._id, {
         currentTimeSec: args.currentTimeSec,
         durationSec: args.durationSec,
         completed: shouldComplete || wasCompleted,
-        completedAt: (shouldComplete && !wasCompleted) ? now : existingProgress.completedAt,
+        completedAt:
+          shouldComplete && !wasCompleted ? now : existingProgress.completedAt,
         updatedAt: now,
       });
 

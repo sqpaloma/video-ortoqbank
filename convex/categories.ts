@@ -15,7 +15,7 @@ export const list = query({
       position: v.number(),
       iconUrl: v.optional(v.string()),
       isPublished: v.boolean(),
-    })
+    }),
   ),
   handler: async (ctx) => {
     const categories = await ctx.db
@@ -41,7 +41,7 @@ export const listPublished = query({
       position: v.number(),
       iconUrl: v.optional(v.string()),
       isPublished: v.boolean(),
-    })
+    }),
   ),
   handler: async (ctx) => {
     const categories = await ctx.db
@@ -68,7 +68,7 @@ export const getById = query({
       iconUrl: v.optional(v.string()),
       isPublished: v.boolean(),
     }),
-    v.null()
+    v.null(),
   ),
   handler: async (ctx, args) => {
     const category = await ctx.db.get(args.id);
@@ -90,7 +90,7 @@ export const getBySlug = query({
       iconUrl: v.optional(v.string()),
       isPublished: v.boolean(),
     }),
-    v.null()
+    v.null(),
   ),
   handler: async (ctx, args) => {
     const category = await ctx.db
@@ -108,13 +108,13 @@ export const getBySlug = query({
  */
 async function getNextPosition(ctx: MutationCtx): Promise<number> {
   const COUNTER_ID = "global";
-  
+
   // Query for the counter document using unique index
   let counter = await ctx.db
     .query("categoryPositionCounter")
     .withIndex("by_counterId", (q) => q.eq("counterId", COUNTER_ID))
     .unique();
-  
+
   // Initialize counter if it doesn't exist
   if (!counter) {
     // Get current max position to initialize counter
@@ -124,7 +124,7 @@ async function getNextPosition(ctx: MutationCtx): Promise<number> {
       .order("desc")
       .first();
     const initialPosition = (maxPositionCategory?.position ?? 0) + 1;
-    
+
     // Try to create the counter
     try {
       await ctx.db.insert("categoryPositionCounter", {
@@ -137,32 +137,34 @@ async function getNextPosition(ctx: MutationCtx): Promise<number> {
         .query("categoryPositionCounter")
         .withIndex("by_counterId", (q) => q.eq("counterId", COUNTER_ID))
         .unique();
-      
+
       if (!counter) {
         throw new Error("Failed to initialize position counter");
       }
     }
-    
+
     // Re-query to get the counter (either we created it or another request did)
     counter = await ctx.db
       .query("categoryPositionCounter")
       .withIndex("by_counterId", (q) => q.eq("counterId", COUNTER_ID))
       .unique();
-    
+
     if (!counter) {
-      throw new Error("Failed to retrieve position counter after initialization");
+      throw new Error(
+        "Failed to retrieve position counter after initialization",
+      );
     }
   }
-  
+
   // Read current value and compute next
   const currentPosition = counter.nextPosition;
   const nextPosition = currentPosition + 1;
-  
+
   // Atomically update the counter using patch
   await ctx.db.patch(counter._id, {
     nextPosition: nextPosition,
   });
-  
+
   return nextPosition;
 }
 
@@ -189,16 +191,18 @@ export const create = mutation({
     if (args.title.trim().length < 3) {
       throw new Error("Título deve ter pelo menos 3 caracteres");
     }
-    
+
     if (args.description.trim().length < 10) {
       throw new Error("Descrição deve ter pelo menos 10 caracteres");
     }
 
     // Auto-generate slug from title
     const slug = generateSlug(args.title);
-    
+
     if (slug.length < 3) {
-      throw new Error("Não foi possível gerar um slug válido a partir do título");
+      throw new Error(
+        "Não foi possível gerar um slug válido a partir do título",
+      );
     }
 
     // Verificar se já existe uma categoria com o mesmo slug
@@ -227,11 +231,15 @@ export const create = mutation({
     // Final verification: ensure our inserted category has the expected position
     const insertedCategory = await ctx.db.get(categoryId);
     if (!insertedCategory || insertedCategory.position !== nextPosition) {
-      throw new Error("Failed to verify category insertion with expected position");
+      throw new Error(
+        "Failed to verify category insertion with expected position",
+      );
     }
 
     // Update contentStats
-    await ctx.scheduler.runAfter(0, internal.aggregate.incrementCategories, { amount: 1 });
+    await ctx.scheduler.runAfter(0, internal.aggregate.incrementCategories, {
+      amount: 1,
+    });
 
     return categoryId;
   },
@@ -251,16 +259,18 @@ export const update = mutation({
     if (args.title.trim().length < 3) {
       throw new Error("Título deve ter pelo menos 3 caracteres");
     }
-    
+
     if (args.description.trim().length < 10) {
       throw new Error("Descrição deve ter pelo menos 10 caracteres");
     }
 
     // Auto-generate slug from title
     const slug = generateSlug(args.title);
-    
+
     if (slug.length < 3) {
-      throw new Error("Não foi possível gerar um slug válido a partir do título");
+      throw new Error(
+        "Não foi possível gerar um slug válido a partir do título",
+      );
     }
 
     // Verificar se já existe outra categoria com o mesmo slug
@@ -301,7 +311,7 @@ export const getCascadeDeleteInfo = query({
   }),
   handler: async (ctx, args) => {
     // Get all units in this category
-    const units = await ctx.db  
+    const units = await ctx.db
       .query("units")
       .withIndex("by_categoryId", (q) => q.eq("categoryId", args.id))
       .collect();
@@ -334,7 +344,7 @@ export const remove = mutation({
   handler: async (ctx, args) => {
     // Get all units in this category
     const units = await ctx.db
-      .query("units") 
+      .query("units")
       .withIndex("by_categoryId", (q) => q.eq("categoryId", args.id))
       .collect();
 
@@ -362,12 +372,18 @@ export const remove = mutation({
     await ctx.db.delete(args.id);
 
     // Update contentStats
-    await ctx.scheduler.runAfter(0, internal.aggregate.decrementCategories, { amount: 1 });
+    await ctx.scheduler.runAfter(0, internal.aggregate.decrementCategories, {
+      amount: 1,
+    });
     if (units.length > 0) {
-      await ctx.scheduler.runAfter(0, internal.aggregate.decrementUnits, { amount: units.length });
+      await ctx.scheduler.runAfter(0, internal.aggregate.decrementUnits, {
+        amount: units.length,
+      });
     }
     if (totalPublishedLessons > 0) {
-      await ctx.scheduler.runAfter(0, internal.aggregate.decrementLessons, { amount: totalPublishedLessons });
+      await ctx.scheduler.runAfter(0, internal.aggregate.decrementLessons, {
+        amount: totalPublishedLessons,
+      });
     }
 
     return null;
@@ -381,7 +397,7 @@ export const reorder = mutation({
       v.object({
         id: v.id("categories"),
         position: v.number(),
-      })
+      }),
     ),
   },
   returns: v.null(),
@@ -418,7 +434,7 @@ export const togglePublish = mutation({
     });
 
     // Get all units in this category
-      
+
     const units = await ctx.db
       .query("units")
       .withIndex("by_categoryId", (q) => q.eq("categoryId", args.id))
@@ -466,4 +482,3 @@ export const togglePublish = mutation({
     return newPublishStatus;
   },
 });
-

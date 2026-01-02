@@ -19,7 +19,11 @@ import { getCurrentUser, requireAdmin } from "./users";
 /**
  * Centralized access rule (DO NOT DUPLICATE LOGIC)
  */
-function hasVideoAccess(user: { status: string; paid: boolean; hasActiveYearAccess: boolean }): boolean {
+function hasVideoAccess(user: {
+  status: string;
+  paid: boolean;
+  hasActiveYearAccess: boolean;
+}): boolean {
   return (
     user.status === "active" &&
     user.paid === true &&
@@ -58,9 +62,7 @@ export const checkUserHasVideoAccessByClerkId = query({
   async handler(ctx, args) {
     const user = await ctx.db
       .query("users")
-      .withIndex("by_clerkUserId", (q) =>
-        q.eq("clerkUserId", args.clerkUserId)
-      )
+      .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", args.clerkUserId))
       .unique();
 
     if (!user) return false;
@@ -85,18 +87,28 @@ export const getVideoAccessDetails = query({
     status: v.union(
       v.literal("active"),
       v.literal("inactive"),
-      v.literal("suspended")
+      v.literal("suspended"),
     ),
     paymentDate: v.optional(v.number()),
     paymentStatus: v.union(
       v.literal("pending"),
       v.literal("completed"),
       v.literal("failed"),
-      v.literal("refunded")
+      v.literal("refunded"),
     ),
     daysUntilExpiration: v.optional(v.number()),
   }),
-  async handler(ctx): Promise<{ hasAccess: boolean; paid: boolean; hasActiveYearAccess: boolean; status: "active" | "inactive" | "suspended"; paymentStatus: "pending" | "completed" | "failed" | "refunded"; paymentDate?: number | undefined; daysUntilExpiration?: number | undefined; }> {
+  async handler(
+    ctx,
+  ): Promise<{
+    hasAccess: boolean;
+    paid: boolean;
+    hasActiveYearAccess: boolean;
+    status: "active" | "inactive" | "suspended";
+    paymentStatus: "pending" | "completed" | "failed" | "refunded";
+    paymentDate?: number | undefined;
+    daysUntilExpiration?: number | undefined;
+  }> {
     const user = await getCurrentUser(ctx);
 
     if (!user) {
@@ -112,13 +124,12 @@ export const getVideoAccessDetails = query({
     let daysUntilExpiration: number | undefined;
 
     if (user.paymentDate && user.hasActiveYearAccess) {
-      const expiration =
-        user.paymentDate + 365 * 24 * 60 * 60 * 1000;
+      const expiration = user.paymentDate + 365 * 24 * 60 * 60 * 1000;
       const now = Date.now();
 
       if (expiration > now) {
         daysUntilExpiration = Math.ceil(
-          (expiration - now) / (24 * 60 * 60 * 1000)
+          (expiration - now) / (24 * 60 * 60 * 1000),
         );
       }
     }
@@ -154,7 +165,7 @@ export const updatePayment = mutation({
       v.literal("pending"),
       v.literal("completed"),
       v.literal("failed"),
-      v.literal("refunded")
+      v.literal("refunded"),
     ),
     paymentDate: v.optional(v.number()),
     paymentId: v.optional(v.string()),

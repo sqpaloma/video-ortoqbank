@@ -1,7 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { GripVerticalIcon, PencilIcon, EyeIcon, EyeOffIcon } from "lucide-react";
+import {
+  GripVerticalIcon,
+  PencilIcon,
+  EyeIcon,
+  EyeOffIcon,
+} from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
@@ -34,7 +39,7 @@ export function LessonTreeItem({
       className={cn(
         "flex items-center gap-2 p-2 rounded bg-white border border-gray-200 transition-all",
         isItemDragging && "opacity-50 ring-2 ring-primary shadow-lg z-50",
-        !isItemDragging && "hover:border-gray-300"
+        !isItemDragging && "hover:border-gray-300",
       )}
     >
       <div

@@ -45,7 +45,7 @@ export const getFeedbackByLesson = query({
       unitId: v.id("units"),
       feedback: v.string(),
       createdAt: v.number(),
-    })
+    }),
   ),
   handler: async (ctx, args) => {
     const feedbacks = await ctx.db
@@ -76,17 +76,16 @@ export const getUserFeedback = query({
       feedback: v.string(),
       createdAt: v.number(),
     }),
-    v.null()
+    v.null(),
   ),
   handler: async (ctx, args) => {
     const feedback = await ctx.db
       .query("lessonFeedback")
       .withIndex("by_userId_and_lessonId", (q) =>
-        q.eq("userId", args.userId).eq("lessonId", args.lessonId)
+        q.eq("userId", args.userId).eq("lessonId", args.lessonId),
       )
       .first();
 
     return feedback || null;
   },
 });
-

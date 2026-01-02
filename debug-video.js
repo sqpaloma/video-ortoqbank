@@ -6,12 +6,18 @@
  */
 
 console.log("\n🔍 DEBUG: Verificando integração Bunny.net\n");
-console.log("=" .repeat(60));
+console.log("=".repeat(60));
 
 console.log("\n1️⃣  VERIFICAR VARIÁVEIS DE AMBIENTE");
 console.log("-".repeat(60));
-console.log("NEXT_PUBLIC_CONVEX_URL:", process.env.NEXT_PUBLIC_CONVEX_URL || "❌ NÃO CONFIGURADA");
-console.log("NEXT_PUBLIC_BUNNY_LIBRARY_ID:", process.env.NEXT_PUBLIC_BUNNY_LIBRARY_ID || "❌ NÃO CONFIGURADA");
+console.log(
+  "NEXT_PUBLIC_CONVEX_URL:",
+  process.env.NEXT_PUBLIC_CONVEX_URL || "❌ NÃO CONFIGURADA",
+);
+console.log(
+  "NEXT_PUBLIC_BUNNY_LIBRARY_ID:",
+  process.env.NEXT_PUBLIC_BUNNY_LIBRARY_ID || "❌ NÃO CONFIGURADA",
+);
 
 console.log("\n2️⃣  COMANDOS PARA VERIFICAR NO CONVEX");
 console.log("-".repeat(60));
@@ -31,7 +37,9 @@ console.log("[ ] BUNNY_EMBED_SECRET está configurada no Convex?");
 console.log("\n4️⃣  TESTAR TOKEN MANUALMENTE");
 console.log("-".repeat(60));
 console.log("\nAbra no browser (substitua os valores):");
-console.log("https://YOUR-DEPLOYMENT.convex.site/bunny/embed-token?videoId=VIDEO_ID&libraryId=LIBRARY_ID");
+console.log(
+  "https://YOUR-DEPLOYMENT.convex.site/bunny/embed-token?videoId=VIDEO_ID&libraryId=LIBRARY_ID",
+);
 
 console.log("\n5️⃣  VER LOGS DO CONVEX EM TEMPO REAL");
 console.log("-".repeat(60));

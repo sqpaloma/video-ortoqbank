@@ -8,7 +8,7 @@ import { getSignedEmbedUrl as generateSignedUrl } from "@/lib/bunny";
  */
 export async function getSignedEmbedUrl(
   videoId: string,
-  libraryId: string
+  libraryId: string,
 ): Promise<{ embedUrl: string; expires: number }> {
   return generateSignedUrl(videoId, libraryId);
 }
@@ -18,7 +18,7 @@ export async function getSignedEmbedUrl(
  * Keeps the API key secure on the server
  */
 export async function uploadVideoToBunny(
-  formData: FormData
+  formData: FormData,
 ): Promise<{ success: boolean; error?: string }> {
   const videoId = formData.get("videoId") as string;
   const libraryId = formData.get("libraryId") as string;
@@ -45,7 +45,7 @@ export async function uploadVideoToBunny(
           "Content-Type": "application/octet-stream",
         },
         body: fileBuffer,
-      }
+      },
     );
 
     if (!response.ok) {

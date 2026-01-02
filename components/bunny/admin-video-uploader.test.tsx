@@ -18,7 +18,9 @@ vi.mock("@clerk/nextjs", () => ({
 // Mock useBunnyUpload hook
 vi.mock("@/hooks/use-bunny-upload", () => ({
   useBunnyUpload: () => ({
-    uploadVideo: vi.fn(() => Promise.resolve({ videoId: "test-id", libraryId: "test-lib" })),
+    uploadVideo: vi.fn(() =>
+      Promise.resolve({ videoId: "test-id", libraryId: "test-lib" }),
+    ),
     isUploading: false,
   }),
 }));
@@ -40,8 +42,8 @@ vi.mock("@/hooks/use-error-modal", () => ({
 }));
 
 describe("AdminVideoUploader", () => {
-    it("should render", () => {
-        render(<AdminVideoUploader lessonTitle="Test Lesson" />);
-        expect(screen.getByText("Test Lesson")).toBeInTheDocument();
-    });
-});     
+  it("should render", () => {
+    render(<AdminVideoUploader lessonTitle="Test Lesson" />);
+    expect(screen.getByText("Test Lesson")).toBeInTheDocument();
+  });
+});

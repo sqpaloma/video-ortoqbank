@@ -17,11 +17,11 @@ export default function Dashboard() {
   const contentStats = useQuery(api.aggregate.get, {});
   const completedCountResult = useQuery(
     api.progress.queries.getCompletedPublishedLessonsCount,
-    userId ? { userId } : "skip"
+    userId ? { userId } : "skip",
   );
   const viewedCountResult = useQuery(
     api.recentViews.getUniqueViewedLessonsCount,
-    userId ? { userId } : "skip"
+    userId ? { userId } : "skip",
   );
 
   // Show loading skeleton while data is loading
@@ -36,9 +36,10 @@ export default function Dashboard() {
   // - completedLessonsCount: completed lessons that are still published
   // - totalLessons: total published lessons in the system
   // This ensures progress is based only on currently available content
-  const progressPercent = totalLessons > 0
-    ? Math.round((completedLessonsCount / totalLessons) * 100)
-    : 0;
+  const progressPercent =
+    totalLessons > 0
+      ? Math.round((completedLessonsCount / totalLessons) * 100)
+      : 0;
 
   // Show loading skeleton while data is loading
   if (isLoading) {
@@ -46,7 +47,9 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Aulas Concluídas</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Aulas Concluídas
+            </CardTitle>
             <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -57,7 +60,9 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Progresso Geral</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Progresso Geral
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -68,7 +73,9 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Aulas Visualizadas</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Aulas Visualizadas
+            </CardTitle>
             <PlayCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -84,7 +91,9 @@ export default function Dashboard() {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Aulas Concluídas</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            Aulas Concluídas
+          </CardTitle>
           <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -108,7 +117,9 @@ export default function Dashboard() {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Aulas Visualizadas</CardTitle>
+          <CardTitle className="text-sm font-medium">
+            Aulas Visualizadas
+          </CardTitle>
           <PlayCircle className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>

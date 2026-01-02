@@ -3,9 +3,9 @@ import { DragEndEvent } from "@dnd-kit/core";
 import { SensorDescriptor, SensorOptions } from "@dnd-kit/core";
 
 export type EditMode =
-  | { type: 'none' }
-  | { type: 'unit'; unit: Doc<"units"> }
-  | { type: 'lesson'; lesson: Doc<"lessons"> };
+  | { type: "none" }
+  | { type: "unit"; unit: Doc<"units"> }
+  | { type: "lesson"; lesson: Doc<"lessons"> };
 
 export interface LessonTreeItemProps {
   lesson: Doc<"lessons">;
@@ -51,7 +51,11 @@ export interface UnitsTreeSidebarProps {
 export interface UnitEditPanelProps {
   unit: Doc<"units">;
   categories: Doc<"categories">[];
-  onSave: (data: { categoryId: Id<"categories">; title: string; description: string }) => void;
+  onSave: (data: {
+    categoryId: Id<"categories">;
+    title: string;
+    description: string;
+  }) => void;
   onCancel: () => void;
 }
 

@@ -1,7 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { PlayCircle, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -11,17 +17,23 @@ import { api } from "@/convex/_generated/api";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import type { FunctionReturnType } from "convex/server";
 
-type RecentViewsData = FunctionReturnType<typeof api.recentViews.getRecentViewsWithDetails>;
+type RecentViewsData = FunctionReturnType<
+  typeof api.recentViews.getRecentViewsWithDetails
+>;
 
 interface RecentViewsProps {
-  preloadedRecentViews: Preloaded<typeof api.recentViews.getRecentViewsWithDetails> | null;
+  preloadedRecentViews: Preloaded<
+    typeof api.recentViews.getRecentViewsWithDetails
+  > | null;
 }
 
 // Component that uses preloaded data
 function RecentViewsWithPreload({
   preloadedRecentViews,
 }: {
-  preloadedRecentViews: Preloaded<typeof api.recentViews.getRecentViewsWithDetails>;
+  preloadedRecentViews: Preloaded<
+    typeof api.recentViews.getRecentViewsWithDetails
+  >;
 }) {
   const router = useRouter();
   const recentViews = usePreloadedQuery(preloadedRecentViews);
@@ -36,7 +48,7 @@ function RecentViewsWithoutPreload() {
 
   const recentViews = useQuery(
     api.recentViews.getRecentViewsWithDetails,
-    user ? { userId: user._id, limit: 5 } : "skip"
+    user ? { userId: user._id, limit: 5 } : "skip",
   );
 
   // Handle loading state
@@ -53,30 +65,46 @@ function RecentViewsWithoutPreload() {
 }
 
 // Parent component that conditionally renders based on preloaded data availability
-export default function RecentViews({ preloadedRecentViews }: RecentViewsProps) {
+export default function RecentViews({
+  preloadedRecentViews,
+}: RecentViewsProps) {
   if (preloadedRecentViews) {
-    return <RecentViewsWithPreload preloadedRecentViews={preloadedRecentViews} />;
+    return (
+      <RecentViewsWithPreload preloadedRecentViews={preloadedRecentViews} />
+    );
   }
 
   return <RecentViewsWithoutPreload />;
 }
 
 // Extracted content component to avoid duplicating the UI logic
-function RecentViewsContent({ recentViews, router }: { recentViews: RecentViewsData; router: ReturnType<typeof useRouter> }) {
+function RecentViewsContent({
+  recentViews,
+  router,
+}: {
+  recentViews: RecentViewsData;
+  router: ReturnType<typeof useRouter>;
+}) {
   return (
     <>
       {recentViews.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Aulas Recentes</CardTitle>
-            <CardDescription>Suas aulas visualizadas recentemente</CardDescription>
+            <CardDescription>
+              Suas aulas visualizadas recentemente
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {recentViews.map((view) => {
                 const isCompleted = view.isCompleted;
-                const textColor = isCompleted ? "text-green-600" : "text-blue-600";
-                const iconColor = isCompleted ? "text-green-500" : "text-blue-500";
+                const textColor = isCompleted
+                  ? "text-green-600"
+                  : "text-blue-600";
+                const iconColor = isCompleted
+                  ? "text-green-500"
+                  : "text-blue-500";
 
                 return (
                   <div
@@ -98,19 +126,32 @@ function RecentViewsContent({ recentViews, router }: { recentViews: RecentViewsD
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <h4 className={`font-medium truncate ${textColor}`}>{view.lesson.title}</h4>
-                      <p className="text-sm text-muted-foreground">{view.category.title}</p>
+                      <h4 className={`font-medium truncate ${textColor}`}>
+                        {view.lesson.title}
+                      </h4>
+                      <p className="text-sm text-muted-foreground">
+                        {view.category.title}
+                      </p>
                       <div className="flex items-center gap-3 mt-1 flex-wrap">
                         <div className="flex items-center gap-1">
-
                           {isCompleted ? (
-                            <Badge variant="secondary" className={`text-xs border-green-500 bg-green-50 ${textColor}`}>
-                              <CheckCircle2 className={`h-3 w-3 mr-1 ${iconColor}`} />
+                            <Badge
+                              variant="secondary"
+                              className={`text-xs border-green-500 bg-green-50 ${textColor}`}
+                            >
+                              <CheckCircle2
+                                className={`h-3 w-3 mr-1 ${iconColor}`}
+                              />
                               Concluída
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className={`text-xs border-blue-500 bg-blue-50 ${textColor}`}>
-                              <PlayCircle className={`h-3 w-3 mr-1 ${iconColor}`} />
+                            <Badge
+                              variant="outline"
+                              className={`text-xs border-blue-500 bg-blue-50 ${textColor}`}
+                            >
+                              <PlayCircle
+                                className={`h-3 w-3 mr-1 ${iconColor}`}
+                              />
                               Iniciada
                             </Badge>
                           )}
@@ -129,7 +170,9 @@ function RecentViewsContent({ recentViews, router }: { recentViews: RecentViewsD
         <Card>
           <CardHeader>
             <CardTitle>Aulas Recentes</CardTitle>
-            <CardDescription>Suas aulas visualizadas recentemente</CardDescription>
+            <CardDescription>
+              Suas aulas visualizadas recentemente
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-center py-12">

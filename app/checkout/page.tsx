@@ -1,29 +1,29 @@
-'use client';
+"use client";
 
-import { zodResolver } from '@hookform/resolvers/zod';
-import cardValidator from 'card-validator';
-import { useAction, useMutation, useQuery } from 'convex/react';
-import { Loader2, Tag } from 'lucide-react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
+import { zodResolver } from "@hookform/resolvers/zod";
+import cardValidator from "card-validator";
+import { useAction, useMutation, useQuery } from "convex/react";
+import { Loader2, Tag } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import { CreditCardPreview } from '@/components/checkout/CreditCardPreview';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
+import { CreditCardPreview } from "@/components/checkout/CreditCardPreview";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
-import { api } from '@/convex/_generated/api';
-import { Id } from '@/convex/_generated/dataModel';
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 
 // Type definitions based on Convex return types
 type CouponValidationSuccess = {
@@ -32,9 +32,9 @@ type CouponValidationSuccess = {
   discountAmount: number;
   couponDescription: string;
   coupon: {
-    _id: Id<'coupons'>;
+    _id: Id<"coupons">;
     code: string;
-    type: 'percentage' | 'fixed' | 'fixed_price';
+    type: "percentage" | "fixed" | "fixed_price";
     value: number;
     description: string;
   };
@@ -51,7 +51,7 @@ type CouponValidationResult = CouponValidationSuccess | CouponValidationError;
 function isCouponValidationSuccess(
   result: CouponValidationResult,
 ): result is CouponValidationSuccess {
-  return result.isValid === true && 'finalPrice' in result;
+  return result.isValid === true && "finalPrice" in result;
 }
 
 type PixPaymentResult = {
@@ -74,13 +74,13 @@ type PaymentResult = PixPaymentResult | CreditCardPaymentResult;
 
 // Utility functions
 const formatCPF = (value: string) => {
-  const numbers = value.replaceAll(/\D/g, '');
-  return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  const numbers = value.replaceAll(/\D/g, "");
+  return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
 };
 
 const validateCPF = (cpf: string): boolean => {
   // Remove non-digits
-  const cleanCPF = cpf.replaceAll(/\D/g, '');
+  const cleanCPF = cpf.replaceAll(/\D/g, "");
 
   // Check if has 11 digits
   if (cleanCPF.length !== 11) {
@@ -124,21 +124,21 @@ const validateCPF = (cpf: string): boolean => {
 // Form validation schema with conditional credit card validation
 const checkoutSchema = z
   .object({
-    name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
-    email: z.string().email('Email inválido'),
+    name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+    email: z.string().email("Email inválido"),
     cpf: z
       .string()
-      .min(11, 'CPF deve ter 11 dígitos')
-      .max(14, 'CPF inválido')
+      .min(11, "CPF deve ter 11 dígitos")
+      .max(14, "CPF inválido")
       .refine(validateCPF, {
-        message: 'CPF inválido. Verifique os dígitos.',
+        message: "CPF inválido. Verifique os dígitos.",
       }),
     // Required address fields for all payment methods
-    phone: z.string().min(10, 'Telefone deve ter pelo menos 10 dígitos'),
-    postalCode: z.string().min(8, 'CEP deve ter 8 dígitos'),
-    address: z.string().min(5, 'Endereço deve ter pelo menos 5 caracteres'),
+    phone: z.string().min(10, "Telefone deve ter pelo menos 10 dígitos"),
+    postalCode: z.string().min(8, "CEP deve ter 8 dígitos"),
+    address: z.string().min(5, "Endereço deve ter pelo menos 5 caracteres"),
     addressNumber: z.string().optional(), // Optional, will default to "SN"
-    paymentMethod: z.enum(['PIX', 'CREDIT_CARD']),
+    paymentMethod: z.enum(["PIX", "CREDIT_CARD"]),
     // Credit card fields (only validated when payment method is CREDIT_CARD)
     cardNumber: z.string().optional(),
     cardExpiry: z.string().optional(),
@@ -148,38 +148,38 @@ const checkoutSchema = z
   })
   .superRefine((data, ctx) => {
     // Only validate credit card fields when payment method is CREDIT_CARD
-    if (data.paymentMethod === 'CREDIT_CARD') {
+    if (data.paymentMethod === "CREDIT_CARD") {
       // Validate card number using card-validator
-      const cardNumberValidation = cardValidator.number(data.cardNumber || '');
+      const cardNumberValidation = cardValidator.number(data.cardNumber || "");
       if (!cardNumberValidation.isValid) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Número do cartão inválido',
-          path: ['cardNumber'],
+          message: "Número do cartão inválido",
+          path: ["cardNumber"],
         });
       }
 
       // Validate card expiry using card-validator
       const expiryValidation = cardValidator.expirationDate(
-        data.cardExpiry || '',
+        data.cardExpiry || "",
       );
       if (!expiryValidation.isValid) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: expiryValidation.isPotentiallyValid
-            ? 'Use formato MM/AA'
-            : 'Data de validade inválida',
-          path: ['cardExpiry'],
+            ? "Use formato MM/AA"
+            : "Data de validade inválida",
+          path: ["cardExpiry"],
         });
       }
 
       // Validate CVV using card-validator
-      const cvvValidation = cardValidator.cvv(data.cardCvv || '');
+      const cvvValidation = cardValidator.cvv(data.cardCvv || "");
       if (!cvvValidation.isValid) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'CVV deve ter 3 ou 4 dígitos',
-          path: ['cardCvv'],
+          message: "CVV deve ter 3 ou 4 dígitos",
+          path: ["cardCvv"],
         });
       }
     }
@@ -189,14 +189,14 @@ type CheckoutForm = z.infer<typeof checkoutSchema>;
 
 function CheckoutPageContent() {
   const router = useRouter();
-  const planId = useSearchParams().get('plan'); // get planId from url
+  const planId = useSearchParams().get("plan"); // get planId from url
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
-    'PIX' | 'CREDIT_CARD'
-  >('PIX');
-  const [couponCode, setCouponCode] = useState('');
+    "PIX" | "CREDIT_CARD"
+  >("PIX");
+  const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] =
     useState<CouponValidationSuccess | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
@@ -214,7 +214,7 @@ function CheckoutPageContent() {
   // Get pricing plan
   const pricingPlan = useQuery(
     api.pricingPlans.getByProductId,
-    planId ? { productId: planId } : 'skip',
+    planId ? { productId: planId } : "skip",
   );
 
   const {
@@ -226,25 +226,25 @@ function CheckoutPageContent() {
   } = useForm<CheckoutForm>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
-      paymentMethod: 'PIX',
+      paymentMethod: "PIX",
     },
   });
 
   // Watch credit card fields for live preview
-  const name = watch('name') || ''; // Use main name field for card
-  const cardNumber = watch('cardNumber') || '';
-  const cardExpiry = watch('cardExpiry') || '';
-  const cardCvv = watch('cardCvv') || '';
+  const name = watch("name") || ""; // Use main name field for card
+  const cardNumber = watch("cardNumber") || "";
+  const cardExpiry = watch("cardExpiry") || "";
+  const cardCvv = watch("cardCvv") || "";
 
   // Extract month and year from cardExpiry for preview
   const [cardExpiryMonth, cardExpiryYear] = cardExpiry
-    .split('/')
-    .map(part => part || '');
-  const fullYear = cardExpiryYear ? `20${cardExpiryYear}` : '';
+    .split("/")
+    .map((part) => part || "");
+  const fullYear = cardExpiryYear ? `20${cardExpiryYear}` : "";
 
   // ViaCEP integration
   const handleCepChange = async (cep: string) => {
-    const cleanCep = cep.replaceAll(/\D/g, '');
+    const cleanCep = cep.replaceAll(/\D/g, "");
 
     if (cleanCep.length === 8) {
       setIsLoadingCep(true);
@@ -255,16 +255,16 @@ function CheckoutPageContent() {
         const data = await response.json();
 
         if (data.erro) {
-          setError('CEP não encontrado');
+          setError("CEP não encontrado");
         } else {
           // Auto-fill address fields
-          setValue('address', `${data.logradouro}, ${data.bairro}`);
-          setValue('postalCode', data.cep);
+          setValue("address", `${data.logradouro}, ${data.bairro}`);
+          setValue("postalCode", data.cep);
           setError(null);
         }
       } catch (error) {
-        console.error('Erro ao buscar CEP:', error);
-        setError('Erro ao buscar CEP');
+        console.error("Erro ao buscar CEP:", error);
+        setError("Erro ao buscar CEP");
       } finally {
         setIsLoadingCep(false);
       }
@@ -274,12 +274,12 @@ function CheckoutPageContent() {
   // Validate coupon
   const handleValidateCoupon = async () => {
     if (!couponCode.trim()) {
-      setCouponError('Digite um código de cupom');
+      setCouponError("Digite um código de cupom");
       return;
     }
 
     if (!pricingPlan) {
-      setCouponError('Aguarde o carregamento do plano');
+      setCouponError("Aguarde o carregamento do plano");
       return;
     }
 
@@ -291,22 +291,22 @@ function CheckoutPageContent() {
       const regularPrice = pricingPlan.regularPriceNum || 0;
       const pixPrice = pricingPlan.pixPriceNum || regularPrice;
       const originalPrice =
-        selectedPaymentMethod === 'PIX' ? pixPrice : regularPrice;
+        selectedPaymentMethod === "PIX" ? pixPrice : regularPrice;
 
       // Get CPF from form for per-user coupon limit checks
-      const cpfValue = watch('cpf');
-      const cleanCpf = cpfValue ? cpfValue.replaceAll(/\D/g, '') : undefined;
+      const cpfValue = watch("cpf");
+      const cleanCpf = cpfValue ? cpfValue.replaceAll(/\D/g, "") : undefined;
 
       // Validate environment variable
       const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
       if (!convexUrl) {
-        setCouponError('Erro de configuração do sistema');
+        setCouponError("Erro de configuração do sistema");
         setIsValidatingCoupon(false);
         return;
       }
 
       // Import convex client to make the query
-      const { ConvexHttpClient } = await import('convex/browser');
+      const { ConvexHttpClient } = await import("convex/browser");
       const client = new ConvexHttpClient(convexUrl);
 
       const validateResult = (await client.query(
@@ -322,12 +322,12 @@ function CheckoutPageContent() {
         setAppliedCoupon(validateResult);
         setCouponError(null);
       } else {
-        setCouponError(validateResult.errorMessage || 'Cupom inválido');
+        setCouponError(validateResult.errorMessage || "Cupom inválido");
         setAppliedCoupon(null);
       }
     } catch (error_) {
-      console.error('Coupon validation error:', error_);
-      setCouponError('Erro ao validar cupom');
+      console.error("Coupon validation error:", error_);
+      setCouponError("Erro ao validar cupom");
       setAppliedCoupon(null);
     } finally {
       setIsValidatingCoupon(false);
@@ -335,7 +335,7 @@ function CheckoutPageContent() {
   };
 
   const handleRemoveCoupon = () => {
-    setCouponCode('');
+    setCouponCode("");
     setAppliedCoupon(null);
     setCouponError(null);
   };
@@ -355,7 +355,7 @@ function CheckoutPageContent() {
   // Calculate prices based on payment method
   const regularPrice = pricingPlan.regularPriceNum || 0;
   const pixPrice = pricingPlan.pixPriceNum || regularPrice;
-  const basePrice = selectedPaymentMethod === 'PIX' ? pixPrice : regularPrice;
+  const basePrice = selectedPaymentMethod === "PIX" ? pixPrice : regularPrice;
   const pixSavings = regularPrice - pixPrice; // How much you save by choosing PIX
 
   const onSubmit = async (data: CheckoutForm) => {
@@ -364,12 +364,12 @@ function CheckoutPageContent() {
 
     try {
       // Default to "SN" if address number is not provided
-      const addressNumber = data.addressNumber?.trim() || 'SN';
+      const addressNumber = data.addressNumber?.trim() || "SN";
 
       // Step 1: Create pending order first (robust pattern)
       const { pendingOrderId } = await createPendingOrder({
         email: data.email,
-        cpf: data.cpf.replaceAll(/\D/g, ''),
+        cpf: data.cpf.replaceAll(/\D/g, ""),
         name: data.name,
         productId: planId,
         paymentMethod: data.paymentMethod,
@@ -386,7 +386,7 @@ function CheckoutPageContent() {
       const { customerId } = await createCustomer({
         name: data.name,
         email: data.email,
-        cpf: data.cpf.replaceAll(/\D/g, ''),
+        cpf: data.cpf.replaceAll(/\D/g, ""),
         // Address fields (required for invoice generation)
         phone: data.phone,
         mobilePhone: data.phone,
@@ -398,7 +398,7 @@ function CheckoutPageContent() {
       let payment: PaymentResult;
 
       // Step 3: Create payment based on selected method
-      if (data.paymentMethod === 'PIX') {
+      if (data.paymentMethod === "PIX") {
         payment = await createPixPayment({
           customerId,
           productId: planId,
@@ -422,11 +422,11 @@ function CheckoutPageContent() {
       } else {
         // Validate credit card fields
         if (!data.cardNumber || !data.cardExpiry || !data.cardCvv) {
-          throw new Error('Todos os campos do cartão são obrigatórios');
+          throw new Error("Todos os campos do cartão são obrigatórios");
         }
 
         // Extract month and year from cardExpiry (MM/YY format)
-        const [expMonth, expYear] = data.cardExpiry.split('/');
+        const [expMonth, expYear] = data.cardExpiry.split("/");
         const fullYear = `20${expYear}`; // Convert YY to 20YY
 
         // CRITICAL: Validate installments before sending
@@ -434,9 +434,9 @@ function CheckoutPageContent() {
           selectedInstallments > 1 ? selectedInstallments : undefined;
 
         // Only log in development
-        if (process.env.NODE_ENV !== 'production') {
+        if (process.env.NODE_ENV !== "production") {
           console.log(
-            '💳 Frontend: Creating credit card payment with installments:',
+            "💳 Frontend: Creating credit card payment with installments:",
             {
               selectedInstallments,
               installmentsToSend,
@@ -459,7 +459,7 @@ function CheckoutPageContent() {
           pendingOrderId,
           creditCard: {
             holderName: data.name, // Use main name field
-            number: data.cardNumber.replaceAll(/\s/g, ''),
+            number: data.cardNumber.replaceAll(/\s/g, ""),
             expiryMonth: expMonth,
             expiryYear: fullYear,
             ccv: data.cardCvv,
@@ -467,7 +467,7 @@ function CheckoutPageContent() {
           creditCardHolderInfo: {
             name: data.name,
             email: data.email,
-            cpfCnpj: data.cpf.replaceAll(/\D/g, ''),
+            cpfCnpj: data.cpf.replaceAll(/\D/g, ""),
             phone: data.phone,
             mobilePhone: data.phone,
             postalCode: data.postalCode,
@@ -488,8 +488,8 @@ function CheckoutPageContent() {
         router.push(`/payment/processing?order=${pendingOrderId}`);
       }
     } catch (error) {
-      console.error('Checkout error:', error);
-      setError(error instanceof Error ? error.message : 'Erro desconhecido');
+      console.error("Checkout error:", error);
+      setError(error instanceof Error ? error.message : "Erro desconhecido");
     } finally {
       setIsLoading(false);
     }
@@ -519,7 +519,7 @@ function CheckoutPageContent() {
                         id="name"
                         type="text"
                         placeholder="Seu nome completo"
-                        {...register('name')}
+                        {...register("name")}
                         disabled={isLoading}
                       />
                       {errors.name && (
@@ -536,15 +536,15 @@ function CheckoutPageContent() {
                         id="cpf"
                         type="text"
                         placeholder="000.000.000-00"
-                        {...register('cpf')}
+                        {...register("cpf")}
                         disabled={isLoading}
                         maxLength={14}
-                        onChange={e => {
+                        onChange={(e) => {
                           const formatted = formatCPF(e.target.value);
-                          setValue('cpf', formatted);
+                          setValue("cpf", formatted);
                         }}
-                        aria-invalid={errors.cpf ? 'true' : 'false'}
-                        className={errors.cpf ? 'border-red-500' : ''}
+                        aria-invalid={errors.cpf ? "true" : "false"}
+                        className={errors.cpf ? "border-red-500" : ""}
                       />
                       {errors.cpf && (
                         <p className="text-sm text-red-600" role="alert">
@@ -561,7 +561,7 @@ function CheckoutPageContent() {
                       id="email"
                       type="email"
                       placeholder="seu@email.com"
-                      {...register('email')}
+                      {...register("email")}
                       disabled={isLoading}
                     />
                     {errors.email && (
@@ -584,17 +584,17 @@ function CheckoutPageContent() {
                             id="postalCode"
                             type="text"
                             placeholder="00000-000"
-                            {...register('postalCode')}
+                            {...register("postalCode")}
                             disabled={isLoading || isLoadingCep}
                             maxLength={9}
-                            onChange={e => {
+                            onChange={(e) => {
                               const value = e.target.value.replaceAll(
                                 /\D/g,
-                                '',
+                                "",
                               );
                               const formatted = value.replace(
                                 /(\d{5})(\d{3})/,
-                                '$1-$2',
+                                "$1-$2",
                               );
                               e.target.value = formatted;
                               handleCepChange(formatted);
@@ -620,14 +620,14 @@ function CheckoutPageContent() {
                           id="phone"
                           type="text"
                           placeholder="(11) 99999-9999"
-                          {...register('phone')}
+                          {...register("phone")}
                           disabled={isLoading}
                           maxLength={15}
-                          onChange={e => {
-                            const value = e.target.value.replaceAll(/\D/g, '');
+                          onChange={(e) => {
+                            const value = e.target.value.replaceAll(/\D/g, "");
                             const formatted = value.replace(
                               /(\d{2})(\d{5})(\d{4})/,
-                              '($1) $2-$3',
+                              "($1) $2-$3",
                             );
                             e.target.value = formatted;
                           }}
@@ -648,7 +648,7 @@ function CheckoutPageContent() {
                               id="address"
                               type="text"
                               placeholder="Rua, Avenida, etc"
-                              {...register('address')}
+                              {...register("address")}
                               disabled={isLoading}
                             />
                             {errors.address && (
@@ -663,7 +663,7 @@ function CheckoutPageContent() {
                               id="addressNumber"
                               type="text"
                               placeholder="123"
-                              {...register('addressNumber')}
+                              {...register("addressNumber")}
                               disabled={isLoading}
                             />
                           </div>
@@ -677,13 +677,14 @@ function CheckoutPageContent() {
                     <Label>Forma de Pagamento</Label>
                     <div className="grid grid-cols-2 gap-3">
                       <div
-                        className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${selectedPaymentMethod === 'PIX'
-                          ? 'border-brand-blue bg-brand-blue/10'
-                          : 'border-gray-200 hover:border-gray-300'
-                          }`}
+                        className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${
+                          selectedPaymentMethod === "PIX"
+                            ? "border-brand-blue bg-brand-blue/10"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
                         onClick={() => {
-                          setSelectedPaymentMethod('PIX');
-                          setValue('paymentMethod', 'PIX');
+                          setSelectedPaymentMethod("PIX");
+                          setValue("paymentMethod", "PIX");
                           // Clear coupon when changing payment method
                           if (appliedCoupon) {
                             handleRemoveCoupon();
@@ -698,13 +699,14 @@ function CheckoutPageContent() {
                         </div>
                       </div>
                       <div
-                        className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${selectedPaymentMethod === 'CREDIT_CARD'
-                          ? 'border-brand-blue bg-brand-blue/10'
-                          : 'border-gray-200 hover:border-gray-300'
-                          }`}
+                        className={`cursor-pointer rounded-lg border-2 p-4 transition-all ${
+                          selectedPaymentMethod === "CREDIT_CARD"
+                            ? "border-brand-blue bg-brand-blue/10"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
                         onClick={() => {
-                          setSelectedPaymentMethod('CREDIT_CARD');
-                          setValue('paymentMethod', 'CREDIT_CARD');
+                          setSelectedPaymentMethod("CREDIT_CARD");
+                          setValue("paymentMethod", "CREDIT_CARD");
                           // Clear coupon when changing payment method
                           if (appliedCoupon) {
                             handleRemoveCoupon();
@@ -719,7 +721,7 @@ function CheckoutPageContent() {
                         </div>
                       </div>
                     </div>
-                    <input type="hidden" {...register('paymentMethod')} />
+                    <input type="hidden" {...register("paymentMethod")} />
                   </div>
 
                   {/* Coupon Code */}
@@ -758,13 +760,13 @@ function CheckoutPageContent() {
                             type="text"
                             placeholder="Digite o código do cupom"
                             value={couponCode}
-                            onChange={e =>
+                            onChange={(e) =>
                               setCouponCode(e.target.value.toUpperCase())
                             }
                             disabled={isLoading || isValidatingCoupon}
                             className="pl-10"
-                            onKeyDown={e => {
-                              if (e.key === 'Enter') {
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
                                 e.preventDefault();
                                 handleValidateCoupon();
                               }
@@ -784,7 +786,7 @@ function CheckoutPageContent() {
                           {isValidatingCoupon ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
                           ) : (
-                            'Aplicar'
+                            "Aplicar"
                           )}
                         </Button>
                       </div>
@@ -795,7 +797,7 @@ function CheckoutPageContent() {
                   </div>
 
                   {/* Credit Card Fields (conditional) */}
-                  {selectedPaymentMethod === 'CREDIT_CARD' && (
+                  {selectedPaymentMethod === "CREDIT_CARD" && (
                     <div className="space-y-4 border-t pt-4">
                       <h3 className="font-semibold text-gray-900">
                         Dados do Cartão
@@ -820,19 +822,19 @@ function CheckoutPageContent() {
                               id="cardNumber"
                               type="text"
                               placeholder="0000 0000 0000 0000"
-                              {...register('cardNumber')}
+                              {...register("cardNumber")}
                               disabled={isLoading}
                               maxLength={23}
-                              onChange={e => {
+                              onChange={(e) => {
                                 const value = e.target.value.replaceAll(
                                   /\D/g,
-                                  '',
+                                  "",
                                 );
                                 const formatted = value.replaceAll(
                                   /(\d{4})(?=\d)/g,
-                                  '$1 ',
+                                  "$1 ",
                                 );
-                                setValue('cardNumber', formatted);
+                                setValue("cardNumber", formatted);
                               }}
                             />
                             {errors.cardNumber && (
@@ -849,14 +851,14 @@ function CheckoutPageContent() {
                               id="cardExpiry"
                               type="text"
                               placeholder="MM/AA"
-                              {...register('cardExpiry')}
+                              {...register("cardExpiry")}
                               disabled={isLoading}
                               maxLength={5}
                               className="text-center"
-                              onChange={e => {
+                              onChange={(e) => {
                                 let value = e.target.value.replaceAll(
                                   /\D/g,
-                                  '',
+                                  "",
                                 );
 
                                 // Smart month formatting
@@ -872,7 +874,7 @@ function CheckoutPageContent() {
                                     firstDigit <= 9 &&
                                     value.length === 1
                                   ) {
-                                    value = '0' + value;
+                                    value = "0" + value;
                                   }
 
                                   // If first digit is 1, check second digit for valid month (10-12)
@@ -883,7 +885,7 @@ function CheckoutPageContent() {
                                     );
                                     if (secondDigit > 2) {
                                       // Invalid month like 13-19, reset to just "1"
-                                      value = '1';
+                                      value = "1";
                                     }
                                   }
 
@@ -895,7 +897,7 @@ function CheckoutPageContent() {
                                     );
                                     if (secondDigit === 0) {
                                       // Invalid month "00", reset to just "0"
-                                      value = '0';
+                                      value = "0";
                                     }
                                   }
                                 }
@@ -903,10 +905,10 @@ function CheckoutPageContent() {
                                 // Auto-format as MM/YY
                                 if (value.length >= 2) {
                                   value =
-                                    value.slice(0, 2) + '/' + value.slice(2, 4);
+                                    value.slice(0, 2) + "/" + value.slice(2, 4);
                                 }
 
-                                setValue('cardExpiry', value);
+                                setValue("cardExpiry", value);
                               }}
                             />
                             {errors.cardExpiry && (
@@ -923,16 +925,16 @@ function CheckoutPageContent() {
                               id="cardCvv"
                               type="text"
                               placeholder="CVV"
-                              {...register('cardCvv')}
+                              {...register("cardCvv")}
                               disabled={isLoading}
                               maxLength={4}
                               className="text-center"
-                              onChange={e => {
+                              onChange={(e) => {
                                 const value = e.target.value.replaceAll(
                                   /\D/g,
-                                  '',
+                                  "",
                                 );
-                                setValue('cardCvv', value);
+                                setValue("cardCvv", value);
                               }}
                             />
                             {errors.cardCvv && (
@@ -950,14 +952,14 @@ function CheckoutPageContent() {
                         <select
                           id="installments"
                           value={selectedInstallments}
-                          onChange={e =>
+                          onChange={(e) =>
                             setSelectedInstallments(Number(e.target.value))
                           }
                           disabled={isLoading}
                           className="focus:ring-brand-blue focus:border-brand-blue w-full rounded-md border border-gray-300 p-2 focus:ring-2"
                         >
                           {Array.from({ length: 12 }, (_, i) => i + 1).map(
-                            num => {
+                            (num) => {
                               // Use the final price after coupon discount if coupon is applied
                               const priceForInstallments = appliedCoupon
                                 ? appliedCoupon.finalPrice
@@ -995,16 +997,16 @@ function CheckoutPageContent() {
                     {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {selectedPaymentMethod === 'PIX'
-                          ? 'Gerando PIX...'
-                          : 'Processando Cartão...'}
+                        {selectedPaymentMethod === "PIX"
+                          ? "Gerando PIX..."
+                          : "Processando Cartão..."}
                       </>
-                    ) : selectedPaymentMethod === 'PIX' ? (
-                      'Gerar Pagamento PIX'
+                    ) : selectedPaymentMethod === "PIX" ? (
+                      "Gerar Pagamento PIX"
                     ) : selectedInstallments > 1 ? (
                       `Pagar ${selectedInstallments}x no Cartão`
                     ) : (
-                      'Pagar com Cartão'
+                      "Pagar com Cartão"
                     )}
                   </Button>
                 </form>
@@ -1024,7 +1026,7 @@ function CheckoutPageContent() {
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-gray-600">{pricingPlan.name}</span>
                       <span className="font-medium">
-                        {selectedPaymentMethod === 'PIX' ? (
+                        {selectedPaymentMethod === "PIX" ? (
                           <>
                             <span className="mr-2 text-gray-400 line-through">
                               R$ {regularPrice.toFixed(2)}
@@ -1037,12 +1039,12 @@ function CheckoutPageContent() {
                       </span>
                     </div>
 
-                    {selectedPaymentMethod === 'CREDIT_CARD' &&
+                    {selectedPaymentMethod === "CREDIT_CARD" &&
                       selectedInstallments > 1 && (
                         <div className="text-brand-blue flex items-center justify-between text-sm">
                           <span>💳 Parcelamento</span>
                           <span>
-                            {selectedInstallments}x de R${' '}
+                            {selectedInstallments}x de R${" "}
                             {(
                               (appliedCoupon
                                 ? appliedCoupon.finalPrice
@@ -1052,7 +1054,7 @@ function CheckoutPageContent() {
                         </div>
                       )}
 
-                    {selectedPaymentMethod === 'PIX' &&
+                    {selectedPaymentMethod === "PIX" &&
                       pixSavings > 0 &&
                       !appliedCoupon && (
                         <div className="text-brand-blue flex items-center justify-between text-sm">
@@ -1061,7 +1063,7 @@ function CheckoutPageContent() {
                         </div>
                       )}
 
-                    {selectedPaymentMethod === 'PIX' && appliedCoupon && (
+                    {selectedPaymentMethod === "PIX" && appliedCoupon && (
                       <>
                         <div className="text-brand-blue flex items-center justify-between text-sm">
                           <span>💰 Desconto PIX</span>
@@ -1076,7 +1078,7 @@ function CheckoutPageContent() {
                       </>
                     )}
 
-                    {selectedPaymentMethod === 'CREDIT_CARD' &&
+                    {selectedPaymentMethod === "CREDIT_CARD" &&
                       appliedCoupon && (
                         <div className="flex items-center justify-between text-sm text-green-600">
                           <span>🎟️ Cupom ({couponCode})</span>
@@ -1089,7 +1091,7 @@ function CheckoutPageContent() {
                     <div className="flex items-center justify-between border-t pt-4 text-lg font-bold">
                       <span>Total:</span>
                       <span className="text-green-600">
-                        R${' '}
+                        R${" "}
                         {appliedCoupon
                           ? appliedCoupon.finalPrice.toFixed(2)
                           : basePrice.toFixed(2)}
@@ -1097,24 +1099,24 @@ function CheckoutPageContent() {
                     </div>
 
                     {(appliedCoupon ||
-                      (selectedPaymentMethod === 'PIX' && pixSavings > 0)) && (
-                        <div className="rounded-lg bg-green-50 p-3">
-                          <p className="text-sm font-medium text-green-700">
-                            ✓ Você está economizando R${' '}
-                            {(() => {
-                              let totalSavings = 0;
-                              if (selectedPaymentMethod === 'PIX') {
-                                totalSavings += pixSavings;
-                              }
-                              if (appliedCoupon) {
-                                totalSavings += appliedCoupon.discountAmount;
-                              }
-                              return totalSavings.toFixed(2);
-                            })()}
-                            !
-                          </p>
-                        </div>
-                      )}
+                      (selectedPaymentMethod === "PIX" && pixSavings > 0)) && (
+                      <div className="rounded-lg bg-green-50 p-3">
+                        <p className="text-sm font-medium text-green-700">
+                          ✓ Você está economizando R${" "}
+                          {(() => {
+                            let totalSavings = 0;
+                            if (selectedPaymentMethod === "PIX") {
+                              totalSavings += pixSavings;
+                            }
+                            if (appliedCoupon) {
+                              totalSavings += appliedCoupon.discountAmount;
+                            }
+                            return totalSavings.toFixed(2);
+                          })()}
+                          !
+                        </p>
+                      </div>
+                    )}
 
                     <div className="space-y-2 border-t pt-4 text-xs text-gray-600">
                       <div className="flex items-center gap-2">

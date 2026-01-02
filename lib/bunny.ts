@@ -10,7 +10,7 @@ import { createHash } from "crypto";
 export function getSignedEmbedUrl(
   videoId: string,
   libraryId: string,
-  expiresInSeconds: number = 3600
+  expiresInSeconds: number = 3600,
 ): { embedUrl: string; expires: number } {
   const tokenKey = process.env.BUNNY_EMBED_TOKEN_KEY;
   if (!tokenKey) {
@@ -26,4 +26,3 @@ export function getSignedEmbedUrl(
 
   return { embedUrl, expires };
 }
-

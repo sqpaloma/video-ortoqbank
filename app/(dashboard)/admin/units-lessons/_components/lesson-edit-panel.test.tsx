@@ -26,16 +26,16 @@ vi.mock("convex/react", async () => {
 });
 
 describe("LessonEditPanel", () => {
-    it("should render", () => {
-        render(
-            <LessonEditPanel
-                lesson={{ _id: "1", title: "Test Lesson" } as Doc<"lessons">}
-                units={[]}
-                onSave={() => {}}
-                onCancel={() => {}}
-            />
-        );
-        expect(screen.getByDisplayValue("Test Lesson")).toBeInTheDocument();
-        expect(screen.getByText("Editar Aula")).toBeInTheDocument();
-    });
-}); 
+  it("should render", () => {
+    render(
+      <LessonEditPanel
+        lesson={{ _id: "1", title: "Test Lesson" } as Doc<"lessons">}
+        units={[]}
+        onSave={() => {}}
+        onCancel={() => {}}
+      />,
+    );
+    expect(screen.getByDisplayValue("Test Lesson")).toBeInTheDocument();
+    expect(screen.getByText("Editar Aula")).toBeInTheDocument();
+  });
+});

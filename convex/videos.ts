@@ -22,25 +22,29 @@ export const getByVideoId = query({
       description: v.string(),
       thumbnailUrl: v.optional(v.string()),
       hlsUrl: v.optional(v.string()),
-      mp4Urls: v.optional(v.array(v.object({ quality: v.string(), url: v.string() }))),
+      mp4Urls: v.optional(
+        v.array(v.object({ quality: v.string(), url: v.string() })),
+      ),
       status: v.union(
         v.literal("uploading"),
         v.literal("processing"),
         v.literal("ready"),
-        v.literal("failed")
+        v.literal("failed"),
       ),
       createdBy: v.string(),
       isPrivate: v.boolean(),
-      metadata: v.optional(v.object({
-        duration: v.optional(v.number()),
-        width: v.optional(v.number()),
-        height: v.optional(v.number()),
-        framerate: v.optional(v.number()),
-        bitrate: v.optional(v.number()),
-        extras: v.optional(v.record(v.string(), v.any())),
-      })),
+      metadata: v.optional(
+        v.object({
+          duration: v.optional(v.number()),
+          width: v.optional(v.number()),
+          height: v.optional(v.number()),
+          framerate: v.optional(v.number()),
+          bitrate: v.optional(v.number()),
+          extras: v.optional(v.record(v.string(), v.any())),
+        }),
+      ),
     }),
-    v.null()
+    v.null(),
   ),
   handler: async (ctx, args) => {
     const video = await ctx.db
@@ -67,25 +71,29 @@ export const getById = query({
       description: v.string(),
       thumbnailUrl: v.optional(v.string()),
       hlsUrl: v.optional(v.string()),
-      mp4Urls: v.optional(v.array(v.object({ quality: v.string(), url: v.string() }))),
+      mp4Urls: v.optional(
+        v.array(v.object({ quality: v.string(), url: v.string() })),
+      ),
       status: v.union(
         v.literal("uploading"),
         v.literal("processing"),
         v.literal("ready"),
-        v.literal("failed")
+        v.literal("failed"),
       ),
       createdBy: v.string(),
       isPrivate: v.boolean(),
-      metadata: v.optional(v.object({
-        duration: v.optional(v.number()),
-        width: v.optional(v.number()),
-        height: v.optional(v.number()),
-        framerate: v.optional(v.number()),
-        bitrate: v.optional(v.number()),
-        extras: v.optional(v.record(v.string(), v.any())),
-      })),
+      metadata: v.optional(
+        v.object({
+          duration: v.optional(v.number()),
+          width: v.optional(v.number()),
+          height: v.optional(v.number()),
+          framerate: v.optional(v.number()),
+          bitrate: v.optional(v.number()),
+          extras: v.optional(v.record(v.string(), v.any())),
+        }),
+      ),
     }),
-    v.null()
+    v.null(),
   ),
   handler: async (ctx, args) => {
     return await ctx.db.get(args.id);
@@ -107,24 +115,28 @@ export const listByUser = query({
       description: v.string(),
       thumbnailUrl: v.optional(v.string()),
       hlsUrl: v.optional(v.string()),
-      mp4Urls: v.optional(v.array(v.object({ quality: v.string(), url: v.string() }))),
+      mp4Urls: v.optional(
+        v.array(v.object({ quality: v.string(), url: v.string() })),
+      ),
       status: v.union(
         v.literal("uploading"),
         v.literal("processing"),
         v.literal("ready"),
-        v.literal("failed")
+        v.literal("failed"),
       ),
       createdBy: v.string(),
       isPrivate: v.boolean(),
-      metadata: v.optional(v.object({
-        duration: v.optional(v.number()),
-        width: v.optional(v.number()),
-        height: v.optional(v.number()),
-        framerate: v.optional(v.number()),
-        bitrate: v.optional(v.number()),
-        extras: v.optional(v.record(v.string(), v.any())),
-      })),
-    })
+      metadata: v.optional(
+        v.object({
+          duration: v.optional(v.number()),
+          width: v.optional(v.number()),
+          height: v.optional(v.number()),
+          framerate: v.optional(v.number()),
+          bitrate: v.optional(v.number()),
+          extras: v.optional(v.record(v.string(), v.any())),
+        }),
+      ),
+    }),
   ),
   handler: async (ctx, args) => {
     const videos = await ctx.db
@@ -156,19 +168,23 @@ export const create = mutation({
         v.literal("uploading"),
         v.literal("processing"),
         v.literal("ready"),
-        v.literal("failed")
-      )
+        v.literal("failed"),
+      ),
     ),
     thumbnailUrl: v.optional(v.string()),
     hlsUrl: v.optional(v.string()),
-    mp4Urls: v.optional(v.array(v.object({ quality: v.string(), url: v.string() }))),
-    metadata: v.optional(v.object({
-      duration: v.optional(v.number()),
-      width: v.optional(v.number()),
-      height: v.optional(v.number()),
-      framerate: v.optional(v.number()),
-      bitrate: v.optional(v.number()),
-    })),
+    mp4Urls: v.optional(
+      v.array(v.object({ quality: v.string(), url: v.string() })),
+    ),
+    metadata: v.optional(
+      v.object({
+        duration: v.optional(v.number()),
+        width: v.optional(v.number()),
+        height: v.optional(v.number()),
+        framerate: v.optional(v.number()),
+        bitrate: v.optional(v.number()),
+      }),
+    ),
   },
   returns: v.id("videos"),
   handler: async (ctx, args) => {
@@ -210,22 +226,26 @@ export const update = mutation({
     description: v.optional(v.string()),
     thumbnailUrl: v.optional(v.string()),
     hlsUrl: v.optional(v.string()),
-    mp4Urls: v.optional(v.array(v.object({ quality: v.string(), url: v.string() }))),
+    mp4Urls: v.optional(
+      v.array(v.object({ quality: v.string(), url: v.string() })),
+    ),
     status: v.optional(
       v.union(
         v.literal("uploading"),
         v.literal("processing"),
         v.literal("ready"),
-        v.literal("failed")
-      )
+        v.literal("failed"),
+      ),
     ),
-    metadata: v.optional(v.object({
-      duration: v.optional(v.number()),
-      width: v.optional(v.number()),
-      height: v.optional(v.number()),
-      framerate: v.optional(v.number()),
-      bitrate: v.optional(v.number()),
-    })),
+    metadata: v.optional(
+      v.object({
+        duration: v.optional(v.number()),
+        width: v.optional(v.number()),
+        height: v.optional(v.number()),
+        framerate: v.optional(v.number()),
+        bitrate: v.optional(v.number()),
+      }),
+    ),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
@@ -259,7 +279,8 @@ export const update = mutation({
 
     if (args.title !== undefined) updates.title = args.title;
     if (args.description !== undefined) updates.description = args.description;
-    if (args.thumbnailUrl !== undefined) updates.thumbnailUrl = args.thumbnailUrl;
+    if (args.thumbnailUrl !== undefined)
+      updates.thumbnailUrl = args.thumbnailUrl;
     if (args.hlsUrl !== undefined) updates.hlsUrl = args.hlsUrl;
     if (args.mp4Urls !== undefined) updates.mp4Urls = args.mp4Urls;
     if (args.status !== undefined) updates.status = args.status;
@@ -300,7 +321,7 @@ export const markAsReady = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
-    
+
     const video = await ctx.db
       .query("videos")
       .withIndex("by_videoId", (q) => q.eq("videoId", args.videoId))
@@ -335,12 +356,12 @@ export const getVideoStatus = query({
         v.literal("uploading"),
         v.literal("processing"),
         v.literal("ready"),
-        v.literal("failed")
+        v.literal("failed"),
       ),
       hlsUrl: v.optional(v.string()),
       thumbnailUrl: v.optional(v.string()),
     }),
-    v.null()
+    v.null(),
   ),
   handler: async (ctx, args) => {
     const video = await ctx.db
@@ -392,7 +413,7 @@ export const syncFromBunny = mutation({
           AccessKey: apiKey,
           Accept: "application/json",
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -447,24 +468,28 @@ export const listAll = query({
       description: v.string(),
       thumbnailUrl: v.optional(v.string()),
       hlsUrl: v.optional(v.string()),
-      mp4Urls: v.optional(v.array(v.object({ quality: v.string(), url: v.string() }))),
+      mp4Urls: v.optional(
+        v.array(v.object({ quality: v.string(), url: v.string() })),
+      ),
       status: v.union(
         v.literal("uploading"),
         v.literal("processing"),
         v.literal("ready"),
-        v.literal("failed")
+        v.literal("failed"),
       ),
       createdBy: v.string(),
       isPrivate: v.boolean(),
-      metadata: v.optional(v.object({
-        duration: v.optional(v.number()),
-        width: v.optional(v.number()),
-        height: v.optional(v.number()),
-        framerate: v.optional(v.number()),
-        bitrate: v.optional(v.number()),
-        extras: v.optional(v.record(v.string(), v.any())),
-      })),
-    })
+      metadata: v.optional(
+        v.object({
+          duration: v.optional(v.number()),
+          width: v.optional(v.number()),
+          height: v.optional(v.number()),
+          framerate: v.optional(v.number()),
+          bitrate: v.optional(v.number()),
+          extras: v.optional(v.record(v.string(), v.any())),
+        }),
+      ),
+    }),
   ),
   handler: async (ctx) => {
     await requireAdmin(ctx);
@@ -486,22 +511,26 @@ export const updateFromWebhook = internalMutation({
     description: v.optional(v.string()),
     thumbnailUrl: v.optional(v.string()),
     hlsUrl: v.optional(v.string()),
-    mp4Urls: v.optional(v.array(v.object({ quality: v.string(), url: v.string() }))),
+    mp4Urls: v.optional(
+      v.array(v.object({ quality: v.string(), url: v.string() })),
+    ),
     status: v.optional(
       v.union(
         v.literal("uploading"),
         v.literal("processing"),
         v.literal("ready"),
-        v.literal("failed")
-      )
+        v.literal("failed"),
+      ),
     ),
-    metadata: v.optional(v.object({
-      duration: v.optional(v.number()),
-      width: v.optional(v.number()),
-      height: v.optional(v.number()),
-      framerate: v.optional(v.number()),
-      bitrate: v.optional(v.number()),
-    })),
+    metadata: v.optional(
+      v.object({
+        duration: v.optional(v.number()),
+        width: v.optional(v.number()),
+        height: v.optional(v.number()),
+        framerate: v.optional(v.number()),
+        bitrate: v.optional(v.number()),
+      }),
+    ),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
@@ -536,7 +565,8 @@ export const updateFromWebhook = internalMutation({
 
     if (args.title !== undefined) updates.title = args.title;
     if (args.description !== undefined) updates.description = args.description;
-    if (args.thumbnailUrl !== undefined) updates.thumbnailUrl = args.thumbnailUrl;
+    if (args.thumbnailUrl !== undefined)
+      updates.thumbnailUrl = args.thumbnailUrl;
     if (args.hlsUrl !== undefined) updates.hlsUrl = args.hlsUrl;
     if (args.mp4Urls !== undefined) updates.mp4Urls = args.mp4Urls;
     if (args.status !== undefined) updates.status = args.status;

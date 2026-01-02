@@ -88,7 +88,10 @@ export function WatchAlsoVideos({ watchAlsoVideos }: WatchAlsoVideosProps) {
                   className="absolute top-2 right-2 bg-white/90 hover:bg-white"
                   onClick={(e) => handleAddFavorite(e, video._id)}
                 >
-                  <StarIcon size={20} className="text-gray-400 hover:text-yellow-500" />
+                  <StarIcon
+                    size={20}
+                    className="text-gray-400 hover:text-yellow-500"
+                  />
                 </Button>
               </div>
 

@@ -5,7 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useToast } from "@/hooks/use-toast";
@@ -24,7 +30,9 @@ export function UnitForm({ categories, onSuccess }: UnitFormProps) {
   const { error, showError, hideError } = useErrorModal();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [categoryId, setCategoryId] = useState<string>(categories[0]?._id || "");
+  const [categoryId, setCategoryId] = useState<string>(
+    categories[0]?._id || "",
+  );
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
@@ -54,7 +62,7 @@ export function UnitForm({ categories, onSuccess }: UnitFormProps) {
     } catch (error) {
       showError(
         error instanceof Error ? error.message : "Erro desconhecido",
-        "Erro ao criar unidade"
+        "Erro ao criar unidade",
       );
     } finally {
       setIsSubmitting(false);
@@ -66,7 +74,11 @@ export function UnitForm({ categories, onSuccess }: UnitFormProps) {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="create-unit-category">Categoria *</Label>
-          <Select value={categoryId} onValueChange={setCategoryId} disabled={isSubmitting}>
+          <Select
+            value={categoryId}
+            onValueChange={setCategoryId}
+            disabled={isSubmitting}
+          >
             <SelectTrigger id="create-unit-category">
               <SelectValue placeholder="Selecione uma categoria" />
             </SelectTrigger>

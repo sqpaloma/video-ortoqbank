@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useQuery } from 'convex/react';
-import { createContext, ReactNode, useContext } from 'react';
+import { useQuery } from "convex/react";
+import { createContext, ReactNode, useContext } from "react";
 
-import { api } from '../../convex/_generated/api';
+import { api } from "../../convex/_generated/api";
 
 interface SessionContextType {
   isAdmin: boolean;
@@ -27,7 +27,7 @@ export function SessionProvider({ children }: SessionProviderProps) {
 
   // Calculate derived values
   const userRole = user?.role ?? null;
-  const isAdmin = userRole === 'admin';
+  const isAdmin = userRole === "admin";
   const isLoading = user === undefined;
 
   const sessionValue: SessionContextType = {
@@ -47,7 +47,7 @@ export function SessionProvider({ children }: SessionProviderProps) {
 export function useSession() {
   const context = useContext(SessionContext);
   if (context === undefined) {
-    throw new Error('useSession must be used within a SessionProvider');
+    throw new Error("useSession must be used within a SessionProvider");
   }
   return context;
 }

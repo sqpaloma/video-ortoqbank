@@ -36,13 +36,19 @@ export default function AdminVideoUploader({
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       if (!selectedFile.type.startsWith("video/")) {
-        showError("Por favor, selecione um arquivo de vídeo", "Arquivo inválido");
+        showError(
+          "Por favor, selecione um arquivo de vídeo",
+          "Arquivo inválido",
+        );
         return;
       }
 
       const maxSize = 5 * 1024 * 1024 * 1024;
       if (selectedFile.size > maxSize) {
-        showError("O arquivo é muito grande (máximo 5GB)", "Arquivo muito grande");
+        showError(
+          "O arquivo é muito grande (máximo 5GB)",
+          "Arquivo muito grande",
+        );
         return;
       }
 
@@ -79,7 +85,7 @@ export default function AdminVideoUploader({
     } catch (error) {
       showError(
         error instanceof Error ? error.message : "Erro no upload",
-        "Erro no upload"
+        "Erro no upload",
       );
     }
   };

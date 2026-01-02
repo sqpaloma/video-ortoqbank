@@ -1,7 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { User } from "lucide-react";
 import { useQuery } from "convex/react";
@@ -30,7 +35,9 @@ export default function UserInfos() {
           )}
           <div>
             <CardTitle className="text-2xl">
-              {userData ? `${userData.firstName} ${userData.lastName}` : "Usuário"}
+              {userData
+                ? `${userData.firstName} ${userData.lastName}`
+                : "Usuário"}
             </CardTitle>
             <CardDescription>{userData?.email || ""}</CardDescription>
             {userData?.role === "admin" && (

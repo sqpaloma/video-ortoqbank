@@ -10,10 +10,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --ignore-pattern \"convex/_generated/**\"",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "vitest run",
     "coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
-    "test:ui:coverage": "vitest --ui --coverage"
+    "test:ui:coverage": "vitest --ui --coverage",
+    "prepare": "husky"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.56.0",
@@ -72,6 +75,7 @@
     "dotenv": "^17.2.3",
     "eslint": "^9.39.1",
     "eslint-config-next": "16.0.6",
+    "husky": "^9.1.7",
     "jsdom": "^27.2.0",
     "npm-run-all2": "^8.0.4",
     "prettier": "^3.6.2",

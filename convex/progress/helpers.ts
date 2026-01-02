@@ -8,7 +8,7 @@ import { getTotalLessonsCount } from "../aggregate";
 export async function updateUnitAndGlobalProgress(
   ctx: MutationCtx,
   userId: string,
-  unitId: Id<"units">
+  unitId: Id<"units">,
 ) {
   const now = Date.now();
 
@@ -18,12 +18,12 @@ export async function updateUnitAndGlobalProgress(
     const completedLessonsInUnit = await ctx.db
       .query("userProgress")
       .withIndex("by_userId_and_unitId", (q) =>
-        q.eq("userId", userId).eq("unitId", unitId)
+        q.eq("userId", userId).eq("unitId", unitId),
       )
       .collect();
 
     const completedCount = completedLessonsInUnit.filter(
-      (p) => p.completed
+      (p) => p.completed,
     ).length;
     const progressPercent =
       unit.totalLessonVideos > 0
@@ -33,7 +33,7 @@ export async function updateUnitAndGlobalProgress(
     const unitProgressDoc = await ctx.db
       .query("unitProgress")
       .withIndex("by_userId_and_unitId", (q) =>
-        q.eq("userId", userId).eq("unitId", unitId)
+        q.eq("userId", userId).eq("unitId", unitId),
       )
       .unique();
 
@@ -60,7 +60,7 @@ export async function updateUnitAndGlobalProgress(
   const allCompletedLessons = await ctx.db
     .query("userProgress")
     .withIndex("by_userId_and_completed", (q) =>
-      q.eq("userId", userId).eq("completed", true)
+      q.eq("userId", userId).eq("completed", true),
     )
     .collect();
 

@@ -36,17 +36,22 @@ export function SearchBar({
   // Buscar sugestões
   const suggestions = useQuery(
     api.search.getSuggestions,
-    debouncedQuery.length >= 2 ? { query: debouncedQuery } : "skip"
+    debouncedQuery.length >= 2 ? { query: debouncedQuery } : "skip",
   );
 
   // Derive showSuggestions from data (no setState in effect)
-  const hasSuggestions = suggestions && (suggestions.units.length > 0 || suggestions.lessons.length > 0);
+  const hasSuggestions =
+    suggestions &&
+    (suggestions.units.length > 0 || suggestions.lessons.length > 0);
   const showSuggestions = !isManuallyHidden && Boolean(hasSuggestions);
 
   // Fechar sugestões quando clicar fora
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(event.target as Node)
+      ) {
         setIsManuallyHidden(true);
       }
     }
@@ -86,7 +91,8 @@ export function SearchBar({
   return (
     <form onSubmit={handleSubmit} className="w-full relative" ref={wrapperRef}>
       <div className="relative">
-        <SearchIcon className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-muted-foreground z-10"
+        <SearchIcon
+          className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-muted-foreground z-10"
           size={18}
         />
         <Input
@@ -140,7 +146,9 @@ export function SearchBar({
           )}
 
           {suggestions.lessons.length > 0 && (
-            <div className={cn("p-2", suggestions.units.length > 0 && "border-t")}>
+            <div
+              className={cn("p-2", suggestions.units.length > 0 && "border-t")}
+            >
               <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Aulas
               </div>
@@ -176,4 +184,3 @@ export function SearchBar({
     </form>
   );
 }
-

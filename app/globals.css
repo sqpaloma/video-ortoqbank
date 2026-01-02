@@ -135,7 +135,7 @@
   body {
     @apply bg-background text-foreground;
   }
-  
+
   /* Customização da Sidebar - largura aumentada */
   [data-sidebar] {
     --sidebar-width: 200px;

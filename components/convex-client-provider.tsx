@@ -3,7 +3,7 @@
 import { ReactNode } from "react";
 import { ConvexReactClient } from "convex/react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
-import { ConvexQueryCacheProvider } from 'convex-helpers/react/cache';
+import { ConvexQueryCacheProvider } from "convex-helpers/react/cache";
 import { ClerkProvider, useAuth } from "@clerk/nextjs";
 import { ptBR } from "@clerk/localizations";
 
@@ -23,11 +23,15 @@ export default function ConvexClientProvider({
   const clerkRedirectUrl = process.env.NEXT_PUBLIC_CLERK_REDIRECT_URL;
 
   if (!clerkPublishableKey) {
-    throw new Error("Missing NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY environment variable");
+    throw new Error(
+      "Missing NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY environment variable",
+    );
   }
 
   if (!clerkRedirectUrl) {
-    throw new Error("Missing NEXT_PUBLIC_CLERK_REDIRECT_URL environment variable");
+    throw new Error(
+      "Missing NEXT_PUBLIC_CLERK_REDIRECT_URL environment variable",
+    );
   }
 
   return (

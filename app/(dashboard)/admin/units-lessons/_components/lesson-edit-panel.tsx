@@ -6,7 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useErrorModal } from "@/hooks/use-error-modal";
 import { useConfirmModal } from "@/hooks/use-confirm-modal";
@@ -16,7 +22,13 @@ import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { LoaderIcon, CheckCircleIcon, XCircleIcon, Trash2Icon, UploadIcon } from "lucide-react";
+import {
+  LoaderIcon,
+  CheckCircleIcon,
+  XCircleIcon,
+  Trash2Icon,
+  UploadIcon,
+} from "lucide-react";
 import { LessonEditPanelProps } from "./types";
 import { useUser } from "@clerk/nextjs";
 
@@ -47,7 +59,7 @@ export function LessonEditPanel({
 
   const video = useQuery(
     api.videos.getByVideoId,
-    currentVideoId ? { videoId: currentVideoId } : "skip"
+    currentVideoId ? { videoId: currentVideoId } : "skip",
   );
 
   // Update form values when lesson changes
@@ -66,9 +78,9 @@ export function LessonEditPanel({
     try {
       const tagsArray = tags
         ? tags
-          .split(",")
-          .map((tag) => tag.trim())
-          .filter(Boolean)
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter(Boolean)
         : [];
 
       await onSave({
@@ -91,9 +103,9 @@ export function LessonEditPanel({
         try {
           const tagsArray = tags
             ? tags
-              .split(",")
-              .map((tag: string) => tag.trim())
-              .filter(Boolean)
+                .split(",")
+                .map((tag: string) => tag.trim())
+                .filter(Boolean)
             : [];
 
           await updateLesson({
@@ -117,11 +129,11 @@ export function LessonEditPanel({
         } catch (error) {
           showError(
             error instanceof Error ? error.message : "Erro ao remover vídeo",
-            "Erro ao remover vídeo"
+            "Erro ao remover vídeo",
           );
         }
       },
-      "Remover vídeo"
+      "Remover vídeo",
     );
   };
 
@@ -129,13 +141,19 @@ export function LessonEditPanel({
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       if (!selectedFile.type.startsWith("video/")) {
-        showError("Por favor, selecione um arquivo de vídeo", "Arquivo inválido");
+        showError(
+          "Por favor, selecione um arquivo de vídeo",
+          "Arquivo inválido",
+        );
         return;
       }
 
       const maxSize = 5 * 1024 * 1024 * 1024;
       if (selectedFile.size > maxSize) {
-        showError("O arquivo é muito grande (máximo 5GB)", "Arquivo muito grande");
+        showError(
+          "O arquivo é muito grande (máximo 5GB)",
+          "Arquivo muito grande",
+        );
         return;
       }
 
@@ -159,7 +177,10 @@ export function LessonEditPanel({
 
       // Update lesson with videoId
       const tagsArray = tags
-        ? tags.split(",").map((tag: string) => tag.trim()).filter(Boolean)
+        ? tags
+            .split(",")
+            .map((tag: string) => tag.trim())
+            .filter(Boolean)
         : [];
 
       await updateLesson({
@@ -186,7 +207,7 @@ export function LessonEditPanel({
     } catch (error) {
       showError(
         error instanceof Error ? error.message : "Erro desconhecido",
-        "Erro no upload"
+        "Erro no upload",
       );
     }
   };
@@ -205,7 +226,11 @@ export function LessonEditPanel({
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="edit-lesson-unit">Unidade *</Label>
-              <Select value={unitId} onValueChange={setUnitId} disabled={isSubmitting}>
+              <Select
+                value={unitId}
+                onValueChange={setUnitId}
+                disabled={isSubmitting}
+              >
                 <SelectTrigger id="edit-lesson-unit">
                   <SelectValue placeholder="Selecione uma unidade" />
                 </SelectTrigger>
@@ -255,7 +280,9 @@ export function LessonEditPanel({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-lesson-tags">Tags (separadas por vírgula)</Label>
+              <Label htmlFor="edit-lesson-tags">
+                Tags (separadas por vírgula)
+              </Label>
               <Input
                 id="edit-lesson-tags"
                 value={tags}
@@ -273,7 +300,9 @@ export function LessonEditPanel({
                   {video === undefined ? (
                     <div className="flex items-center gap-2 p-3 rounded-lg bg-gray-100">
                       <LoaderIcon className="h-5 w-5 text-gray-600 animate-spin" />
-                      <p className="text-sm text-gray-700">Carregando informações do vídeo...</p>
+                      <p className="text-sm text-gray-700">
+                        Carregando informações do vídeo...
+                      </p>
                     </div>
                   ) : video === null ? (
                     <div className="flex items-center gap-2 p-3 rounded-lg bg-yellow-50 border border-yellow-200">
@@ -304,7 +333,12 @@ export function LessonEditPanel({
                           Vídeo vinculado
                         </p>
                         <p className="text-xs text-green-700">
-                          Status: {video.status === "ready" ? "Pronto" : video.status === "processing" ? "Processando" : video.status}
+                          Status:{" "}
+                          {video.status === "ready"
+                            ? "Pronto"
+                            : video.status === "processing"
+                              ? "Processando"
+                              : video.status}
                         </p>
                       </div>
                       <Button
@@ -333,7 +367,8 @@ export function LessonEditPanel({
                     />
                     {uploadFile && (
                       <p className="text-xs text-muted-foreground">
-                        📁 {uploadFile.name} ({(uploadFile.size / (1024 * 1024)).toFixed(2)} MB)
+                        📁 {uploadFile.name} (
+                        {(uploadFile.size / (1024 * 1024)).toFixed(2)} MB)
                       </p>
                     )}
                   </div>

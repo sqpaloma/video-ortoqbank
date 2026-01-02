@@ -1,5 +1,10 @@
 import { v } from "convex/values";
-import { query, internalMutation, type QueryCtx, type MutationCtx } from "./_generated/server";
+import {
+  query,
+  internalMutation,
+  type QueryCtx,
+  type MutationCtx,
+} from "./_generated/server";
 import { DirectAggregate } from "@convex-dev/aggregate";
 import { components, internal } from "./_generated/api";
 
@@ -15,15 +20,18 @@ export const unitsAggregate = new DirectAggregate<{ Key: null; Id: string }>(
   components.aggregateUnits,
 );
 
-export const categoriesAggregate = new DirectAggregate<{ Key: null; Id: string }>(
-  components.aggregateCategories,
-);
+export const categoriesAggregate = new DirectAggregate<{
+  Key: null;
+  Id: string;
+}>(components.aggregateCategories);
 
 /**
  * Helper function to get total lessons count
  * Can be called from other Convex functions (queries/mutations)
  */
-export async function getTotalLessonsCount(ctx: QueryCtx | MutationCtx): Promise<number> {
+export async function getTotalLessonsCount(
+  ctx: QueryCtx | MutationCtx,
+): Promise<number> {
   return await lessonsAggregate.count(ctx);
 }
 
@@ -44,7 +52,7 @@ export const get = query({
     const totalLessons = await getTotalLessonsCount(ctx);
     const totalUnits = await unitsAggregate.count(ctx);
     const totalCategories = await categoriesAggregate.count(ctx);
-    
+
     return {
       totalLessons,
       totalUnits,
@@ -80,7 +88,9 @@ export const decrementLessons = internalMutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     // Get items from aggregate and delete them
-    const result = await lessonsAggregate.paginate(ctx, { pageSize: args.amount });
+    const result = await lessonsAggregate.paginate(ctx, {
+      pageSize: args.amount,
+    });
     for (const item of result.page) {
       await lessonsAggregate.delete(ctx, { key: item.key, id: item.id });
     }
@@ -112,7 +122,9 @@ export const decrementUnits = internalMutation({
   args: { amount: v.number() },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const result = await unitsAggregate.paginate(ctx, { pageSize: args.amount });
+    const result = await unitsAggregate.paginate(ctx, {
+      pageSize: args.amount,
+    });
     for (const item of result.page) {
       await unitsAggregate.delete(ctx, { key: item.key, id: item.id });
     }
@@ -144,7 +156,9 @@ export const decrementCategories = internalMutation({
   args: { amount: v.number() },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const result = await categoriesAggregate.paginate(ctx, { pageSize: args.amount });
+    const result = await categoriesAggregate.paginate(ctx, {
+      pageSize: args.amount,
+    });
     for (const item of result.page) {
       await categoriesAggregate.delete(ctx, { key: item.key, id: item.id });
     }
@@ -161,17 +175,23 @@ export const initialize = internalMutation({
   returns: v.null(),
   handler: async (ctx) => {
     // Clear existing aggregates
-    const existingLessons = await lessonsAggregate.paginate(ctx, { pageSize: 1000 });
+    const existingLessons = await lessonsAggregate.paginate(ctx, {
+      pageSize: 1000,
+    });
     for (const item of existingLessons.page) {
       await lessonsAggregate.delete(ctx, { key: item.key, id: item.id });
     }
-    
-    const existingUnits = await unitsAggregate.paginate(ctx, { pageSize: 1000 });
+
+    const existingUnits = await unitsAggregate.paginate(ctx, {
+      pageSize: 1000,
+    });
     for (const item of existingUnits.page) {
       await unitsAggregate.delete(ctx, { key: item.key, id: item.id });
     }
-    
-    const existingCategories = await categoriesAggregate.paginate(ctx, { pageSize: 1000 });
+
+    const existingCategories = await categoriesAggregate.paginate(ctx, {
+      pageSize: 1000,
+    });
     for (const item of existingCategories.page) {
       await categoriesAggregate.delete(ctx, { key: item.key, id: item.id });
     }
@@ -181,7 +201,7 @@ export const initialize = internalMutation({
       .query("lessons")
       .withIndex("by_isPublished", (q) => q.eq("isPublished", true))
       .collect();
-    
+
     const units = await ctx.db.query("units").take(1000);
     const categories = await ctx.db.query("categories").take(100);
 
@@ -192,14 +212,14 @@ export const initialize = internalMutation({
         id: `lesson_init_${i}`,
       });
     }
-    
+
     for (let i = 0; i < units.length; i++) {
       await unitsAggregate.insert(ctx, {
         key: null,
         id: `unit_init_${i}`,
       });
     }
-    
+
     for (let i = 0; i < categories.length; i++) {
       await categoriesAggregate.insert(ctx, {
         key: null,
@@ -207,7 +227,9 @@ export const initialize = internalMutation({
       });
     }
 
-    console.log(`Initialized aggregates: ${lessons.length} lessons, ${units.length} units, ${categories.length} categories`);
+    console.log(
+      `Initialized aggregates: ${lessons.length} lessons, ${units.length} units, ${categories.length} categories`,
+    );
     return null;
   },
 });

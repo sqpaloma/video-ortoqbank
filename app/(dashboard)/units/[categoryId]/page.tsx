@@ -27,18 +27,18 @@ export default async function Page({ params }: UnitsPageProps) {
     const preloadedUnits = await preloadQuery(
       api.units.listPublishedByCategory,
       { categoryId: categoryIdTyped },
-      token ? { token } : undefined
+      token ? { token } : undefined,
     );
 
     // Buscar informações da categoria para mostrar o título
     const preloadedCategory = await preloadQuery(
       api.categories.getById,
       { id: categoryIdTyped },
-      token ? { token } : undefined
+      token ? { token } : undefined,
     );
 
     // _valueJSON is already a parsed object, not a JSON string
-    const categoryData = (preloadedCategory._valueJSON as unknown) as {
+    const categoryData = preloadedCategory._valueJSON as unknown as {
       title: string;
     } | null;
     const categoryTitle = categoryData?.title ?? "Categoria";
@@ -61,4 +61,3 @@ export default async function Page({ params }: UnitsPageProps) {
     );
   }
 }
-

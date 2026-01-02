@@ -26,7 +26,9 @@ export const createMockRouter = () => ({
 
 // Default mock implementations for use in vi.mock() calls
 export const defaultMockUseQuery = vi.fn(() => null);
-export const defaultMockUseMutation = vi.fn(() => vi.fn(() => Promise.resolve()));
+export const defaultMockUseMutation = vi.fn(() =>
+  vi.fn(() => Promise.resolve()),
+);
 export const defaultMockUseConvexAuth = vi.fn(() => ({
   isLoading: false,
   isAuthenticated: true,
@@ -81,7 +83,7 @@ interface CustomRenderOptions extends Omit<RenderOptions, "wrapper"> {
 
 export function renderWithProviders(
   ui: ReactElement,
-  { sidebarDefaultOpen, ...renderOptions }: CustomRenderOptions = {}
+  { sidebarDefaultOpen, ...renderOptions }: CustomRenderOptions = {},
 ) {
   function Wrapper({ children }: { children: ReactNode }) {
     return (
@@ -111,4 +113,3 @@ export function resetAllMocks() {
 
 // Re-export everything from testing-library
 export * from "@testing-library/react";
-

@@ -14,7 +14,7 @@ export function UnitCard({
   title = "",
   description = "",
   totalLessons = 0,
-  onClick = () => { },
+  onClick = () => {},
 }: UnitCardProps) {
   return (
     <Card
@@ -38,7 +38,9 @@ export function UnitCard({
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <PlayCircleIcon size={16} />
-              <span>{totalLessons} {totalLessons === 1 ? "aula" : "aulas"}</span>
+              <span>
+                {totalLessons} {totalLessons === 1 ? "aula" : "aulas"}
+              </span>
             </div>
           </div>
         </div>
@@ -46,4 +48,3 @@ export function UnitCard({
     </Card>
   );
 }
-

@@ -27,7 +27,7 @@ export const list = query({
       totalLessonVideos: v.number(),
       lessonCounter: v.optional(v.number()),
       isPublished: v.boolean(),
-    })
+    }),
   ),
   handler: async (ctx) => {
     // DEPRECATED: Use listPaginated for better performance
@@ -51,7 +51,7 @@ export const listPublished = query({
       totalLessonVideos: v.number(),
       lessonCounter: v.optional(v.number()),
       isPublished: v.boolean(),
-    })
+    }),
   ),
   handler: async (ctx) => {
     const units = await ctx.db
@@ -71,7 +71,9 @@ export const listByCategoryPaginated = query({
   handler: async (ctx, args) => {
     return await ctx.db
       .query("units")
-      .withIndex("by_categoryId_and_order", (q) => q.eq("categoryId", args.categoryId))
+      .withIndex("by_categoryId_and_order", (q) =>
+        q.eq("categoryId", args.categoryId),
+      )
       .paginate(args.paginationOpts);
   },
 });
@@ -91,13 +93,13 @@ export const listByCategory = query({
       totalLessonVideos: v.number(),
       lessonCounter: v.optional(v.number()),
       isPublished: v.boolean(),
-    })
+    }),
   ),
   handler: async (ctx, args) => {
     const units = await ctx.db
       .query("units")
-      .withIndex("by_categoryId_and_order", (q) => 
-        q.eq("categoryId", args.categoryId)
+      .withIndex("by_categoryId_and_order", (q) =>
+        q.eq("categoryId", args.categoryId),
       )
       .take(100);
 
@@ -120,7 +122,7 @@ export const listPublishedByCategory = query({
       totalLessonVideos: v.number(),
       lessonCounter: v.optional(v.number()),
       isPublished: v.boolean(),
-    })
+    }),
   ),
   handler: async (ctx, args) => {
     // Check if category is published
@@ -131,8 +133,8 @@ export const listPublishedByCategory = query({
 
     const units = await ctx.db
       .query("units")
-      .withIndex("by_categoryId_and_isPublished", (q) => 
-        q.eq("categoryId", args.categoryId).eq("isPublished", true)
+      .withIndex("by_categoryId_and_isPublished", (q) =>
+        q.eq("categoryId", args.categoryId).eq("isPublished", true),
       )
       .collect();
 
@@ -156,7 +158,7 @@ export const getById = query({
       lessonCounter: v.optional(v.number()),
       isPublished: v.boolean(),
     }),
-    v.null()
+    v.null(),
   ),
   handler: async (ctx, args) => {
     const unit = await ctx.db.get(args.id);
@@ -180,7 +182,7 @@ export const getBySlug = query({
       lessonCounter: v.optional(v.number()),
       isPublished: v.boolean(),
     }),
-    v.null()
+    v.null(),
   ),
   handler: async (ctx, args) => {
     const unit = await ctx.db
@@ -227,14 +229,14 @@ export const create = mutation({
     // Auto-calculate next order_index for this category
     const unitsInCategory = await ctx.db
       .query("units")
-      .withIndex("by_categoryId_and_order", (q) => 
-        q.eq("categoryId", args.categoryId)
+      .withIndex("by_categoryId_and_order", (q) =>
+        q.eq("categoryId", args.categoryId),
       )
       .collect();
-    
+
     const maxOrderIndex = unitsInCategory.reduce(
       (max, unit) => Math.max(max, unit.order_index),
-      -1
+      -1,
     );
     const nextOrderIndex = maxOrderIndex + 1;
 
@@ -256,7 +258,9 @@ export const create = mutation({
     });
 
     // Update contentStats
-    await ctx.scheduler.runAfter(0, internal.aggregate.incrementUnits, { amount: 1 });
+    await ctx.scheduler.runAfter(0, internal.aggregate.incrementUnits, {
+      amount: 1,
+    });
 
     return unitId;
   },
@@ -344,9 +348,13 @@ export const remove = mutation({
     await ctx.db.delete(args.id);
 
     // Update contentStats
-    await ctx.scheduler.runAfter(0, internal.aggregate.decrementUnits, { amount: 1 });
+    await ctx.scheduler.runAfter(0, internal.aggregate.decrementUnits, {
+      amount: 1,
+    });
     if (publishedLessonsCount > 0) {
-      await ctx.scheduler.runAfter(0, internal.aggregate.decrementLessons, { amount: publishedLessonsCount });
+      await ctx.scheduler.runAfter(0, internal.aggregate.decrementLessons, {
+        amount: publishedLessonsCount,
+      });
     }
 
     return null;
@@ -360,7 +368,7 @@ export const reorder = mutation({
       v.object({
         id: v.id("units"),
         order_index: v.number(),
-      })
+      }),
     ),
   },
   returns: v.null(),
@@ -430,4 +438,3 @@ export const togglePublish = mutation({
     return newPublishStatus;
   },
 });
-

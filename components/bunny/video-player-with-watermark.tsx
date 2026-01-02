@@ -51,16 +51,21 @@ export function VideoPlayerWithWatermark({
         // Bounce off edges
         if (positionRef.current.x <= 0 || positionRef.current.x >= maxX) {
           velocityRef.current.x *= -1;
-          positionRef.current.x = Math.max(0, Math.min(maxX, positionRef.current.x));
+          positionRef.current.x = Math.max(
+            0,
+            Math.min(maxX, positionRef.current.x),
+          );
         }
         if (positionRef.current.y <= 0 || positionRef.current.y >= maxY) {
           velocityRef.current.y *= -1;
-          positionRef.current.y = Math.max(0, Math.min(maxY, positionRef.current.y));
+          positionRef.current.y = Math.max(
+            0,
+            Math.min(maxY, positionRef.current.y),
+          );
         }
 
         // Apply position
-        watermarkRef.current.style.transform =
-          `translate(${positionRef.current.x}px, ${positionRef.current.y}px)`;
+        watermarkRef.current.style.transform = `translate(${positionRef.current.x}px, ${positionRef.current.y}px)`;
       }
       animationId = requestAnimationFrame(animate);
     };

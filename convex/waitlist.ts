@@ -1,7 +1,7 @@
-import { v } from 'convex/values';
+import { v } from "convex/values";
 
-import { mutation, query } from './_generated/server';
-import { requireAdmin } from './users';
+import { mutation, query } from "./_generated/server";
+import { requireAdmin } from "./users";
 
 export const createWaitlistEntry = mutation({
   args: {
@@ -13,7 +13,7 @@ export const createWaitlistEntry = mutation({
       v.literal("R1"),
       v.literal("R2"),
       v.literal("R3"),
-      v.literal("Já concluí")
+      v.literal("Já concluí"),
     ),
     subspecialty: v.union(
       v.literal("Pediátrica"),
@@ -23,23 +23,23 @@ export const createWaitlistEntry = mutation({
       v.literal("Ombro e Cotovelo"),
       v.literal("Mão"),
       v.literal("Coluna"),
-      v.literal("Pé e Tornozelo")
+      v.literal("Pé e Tornozelo"),
     ),
   },
-  returns: v.union(v.id('waitlist'), v.literal('email_already_exists')),
+  returns: v.union(v.id("waitlist"), v.literal("email_already_exists")),
   handler: async (ctx, args) => {
     // Check if email already exists
     const existingEntry = await ctx.db
-      .query('waitlist')
-      .withIndex('by_email', (q) => q.eq('email', args.email))
+      .query("waitlist")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
       .first();
 
     if (existingEntry) {
-      return 'email_already_exists';
+      return "email_already_exists";
     }
 
     // Create the waitlist entry
-    const entryId = await ctx.db.insert('waitlist', {
+    const entryId = await ctx.db.insert("waitlist", {
       name: args.name,
       email: args.email,
       whatsapp: args.whatsapp,
@@ -56,7 +56,7 @@ export const list = query({
   args: {},
   returns: v.array(
     v.object({
-      _id: v.id('waitlist'),
+      _id: v.id("waitlist"),
       _creationTime: v.number(),
       name: v.string(),
       email: v.string(),
@@ -66,7 +66,7 @@ export const list = query({
         v.literal("R1"),
         v.literal("R2"),
         v.literal("R3"),
-        v.literal("Já concluí")
+        v.literal("Já concluí"),
       ),
       subspecialty: v.union(
         v.literal("Pediátrica"),
@@ -76,15 +76,15 @@ export const list = query({
         v.literal("Ombro e Cotovelo"),
         v.literal("Mão"),
         v.literal("Coluna"),
-        v.literal("Pé e Tornozelo")
+        v.literal("Pé e Tornozelo"),
       ),
-    })
+    }),
   ),
   handler: async (ctx) => {
     // Require admin access to list waitlist entries
     await requireAdmin(ctx);
 
-    const entries = await ctx.db.query('waitlist').collect();
+    const entries = await ctx.db.query("waitlist").collect();
     return entries;
   },
 });

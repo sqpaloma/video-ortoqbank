@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
 
 interface ConfirmState {
-  isOpen: boolean
-  title?: string
-  message: string
-  onConfirm: () => void
+  isOpen: boolean;
+  title?: string;
+  message: string;
+  onConfirm: () => void;
 }
 
 export function useConfirmModal() {
@@ -15,20 +15,20 @@ export function useConfirmModal() {
     title: "Confirmar ação",
     message: "",
     onConfirm: () => {},
-  })
+  });
 
   const showConfirm = (
     message: string,
     onConfirm: () => void,
-    title?: string
+    title?: string,
   ) => {
     setConfirm({
       isOpen: true,
       title: title || "Confirmar ação",
       message,
       onConfirm,
-    })
-  }
+    });
+  };
 
   const hideConfirm = () => {
     setConfirm({
@@ -36,12 +36,12 @@ export function useConfirmModal() {
       title: "Confirmar ação",
       message: "",
       onConfirm: () => {},
-    })
-  }
+    });
+  };
 
   return {
     confirm,
     showConfirm,
     hideConfirm,
-  }
+  };
 }

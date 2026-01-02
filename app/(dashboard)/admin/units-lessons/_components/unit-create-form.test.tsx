@@ -24,8 +24,8 @@ vi.mock("@/hooks/use-error-modal", () => ({
 }));
 
 describe("UnitForm", () => {
-    it("should render", () => {
-        render(<UnitForm categories={[]} onSuccess={() => { }} />);
-        expect(screen.getByText("Criar Unidade")).toBeInTheDocument();
-    });
-}); 
+  it("should render", () => {
+    render(<UnitForm categories={[]} onSuccess={() => {}} />);
+    expect(screen.getByText("Criar Unidade")).toBeInTheDocument();
+  });
+});

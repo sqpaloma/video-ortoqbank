@@ -22,9 +22,7 @@ export function Rating({ userId, lessonId, unitId }: RatingProps) {
   const submitRating = useMutation(api.ratings.submitRating);
   const userRating = useQuery(
     api.ratings.getUserRating,
-    userId && lessonId
-      ? { userId, lessonId }
-      : "skip",
+    userId && lessonId ? { userId, lessonId } : "skip",
   );
 
   // Derive the displayed rating: use temp rating if user is selecting, otherwise use saved rating
@@ -89,7 +87,7 @@ export function Rating({ userId, lessonId, unitId }: RatingProps) {
                 "transition-colors",
                 displayedRating && star <= displayedRating
                   ? "fill-yellow-500 text-yellow-500"
-                  : "text-gray-300 hover:text-yellow-400"
+                  : "text-gray-300 hover:text-yellow-400",
               )}
             />
           </button>
@@ -107,4 +105,3 @@ export function Rating({ userId, lessonId, unitId }: RatingProps) {
     </>
   );
 }
-

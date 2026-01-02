@@ -19,7 +19,7 @@ export const addFavorite = mutation({
     const existing = await ctx.db
       .query("favorites")
       .withIndex("by_userId_and_lessonId", (q) =>
-        q.eq("userId", args.userId).eq("lessonId", args.lessonId)
+        q.eq("userId", args.userId).eq("lessonId", args.lessonId),
       )
       .unique();
 
@@ -44,7 +44,7 @@ export const removeFavorite = mutation({
     const favorite = await ctx.db
       .query("favorites")
       .withIndex("by_userId_and_lessonId", (q) =>
-        q.eq("userId", args.userId).eq("lessonId", args.lessonId)
+        q.eq("userId", args.userId).eq("lessonId", args.lessonId),
       )
       .unique();
 
@@ -66,7 +66,7 @@ export const toggleFavorite = mutation({
     const existing = await ctx.db
       .query("favorites")
       .withIndex("by_userId_and_lessonId", (q) =>
-        q.eq("userId", args.userId).eq("lessonId", args.lessonId)
+        q.eq("userId", args.userId).eq("lessonId", args.lessonId),
       )
       .unique();
 
@@ -96,7 +96,7 @@ export const isFavorited = query({
     const favorite = await ctx.db
       .query("favorites")
       .withIndex("by_userId_and_lessonId", (q) =>
-        q.eq("userId", args.userId).eq("lessonId", args.lessonId)
+        q.eq("userId", args.userId).eq("lessonId", args.lessonId),
       )
       .unique();
 
@@ -112,7 +112,7 @@ export const getUserFavorites = query({
       _creationTime: v.number(),
       userId: v.string(),
       lessonId: v.id("lessons"),
-    })
+    }),
   ),
   handler: async (ctx, args) => {
     const favorites = await ctx.db
@@ -174,7 +174,7 @@ export const getUserFavoriteLessons = query({
         iconUrl: v.optional(v.string()),
         isPublished: v.boolean(),
       }),
-    })
+    }),
   ),
   handler: async (ctx, args) => {
     const favorites = await ctx.db
@@ -187,19 +187,23 @@ export const getUserFavoriteLessons = query({
 
     // Batch 1: Get all lessons
     const lessons = await Promise.all(
-      favorites.map(f => ctx.db.get(f.lessonId))
+      favorites.map((f) => ctx.db.get(f.lessonId)),
     );
-    const validLessons = lessons.filter((l): l is NonNullable<typeof l> => l !== null);
+    const validLessons = lessons.filter(
+      (l): l is NonNullable<typeof l> => l !== null,
+    );
 
     // Batch 2: Get all units
     const units = await Promise.all(
-      validLessons.map(l => ctx.db.get(l.unitId))
+      validLessons.map((l) => ctx.db.get(l.unitId)),
     );
-    const validUnits = units.filter((u): u is NonNullable<typeof u> => u !== null);
+    const validUnits = units.filter(
+      (u): u is NonNullable<typeof u> => u !== null,
+    );
 
     // Batch 3: Get all categories
     const categories = await Promise.all(
-      validUnits.map(u => ctx.db.get(u.categoryId))
+      validUnits.map((u) => ctx.db.get(u.categoryId)),
     );
 
     // Build result
@@ -209,18 +213,18 @@ export const getUserFavoriteLessons = query({
       const lesson = lessons[i];
       if (!lesson) continue;
 
-      const unit = units.find(u => u?._id === lesson.unitId);
+      const unit = units.find((u) => u?._id === lesson.unitId);
       if (!unit) continue;
 
-      const category = categories.find(c => c?._id === unit.categoryId);
+      const category = categories.find((c) => c?._id === unit.categoryId);
       if (!category) continue;
 
       result.push({
-          _id: favorite._id,
-          _creationTime: favorite._creationTime,
-          lesson,
-          unit,
-          category,
+        _id: favorite._id,
+        _creationTime: favorite._creationTime,
+        lesson,
+        unit,
+        category,
       });
     }
 

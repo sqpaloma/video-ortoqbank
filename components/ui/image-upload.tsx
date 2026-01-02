@@ -77,7 +77,9 @@ export function ImageUpload({
 
       const publicKey = authData.publicKey;
       if (!publicKey) {
-        throw new Error("Chave pública do ImageKit não configurada. Verifique a variável IMAGEKIT_PUBLIC_KEY no .env");
+        throw new Error(
+          "Chave pública do ImageKit não configurada. Verifique a variável IMAGEKIT_PUBLIC_KEY no .env",
+        );
       }
 
       const formData = new FormData();
@@ -89,10 +91,13 @@ export function ImageUpload({
       formData.append("expire", authData.expire.toString());
       formData.append("publicKey", publicKey);
 
-      const uploadResponse = await fetch("https://upload.imagekit.io/api/v1/files/upload", {
-        method: "POST",
-        body: formData,
-      });
+      const uploadResponse = await fetch(
+        "https://upload.imagekit.io/api/v1/files/upload",
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
 
       const uploadData = await uploadResponse.json();
 
@@ -104,10 +109,11 @@ export function ImageUpload({
       onChange(imageUrl);
       setPreviewUrl(imageUrl);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
+      const errorMessage =
+        error instanceof Error ? error.message : "Erro desconhecido";
       showError(
         `${errorMessage}\n\nVerifique se as variáveis de ambiente do ImageKit estão configuradas.`,
-        "Erro ao fazer upload"
+        "Erro ao fazer upload",
       );
       setPreviewUrl(value || "");
     } finally {
