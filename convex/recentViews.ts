@@ -139,7 +139,6 @@ export const getRecentViewsWithDetails = query({
         description: v.string(),
         bunnyStoragePath: v.optional(v.string()),
         publicUrl: v.optional(v.string()),
-        thumbnailUrl: v.optional(v.string()),
         durationSeconds: v.number(),
         order_index: v.number(),
         lessonNumber: v.number(),

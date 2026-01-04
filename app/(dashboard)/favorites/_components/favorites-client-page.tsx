@@ -46,7 +46,7 @@ export function FavoritesClientPage() {
     level: "Básico" as const, // Could be added to lesson schema later
     categoryName: fav.category.title,
     subthemeName: fav.unit.title,
-    thumbnailUrl: fav.lesson.thumbnailUrl,
+
     categoryId: fav.category._id,
   }));
 
@@ -63,7 +63,6 @@ export function FavoritesClientPage() {
       level: "Básico" as const,
       categoryName: "Categoria", // Will need to fetch if needed
       subthemeName: "Módulo",
-      thumbnailUrl: lesson.thumbnailUrl,
     }));
 
   return (

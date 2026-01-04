@@ -325,7 +325,6 @@ export const seedLessons = internalMutation({
           order_index: i,
           lessonNumber: i,
           isPublished: true,
-          tags: ["ortopedia", "medicina"],
         });
       }
 

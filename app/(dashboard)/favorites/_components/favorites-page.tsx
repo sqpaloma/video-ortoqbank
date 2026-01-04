@@ -13,7 +13,6 @@ import { Card, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useUser } from "@clerk/nextjs";
@@ -28,7 +27,6 @@ interface Video {
   level: "Básico" | "Intermediário" | "Avançado";
   categoryName: string;
   subthemeName: string;
-  thumbnailUrl?: string;
   categoryId?: string;
 }
 
@@ -133,18 +131,8 @@ export function FavoritesInner({
                     onClick={() => handleVideoClick(video)}
                     className="cursor-pointer hover:shadow-md transition-all duration-300 hover:border-primary group relative overflow-hidden"
                   >
-                    {/* Thumbnail/Background */}
                     <div className="w-full h-40 bg-linear-to-b from-primary/20 via-primary/10 to-primary/5 flex items-center justify-center relative">
-                      {video.thumbnailUrl ? (
-                        <Image
-                          src={video.thumbnailUrl}
-                          alt={video.title}
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <PlayCircleIcon size={48} className="text-primary/30" />
-                      )}
+                      <PlayCircleIcon size={48} className="text-primary/30" />
                       {/* Favorite Button */}
                       <Button
                         variant="ghost"

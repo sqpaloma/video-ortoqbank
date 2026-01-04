@@ -4,7 +4,6 @@ import { Card, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PlayCircleIcon, StarIcon, ClockIcon } from "lucide-react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -19,7 +18,6 @@ interface Video {
   level: "Básico" | "Intermediário" | "Avançado";
   categoryName: string;
   subthemeName: string;
-  thumbnailUrl?: string;
   categoryId?: string;
 }
 
@@ -69,18 +67,8 @@ export function WatchAlsoVideos({ watchAlsoVideos }: WatchAlsoVideosProps) {
               onClick={() => handleVideoClick(video)}
               className="cursor-pointer hover:shadow-md transition-all duration-300 hover:border-primary group relative overflow-hidden"
             >
-              {/* Thumbnail/Background */}
               <div className="w-full h-40 bg-linear-to-br from-blue-500/20 via-blue-400/10 to-blue-300/5 flex items-center justify-center relative">
-                {video.thumbnailUrl ? (
-                  <Image
-                    src={video.thumbnailUrl}
-                    alt={video.title}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <PlayCircleIcon size={48} className="text-blue-500/30" />
-                )}
+                <PlayCircleIcon size={48} className="text-blue-500/30" />
                 {/* Favorite Button */}
                 <Button
                   variant="ghost"

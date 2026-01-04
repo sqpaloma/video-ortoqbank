@@ -96,7 +96,6 @@ export function LessonEditPanel({
             durationSeconds: lesson.durationSeconds,
             order_index: lesson.order_index,
             isPublished: lesson.isPublished,
-            tags: lesson.tags,
             videoId: undefined,
           });
 
@@ -141,6 +140,7 @@ export function LessonEditPanel({
   };
 
   const handleUploadVideo = async () => {
+    // Validar apenas arquivo e usuário
     if (!uploadFile) {
       showError("Selecione um arquivo de vídeo", "Arquivo não selecionado");
       return;
@@ -152,28 +152,17 @@ export function LessonEditPanel({
     }
 
     try {
-      const { videoId } = await uploadVideo(uploadFile, title, user.id);
+      // Upload para o Bunny
+      const { videoId } = await uploadVideo(uploadFile, title || lesson.title, user.id);
 
-      // Update lesson with videoId
-      await updateLesson({
-        id: lesson._id,
-        unitId: unitId as Id<"units">,
-        title,
-        description,
-        durationSeconds: lesson.durationSeconds,
-        order_index: lesson.order_index,
-        isPublished: lesson.isPublished,
-        tags: lesson.tags,
-        videoId: videoId,
-      });
-
+      // Atualiza o videoId local (o usuário salvará a edição depois)
       setCurrentVideoId(videoId);
       setShowUploader(false);
       setUploadFile(null);
 
       toast({
         title: "✅ Vídeo enviado!",
-        description: "Vídeo associado à aula com sucesso!",
+        description: "Vídeo pronto! Clique em 'Salvar Alterações' para confirmar.",
       });
     } catch (error) {
       showError(
@@ -197,7 +186,7 @@ export function LessonEditPanel({
               <Select
                 value={unitId}
                 onValueChange={setUnitId}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isUploading}
               >
                 <SelectTrigger id="edit-lesson-unit">
                   <SelectValue placeholder="Selecione uma unidade" />
@@ -218,7 +207,7 @@ export function LessonEditPanel({
                 id="edit-lesson-title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isUploading}
                 required
               />
             </div>
@@ -229,7 +218,7 @@ export function LessonEditPanel({
                 id="edit-lesson-description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isUploading}
                 required
                 rows={4}
               />
@@ -367,12 +356,16 @@ export function LessonEditPanel({
               type="button"
               variant="outline"
               onClick={onCancel}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isUploading}
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Salvando..." : "Salvar Alterações"}
+            <Button type="submit" disabled={isSubmitting || isUploading}>
+              {isUploading
+                ? "Aguarde o upload..."
+                : isSubmitting
+                  ? "Salvando..."
+                  : "Salvar Alterações"}
             </Button>
           </div>
         </form>

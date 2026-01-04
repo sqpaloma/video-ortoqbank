@@ -151,7 +151,6 @@ export const getUserFavoriteLessons = query({
           categoryId: v.id("categories"),
           bunnyStoragePath: v.optional(v.string()),
           publicUrl: v.optional(v.string()),
-          thumbnailUrl: v.optional(v.string()),
           isPublished: v.boolean(),
           tags: v.optional(v.array(v.string())),
           videoId: v.optional(v.string()),

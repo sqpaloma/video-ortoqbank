@@ -40,14 +40,22 @@ const mockUseQuery = vi.fn(() => null);
 const mockUseMutation = vi.fn(() => vi.fn(() => Promise.resolve()));
 
 vi.mock("convex/react", () => ({
-  usePreloadedQuery: (preloaded: unknown) => mockUsePreloadedQuery(preloaded),
-  useQuery: (query: unknown, args?: unknown) => mockUseQuery(query, args),
-  useMutation: (mutation: unknown) => mockUseMutation(mutation),
+  usePreloadedQuery: () => mockUsePreloadedQuery(),
+  useQuery: () => mockUseQuery(),
+  useMutation: () => mockUseMutation(),
 }));
 
 // Mock getSignedEmbedUrl
 vi.mock("@/app/actions/bunny", () => ({
   getSignedEmbedUrl: vi.fn(() => Promise.resolve("https://test-embed-url.com")),
+}));
+
+// Mock nuqs (URL query state library)
+vi.mock("nuqs", () => ({
+  useQueryState: vi.fn(() => ["", vi.fn()]),
+  parseAsString: {
+    withDefault: vi.fn(() => ({})),
+  },
 }));
 
 describe("UnitsPage", () => {

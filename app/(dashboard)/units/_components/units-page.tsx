@@ -10,6 +10,7 @@ import {
   useMutation,
 } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useQueryState, parseAsString } from "nuqs";
 import {
   ArrowLeftIcon,
   PlayCircleIcon,
@@ -40,6 +41,12 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
   const router = useRouter();
   const { user } = useUser();
   const { state } = useSidebar();
+
+  // URL state for selected lesson (nuqs)
+  const [lessonIdParam, setLessonIdParam] = useQueryState(
+    "lesson",
+    parseAsString.withDefault(""),
+  );
 
   // Mutations
   const markCompleted = useMutation(api.progress.mutations.markLessonCompleted);
@@ -90,6 +97,12 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
     nextUnitId ? { unitId: nextUnitId } : "skip",
   );
 
+  // Query lesson from URL parameter (if provided)
+  const lessonFromUrl = useQuery(
+    api.lessons.getById,
+    lessonIdParam ? { id: lessonIdParam as Id<"lessons"> } : "skip",
+  );
+
   // Queries for current state
   const currentLesson = useQuery(
     api.lessons.getById,
@@ -116,17 +129,30 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
       : "skip",
   );
 
-  // Initialize first lesson when data becomes available
+  // Initialize lesson from URL or fallback to first lesson
   // Using queueMicrotask to defer state updates and avoid cascading renders
   useEffect(() => {
-    if (initialValues && !currentLessonId) {
+    // If we have a lesson from URL, use it
+    if (lessonFromUrl && lessonIdParam && !currentLessonId) {
+      queueMicrotask(() => {
+        setCurrentLessonId(lessonIdParam as Id<"lessons">);
+        setCurrentUnitId(lessonFromUrl.unitId);
+        setExpandedUnits(new Set([lessonFromUrl.unitId]));
+      });
+      return;
+    }
+
+    // Fallback: use first lesson of first unit
+    if (initialValues && !currentLessonId && !lessonIdParam) {
       queueMicrotask(() => {
         setCurrentLessonId(initialValues.lessonId);
         setCurrentUnitId(initialValues.unitId);
         setExpandedUnits(initialValues.expandedUnits);
+        // Update URL with the initial lesson
+        setLessonIdParam(initialValues.lessonId);
       });
     }
-  }, [initialValues, currentLessonId]);
+  }, [initialValues, currentLessonId, lessonFromUrl, lessonIdParam, setLessonIdParam]);
 
   // Fetch signed embed URL when lesson changes
   useEffect(() => {
@@ -181,6 +207,9 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
     async (lessonId: Id<"lessons">, unitId: Id<"units">) => {
       setCurrentLessonId(lessonId);
       setCurrentUnitId(unitId);
+      
+      // Update URL with lesson ID (nuqs)
+      setLessonIdParam(lessonId);
 
       // Register the view
       if (user?.id) {
@@ -196,7 +225,7 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
         }
       }
     },
-    [user, addRecentView],
+    [user, addRecentView, setLessonIdParam],
   );
 
   // Handle transition to first lesson of next unit
@@ -283,41 +312,6 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
       setNextUnitId(nextUnit._id);
     }
   };
-
-  // Auto-complete lesson when video ends
-  const handleVideoEnd = useCallback(async () => {
-    if (!user?.id || !currentLessonId || !currentUnitId) return;
-
-    // Check if lesson is already completed
-    const isAlreadyCompleted = allUserProgress?.some(
-      (p: { lessonId: Id<"lessons">; completed: boolean }) =>
-        p.lessonId === currentLessonId && p.completed,
-    );
-
-    if (isAlreadyCompleted) return;
-
-    try {
-      // Mark lesson as completed
-      await markCompleted({ userId: user.id, lessonId: currentLessonId });
-
-      // Register completion view
-      await addRecentView({
-        userId: user.id,
-        lessonId: currentLessonId,
-        unitId: currentUnitId,
-        action: "completed",
-      });
-    } catch (error) {
-      console.error("Error auto-completing lesson:", error);
-    }
-  }, [
-    user?.id,
-    currentLessonId,
-    currentUnitId,
-    allUserProgress,
-    markCompleted,
-    addRecentView,
-  ]);
 
   const isLessonCompleted = allUserProgress?.some(
     (p: { lessonId: Id<"lessons">; completed: boolean }) =>
@@ -454,7 +448,6 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
                           (user?.publicMetadata?.cpf as string) ||
                           "000.000.000-00"
                         }
-                        onVideoEnd={handleVideoEnd}
                       />
                     ) : (
                       <div className="aspect-video bg-red-50 rounded-lg flex items-center justify-center">

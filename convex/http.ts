@@ -140,9 +140,6 @@ http.route({
         await ctx.runMutation(internal.videos.updateFromWebhook, {
           videoId: VideoGuid,
           status: config.status,
-          thumbnailUrl: videoInfo.thumbnailFileName
-            ? `https://vz-${libraryId}.b-cdn.net/${VideoGuid}/${videoInfo.thumbnailFileName}`
-            : undefined,
           hlsUrl: config.playable
             ? `https://vz-${libraryId}.b-cdn.net/${VideoGuid}/playlist.m3u8`
             : undefined,

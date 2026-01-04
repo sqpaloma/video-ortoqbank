@@ -20,7 +20,6 @@ export const getByVideoId = query({
       libraryId: v.string(),
       title: v.string(),
       description: v.string(),
-      thumbnailUrl: v.optional(v.string()),
       hlsUrl: v.optional(v.string()),
       mp4Urls: v.optional(
         v.array(v.object({ quality: v.string(), url: v.string() })),
@@ -74,7 +73,6 @@ export const getById = query({
       libraryId: v.string(),
       title: v.string(),
       description: v.string(),
-      thumbnailUrl: v.optional(v.string()),
       hlsUrl: v.optional(v.string()),
       mp4Urls: v.optional(
         v.array(v.object({ quality: v.string(), url: v.string() })),
@@ -122,8 +120,7 @@ export const listByUser = query({
       videoId: v.string(),
       libraryId: v.string(),
       title: v.string(),
-      description: v.string(),
-      thumbnailUrl: v.optional(v.string()),
+      description: v.string(),  
       hlsUrl: v.optional(v.string()),
       mp4Urls: v.optional(
         v.array(v.object({ quality: v.string(), url: v.string() })),
@@ -186,7 +183,6 @@ export const create = mutation({
         v.literal("failed"),
       ),
     ),
-    thumbnailUrl: v.optional(v.string()),
     hlsUrl: v.optional(v.string()),
     mp4Urls: v.optional(
       v.array(v.object({ quality: v.string(), url: v.string() })),
@@ -221,7 +217,6 @@ export const create = mutation({
       createdBy: args.createdBy,
       isPrivate: args.isPrivate,
       status: args.status || "uploading",
-      thumbnailUrl: args.thumbnailUrl,
       hlsUrl: args.hlsUrl,
       mp4Urls: args.mp4Urls,
       metadata: args.metadata,
@@ -238,8 +233,7 @@ export const update = mutation({
   args: {
     videoId: v.string(),
     title: v.optional(v.string()),
-    description: v.optional(v.string()),
-    thumbnailUrl: v.optional(v.string()),
+    description: v.optional(v.string()),  
     hlsUrl: v.optional(v.string()),
     mp4Urls: v.optional(
       v.array(v.object({ quality: v.string(), url: v.string() })),
@@ -285,7 +279,6 @@ export const update = mutation({
     const updates: Partial<{
       title: string;
       description: string;
-      thumbnailUrl: string;
       hlsUrl: string;
       mp4Urls: Array<{ quality: string; url: string }>;
       status: "uploading" | "processing" | "ready" | "failed";
@@ -294,8 +287,6 @@ export const update = mutation({
 
     if (args.title !== undefined) updates.title = args.title;
     if (args.description !== undefined) updates.description = args.description;
-    if (args.thumbnailUrl !== undefined)
-      updates.thumbnailUrl = args.thumbnailUrl;
     if (args.hlsUrl !== undefined) updates.hlsUrl = args.hlsUrl;
     if (args.mp4Urls !== undefined) updates.mp4Urls = args.mp4Urls;
     if (args.status !== undefined) updates.status = args.status;
@@ -374,7 +365,6 @@ export const getVideoStatus = query({
         v.literal("failed"),
       ),
       hlsUrl: v.optional(v.string()),
-      thumbnailUrl: v.optional(v.string()),
     }),
     v.null(),
   ),
@@ -391,7 +381,6 @@ export const getVideoStatus = query({
     return {
       status: video.status,
       hlsUrl: video.hlsUrl,
-      thumbnailUrl: video.thumbnailUrl,
     };
   },
 });
@@ -452,9 +441,6 @@ export const syncFromBunny = mutation({
         status === "ready"
           ? `https://vz-${video.libraryId}.b-cdn.net/${args.videoId}/playlist.m3u8`
           : undefined,
-      thumbnailUrl: bunnyData.thumbnailFileName
-        ? `https://vz-${video.libraryId}.b-cdn.net/${args.videoId}/${bunnyData.thumbnailFileName}`
-        : undefined,
       metadata: {
         duration: bunnyData.length || undefined,
         width: bunnyData.width || undefined,
@@ -480,8 +466,7 @@ export const listAll = query({
       videoId: v.string(),
       libraryId: v.string(),
       title: v.string(),
-      description: v.string(),
-      thumbnailUrl: v.optional(v.string()),
+      description: v.string(),    
       hlsUrl: v.optional(v.string()),
       mp4Urls: v.optional(
         v.array(v.object({ quality: v.string(), url: v.string() })),
@@ -529,7 +514,6 @@ export const updateFromWebhook = internalMutation({
     videoId: v.string(),
     title: v.optional(v.string()),
     description: v.optional(v.string()),
-    thumbnailUrl: v.optional(v.string()),
     hlsUrl: v.optional(v.string()),
     mp4Urls: v.optional(
       v.array(v.object({ quality: v.string(), url: v.string() })),
@@ -576,7 +560,6 @@ export const updateFromWebhook = internalMutation({
     const updates: Partial<{
       title: string;
       description: string;
-      thumbnailUrl: string;
       hlsUrl: string;
       mp4Urls: Array<{ quality: string; url: string }>;
       status: "uploading" | "processing" | "ready" | "failed";
@@ -585,8 +568,6 @@ export const updateFromWebhook = internalMutation({
 
     if (args.title !== undefined) updates.title = args.title;
     if (args.description !== undefined) updates.description = args.description;
-    if (args.thumbnailUrl !== undefined)
-      updates.thumbnailUrl = args.thumbnailUrl;
     if (args.hlsUrl !== undefined) updates.hlsUrl = args.hlsUrl;
     if (args.mp4Urls !== undefined) updates.mp4Urls = args.mp4Urls;
     if (args.status !== undefined) updates.status = args.status;
