@@ -62,7 +62,6 @@ export const createPendingOrder = mutation({
     ctx,
     args,
   ): Promise<{
-  
     pendingOrderId: Id<"pendingOrders">;
     priceBreakdown: {
       originalPrice: number;
@@ -71,12 +70,18 @@ export const createPendingOrder = mutation({
       finalPrice: number;
     };
   }> => {
-    const { ok, retryAt } = await checkRateLimit(ctx, checkoutRateLimit, args.cpf);
+    const { ok, retryAt } = await checkRateLimit(
+      ctx,
+      checkoutRateLimit,
+      args.cpf,
+    );
 
     if (!ok) {
-      const waitMinutes = retryAt ? Math.ceil((retryAt - Date.now()) / 60000) : 5;
+      const waitMinutes = retryAt
+        ? Math.ceil((retryAt - Date.now()) / 60000)
+        : 5;
       throw new Error(
-        `Muitas tentativas de checkout. Aguarde ${waitMinutes} minutos.`
+        `Muitas tentativas de checkout. Aguarde ${waitMinutes} minutos.`,
       );
     }
     // Get pricing plan to determine correct price

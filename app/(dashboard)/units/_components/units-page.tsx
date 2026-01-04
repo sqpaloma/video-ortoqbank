@@ -140,7 +140,9 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
       try {
         const libraryId = process.env.NEXT_PUBLIC_BUNNY_LIBRARY_ID;
         if (!libraryId) {
-          throw new Error("NEXT_PUBLIC_BUNNY_LIBRARY_ID environment variable is not configured");
+          throw new Error(
+            "NEXT_PUBLIC_BUNNY_LIBRARY_ID environment variable is not configured",
+          );
         }
         const result = await getSignedEmbedUrl(
           currentLesson.videoId!,
@@ -339,9 +341,9 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
   const globalProgressPercent =
     totalLessonsCount > 0
       ? Math.min(
-        100,
-        Math.round((totalCompletedLessons / totalLessonsCount) * 100),
-      )
+          100,
+          Math.round((totalCompletedLessons / totalLessonsCount) * 100),
+        )
       : 0;
 
   if (units.length === 0) {
@@ -566,7 +568,7 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
                           className={cn(
                             "flex-1 lg:flex-none lg:min-w-[160px]",
                             isLessonCompleted &&
-                            "bg-white text-green-600 hover:bg-green-50 border-green-600 border-2",
+                              "bg-white text-green-600 hover:bg-green-50 border-green-600 border-2",
                           )}
                         >
                           <CheckCircleIcon

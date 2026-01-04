@@ -19,7 +19,7 @@ export function WaitlistPage() {
   const { results, status, loadMore } = usePaginatedQuery(
     api.waitlist.list,
     {},
-    { initialNumItems: 10 }
+    { initialNumItems: 10 },
   );
 
   const entries = results;
