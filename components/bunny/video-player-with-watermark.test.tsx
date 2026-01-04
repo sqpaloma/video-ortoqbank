@@ -6,9 +6,8 @@ describe("VideoPlayerWithWatermark", () => {
   it("should render", async () => {
     const { container } = render(
       <VideoPlayerWithWatermark
-        embedUrl="https://player.mediadelivery.net/embed/566190/6e562abd-086a-45b2-bdaa-820ebce7289a"
-        userName="Test User"
-        userCpf="1234567890"
+        embedUrl="https://player.mediadelivery.net/embed/TEST_LIBRARY_ID/TEST_VIDEO_ID"
+        userCpf="123.456.789-00"
       />,
     );
 
@@ -19,11 +18,9 @@ describe("VideoPlayerWithWatermark", () => {
     // Wait for watermark to appear (mounted after 100ms timeout)
     await waitFor(
       () => {
-        expect(screen.getByText("Test User")).toBeInTheDocument();
+        expect(screen.getByText("123.456.789-00")).toBeInTheDocument();
       },
       { timeout: 200 },
     );
-
-    expect(screen.getByText(/CPF: 1234567890/)).toBeInTheDocument();
   });
 });

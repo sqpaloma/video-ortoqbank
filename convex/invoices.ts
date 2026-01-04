@@ -213,7 +213,40 @@ export const processInvoiceGeneration = internalAction({
 // Helper queries and mutations for invoice processing
 export const getInvoiceById = internalQuery({
   args: { invoiceId: v.id("invoices") },
-  returns: v.union(v.any(), v.null()),
+  returns: v.union(
+    v.object({
+      _id: v.id("invoices"),
+      _creationTime: v.number(),
+      orderId: v.id("pendingOrders"),
+      asaasPaymentId: v.string(),
+      asaasInvoiceId: v.optional(v.string()),
+      status: v.union(
+        v.literal("pending"),
+        v.literal("processing"),
+        v.literal("issued"),
+        v.literal("failed"),
+        v.literal("cancelled"),
+      ),
+      municipalServiceId: v.string(),
+      serviceDescription: v.string(),
+      value: v.number(),
+      installmentNumber: v.optional(v.number()),
+      totalInstallments: v.optional(v.number()),
+      customerName: v.string(),
+      customerEmail: v.string(),
+      customerCpfCnpj: v.string(),
+      customerPhone: v.optional(v.string()),
+      customerMobilePhone: v.optional(v.string()),
+      customerPostalCode: v.optional(v.string()),
+      customerAddress: v.optional(v.string()),
+      customerAddressNumber: v.optional(v.string()),
+      invoiceUrl: v.optional(v.string()),
+      errorMessage: v.optional(v.string()),
+      createdAt: v.number(),
+      issuedAt: v.optional(v.number()),
+    }),
+    v.null(),
+  ),
   handler: async (ctx, args) => {
     return await ctx.db.get(args.invoiceId);
   },

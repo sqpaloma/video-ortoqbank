@@ -309,7 +309,7 @@ function CheckoutPageContent() {
       const { ConvexHttpClient } = await import("convex/browser");
       const client = new ConvexHttpClient(convexUrl);
 
-      const validateResult = (await client.query(
+      const validateResult = (await client.mutation(
         api.promoCoupons.validateAndApplyCoupon,
         {
           code: couponCode,

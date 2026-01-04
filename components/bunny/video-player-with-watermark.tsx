@@ -1,25 +1,115 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+
+// Type declaration for playerjs library (loaded dynamically from Bunny CDN)
+declare global {
+  interface Window {
+    playerjs?: {
+      Player: new (element: HTMLIFrameElement) => PlayerJSPlayer;
+    };
+  }
+}
+
+interface PlayerJSPlayer {
+  on(event: "ready", callback: () => void): void;
+  on(event: "ended", callback: () => void): void;
+  on(
+    event: "timeupdate",
+    callback: (data: { seconds: number; duration: number }) => void,
+  ): void;
+  off(event: string): void;
+}
 
 interface VideoPlayerWithWatermarkProps {
   embedUrl: string;
-  userName: string;
   userCpf: string;
   speed?: number; // Movement speed (pixels per frame), default 0.5
+  onVideoEnd?: () => void; // Called when video ends
 }
 
 export function VideoPlayerWithWatermark({
   embedUrl,
-  userName,
   userCpf,
   speed = 0.5,
+  onVideoEnd,
 }: VideoPlayerWithWatermarkProps) {
   const [mounted, setMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const watermarkRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const playerRef = useRef<PlayerJSPlayer | null>(null);
   const positionRef = useRef({ x: 0, y: 0 });
   const velocityRef = useRef({ x: speed, y: speed * 0.7 }); // Slightly different speeds for natural movement
+  const onVideoEndRef = useRef(onVideoEnd);
+
+  // Keep onVideoEnd ref updated to avoid stale closures
+  useEffect(() => {
+    onVideoEndRef.current = onVideoEnd;
+  }, [onVideoEnd]);
+
+  // Initialize playerjs when iframe is ready
+  const initializePlayer = useCallback(() => {
+    if (!iframeRef.current || !window.playerjs || playerRef.current) return;
+
+    const player = new window.playerjs.Player(iframeRef.current);
+    playerRef.current = player;
+
+    player.on("ready", () => {
+      player.on("ended", () => {
+        onVideoEndRef.current?.();
+      });
+    });
+  }, []);
+
+  // Load playerjs script and initialize player
+  useEffect(() => {
+    // Check if script already exists
+    const existingScript = document.querySelector(
+      'script[src*="playerjs-latest.min.js"]',
+    );
+
+    if (existingScript) {
+      // Script already loaded, just initialize
+      initializePlayer();
+      return;
+    }
+
+    // Load playerjs script from Bunny CDN
+    const script = document.createElement("script");
+    script.src = "//assets.mediadelivery.net/playerjs/playerjs-latest.min.js";
+    script.async = true;
+    script.onload = () => {
+      initializePlayer();
+    };
+    document.body.appendChild(script);
+
+    return () => {
+      // Cleanup player reference
+      if (playerRef.current) {
+        playerRef.current.off("ended");
+        playerRef.current = null;
+      }
+    };
+  }, [initializePlayer]);
+
+  // Re-initialize player when embedUrl changes (new video)
+  useEffect(() => {
+    // Reset player when URL changes
+    if (playerRef.current) {
+      playerRef.current.off("ended");
+      playerRef.current = null;
+    }
+
+    // Small delay to ensure iframe has loaded
+    const timeout = setTimeout(() => {
+      if (window.playerjs) {
+        initializePlayer();
+      }
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [embedUrl, initializePlayer]);
 
   useEffect(() => {
     // Initialize position randomly
@@ -91,6 +181,7 @@ export function VideoPlayerWithWatermark({
     >
       {/* Video iframe */}
       <iframe
+        ref={iframeRef}
         src={embedUrl}
         loading="lazy"
         style={{
@@ -123,8 +214,7 @@ export function VideoPlayerWithWatermark({
             willChange: "transform",
           }}
         >
-          <div>{userName}</div>
-          <div style={{ opacity: 0.8 }}>CPF: {userCpf}</div>
+          <div>{userCpf}</div>
         </div>
       )}
     </div>

@@ -40,7 +40,12 @@ export const getByVideoId = query({
           height: v.optional(v.number()),
           framerate: v.optional(v.number()),
           bitrate: v.optional(v.number()),
-          extras: v.optional(v.record(v.string(), v.any())),
+          extras: v.optional(
+            v.record(
+              v.string(),
+              v.union(v.string(), v.number(), v.boolean(), v.null()),
+            ),
+          ),
         }),
       ),
     }),
@@ -89,7 +94,12 @@ export const getById = query({
           height: v.optional(v.number()),
           framerate: v.optional(v.number()),
           bitrate: v.optional(v.number()),
-          extras: v.optional(v.record(v.string(), v.any())),
+          extras: v.optional(
+            v.record(
+              v.string(),
+              v.union(v.string(), v.number(), v.boolean(), v.null()),
+            ),
+          ),
         }),
       ),
     }),
@@ -133,7 +143,12 @@ export const listByUser = query({
           height: v.optional(v.number()),
           framerate: v.optional(v.number()),
           bitrate: v.optional(v.number()),
-          extras: v.optional(v.record(v.string(), v.any())),
+          extras: v.optional(
+            v.record(
+              v.string(),
+              v.union(v.string(), v.number(), v.boolean(), v.null()),
+            ),
+          ),
         }),
       ),
     }),
@@ -264,7 +279,7 @@ export const update = mutation({
       height?: number;
       framerate?: number;
       bitrate?: number;
-      extras?: Record<string, unknown>;
+      extras?: Record<string, string | number | boolean | null>;
     };
 
     const updates: Partial<{
@@ -486,7 +501,12 @@ export const listAll = query({
           height: v.optional(v.number()),
           framerate: v.optional(v.number()),
           bitrate: v.optional(v.number()),
-          extras: v.optional(v.record(v.string(), v.any())),
+          extras: v.optional(
+            v.record(
+              v.string(),
+              v.union(v.string(), v.number(), v.boolean(), v.null()),
+            ),
+          ),
         }),
       ),
     }),
@@ -550,7 +570,7 @@ export const updateFromWebhook = internalMutation({
       height?: number;
       framerate?: number;
       bitrate?: number;
-      extras?: Record<string, unknown>;
+      extras?: Record<string, string | number | boolean | null>;
     };
 
     const updates: Partial<{

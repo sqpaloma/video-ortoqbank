@@ -1,6 +1,8 @@
 import { v } from "convex/values";
 
 import { mutation, query } from "./_generated/server";
+import { checkRateLimit, couponRateLimit } from "./lib/rateLimits";
+
 
 export const list = query({
   args: {},
@@ -133,8 +135,9 @@ export const remove = mutation({
  * Validate and apply coupon to a price
  * Returns the final price after applying coupon discount
  * Note: This is for UI preview only. Server must re-validate on order creation.
+ * Changed to mutation to support rate limiting.
  */
-export const validateAndApplyCoupon = query({
+export const validateAndApplyCoupon = mutation({
   args: {
     code: v.string(),
     originalPrice: v.number(),
@@ -164,6 +167,18 @@ export const validateAndApplyCoupon = query({
     }),
   ),
   handler: async (ctx, args) => {
+    const identifier = args.userCpf || "anonymous";
+
+    const { ok, retryAt } = await checkRateLimit(ctx, couponRateLimit, identifier);
+
+    if (!ok) {
+      const waitSeconds = retryAt ? Math.ceil((retryAt - Date.now()) / 1000) : 60;
+      return {
+        isValid: false,
+        errorMessage: `Muitas tentativas. Aguarde ${waitSeconds} segundos.`,
+      };
+    }
+
     const code = args.code.toUpperCase().trim();
 
     if (!code) {

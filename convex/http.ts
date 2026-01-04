@@ -195,6 +195,8 @@ http.route({
       // Get webhook body
       const rawBody = await request.text();
       const timestamp = new Date().toISOString();
+      const body = JSON.parse(rawBody);
+      const { payment } = body;
 
       // Validate webhook secret is configured
       const webhookSecret = process.env.ASAAS_WEBHOOK_SECRET;
@@ -243,8 +245,7 @@ http.route({
         verified: true,
       });
 
-      const body = JSON.parse(rawBody);
-      const { event, payment, checkout } = body;
+      const { event, checkout } = body;
 
       // Log safe webhook metadata only (no PII/sensitive data)
       console.log("[AsaaS Webhook] Event received", {

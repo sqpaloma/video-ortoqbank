@@ -1,7 +1,11 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { rateLimitTables } from "convex-helpers/server/rateLimit";
 
 export default defineSchema({
+  // Rate limiting table (required by convex-helpers)
+  ...rateLimitTables,
+
   numbers: defineTable({
     value: v.number(),
   }),
@@ -122,7 +126,12 @@ export default defineSchema({
         height: v.optional(v.number()), // Video height in pixels
         framerate: v.optional(v.number()), // Video framerate (fps)
         bitrate: v.optional(v.number()), // Video bitrate
-        extras: v.optional(v.record(v.string(), v.any())), // Additional dynamic fields
+        extras: v.optional(
+          v.record(
+            v.string(),
+            v.union(v.string(), v.number(), v.boolean(), v.null()),
+          ),
+        ), // Additional dynamic fields (string, number, boolean or null)
       }),
     ),
   })

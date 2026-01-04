@@ -138,7 +138,10 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
     const fetchEmbedUrl = async () => {
       setEmbedLoading(true);
       try {
-        const libraryId = process.env.NEXT_PUBLIC_BUNNY_LIBRARY_ID || "566190";
+        const libraryId = process.env.NEXT_PUBLIC_BUNNY_LIBRARY_ID;
+        if (!libraryId) {
+          throw new Error("NEXT_PUBLIC_BUNNY_LIBRARY_ID environment variable is not configured");
+        }
         const result = await getSignedEmbedUrl(
           currentLesson.videoId!,
           libraryId,
@@ -279,6 +282,41 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
     }
   };
 
+  // Auto-complete lesson when video ends
+  const handleVideoEnd = useCallback(async () => {
+    if (!user?.id || !currentLessonId || !currentUnitId) return;
+
+    // Check if lesson is already completed
+    const isAlreadyCompleted = allUserProgress?.some(
+      (p: { lessonId: Id<"lessons">; completed: boolean }) =>
+        p.lessonId === currentLessonId && p.completed,
+    );
+
+    if (isAlreadyCompleted) return;
+
+    try {
+      // Mark lesson as completed
+      await markCompleted({ userId: user.id, lessonId: currentLessonId });
+
+      // Register completion view
+      await addRecentView({
+        userId: user.id,
+        lessonId: currentLessonId,
+        unitId: currentUnitId,
+        action: "completed",
+      });
+    } catch (error) {
+      console.error("Error auto-completing lesson:", error);
+    }
+  }, [
+    user?.id,
+    currentLessonId,
+    currentUnitId,
+    allUserProgress,
+    markCompleted,
+    addRecentView,
+  ]);
+
   const isLessonCompleted = allUserProgress?.some(
     (p: { lessonId: Id<"lessons">; completed: boolean }) =>
       p.lessonId === currentLessonId && p.completed,
@@ -301,9 +339,9 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
   const globalProgressPercent =
     totalLessonsCount > 0
       ? Math.min(
-          100,
-          Math.round((totalCompletedLessons / totalLessonsCount) * 100),
-        )
+        100,
+        Math.round((totalCompletedLessons / totalLessonsCount) * 100),
+      )
       : 0;
 
   if (units.length === 0) {
@@ -410,13 +448,11 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
                     ) : embedUrl ? (
                       <VideoPlayerWithWatermark
                         embedUrl={embedUrl}
-                        userName={
-                          user?.fullName || user?.firstName || "Usuário"
-                        }
                         userCpf={
                           (user?.publicMetadata?.cpf as string) ||
                           "000.000.000-00"
                         }
+                        onVideoEnd={handleVideoEnd}
                       />
                     ) : (
                       <div className="aspect-video bg-red-50 rounded-lg flex items-center justify-center">
@@ -530,7 +566,7 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
                           className={cn(
                             "flex-1 lg:flex-none lg:min-w-[160px]",
                             isLessonCompleted &&
-                              "bg-white text-green-600 hover:bg-green-50 border-green-600 border-2",
+                            "bg-white text-green-600 hover:bg-green-50 border-green-600 border-2",
                           )}
                         >
                           <CheckCircleIcon

@@ -9,20 +9,7 @@ import {
   query,
 } from "./_generated/server";
 import { retrier } from "./retrier";
-
-/**
- * AsaaS webhook payment payload structure
- * This represents the payment object received in webhook events
- */
-interface AsaasWebhookPayment {
-  id: string;
-  value: number;
-  totalValue?: number;
-  status: string;
-  externalReference?: string;
-  installmentNumber?: number;
-  installment?: string;
-}
+import { checkRateLimit, checkoutRateLimit } from "./lib/rateLimits";
 
 /**
  * Pending order with installment information
@@ -75,6 +62,7 @@ export const createPendingOrder = mutation({
     ctx,
     args,
   ): Promise<{
+  
     pendingOrderId: Id<"pendingOrders">;
     priceBreakdown: {
       originalPrice: number;
@@ -83,6 +71,14 @@ export const createPendingOrder = mutation({
       finalPrice: number;
     };
   }> => {
+    const { ok, retryAt } = await checkRateLimit(ctx, checkoutRateLimit, args.cpf);
+
+    if (!ok) {
+      const waitMinutes = retryAt ? Math.ceil((retryAt - Date.now()) / 60000) : 5;
+      throw new Error(
+        `Muitas tentativas de checkout. Aguarde ${waitMinutes} minutos.`
+      );
+    }
     // Get pricing plan to determine correct price
     const pricingPlan = await ctx.runQuery(api.pricingPlans.getByProductId, {
       productId: args.productId,
@@ -113,7 +109,7 @@ export const createPendingOrder = mutation({
     // Apply coupon if provided (applies to the selected payment method's price)
     if (args.couponCode && args.couponCode.trim()) {
       // Validate coupon with user CPF for usage tracking
-      const couponResult = await ctx.runQuery(
+      const couponResult = await ctx.runMutation(
         api.promoCoupons.validateAndApplyCoupon,
         {
           code: args.couponCode,
@@ -243,13 +239,28 @@ export const linkPaymentToOrder = mutation({
 export const processAsaasWebhook = internalAction({
   args: {
     event: v.string(),
-    payment: v.any(), // Keep as v.any() for webhook validation, but cast to interface inside
-    rawWebhookData: v.any(),
+    payment: v.object({
+      id: v.string(),
+      value: v.number(),
+      totalValue: v.optional(v.number()),
+      status: v.string(),
+      externalReference: v.optional(v.string()),
+      installmentNumber: v.optional(v.number()),
+      installment: v.optional(v.string()),
+    }),
+    rawWebhookData: v.object({
+      event: v.string(),
+      payment: v.object({
+        id: v.string(),
+        value: v.number(),
+        status: v.string(),
+      }),
+    }),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
     const { event } = args;
-    const payment = args.payment as AsaasWebhookPayment;
+    const payment = args.payment;
 
     console.log(`Processing AsaaS webhook: ${event} for payment ${payment.id}`);
 
