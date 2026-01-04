@@ -102,8 +102,8 @@ export function CategoriesInner({ preloadedCategories }: CategoriesInnerProps) {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-            {filteredCategories.length > 0
-              ? filteredCategories.map((category) => (
+            {filteredCategories.length > 0 ? (
+              filteredCategories.map((category) => (
                 <CategoriesCard
                   key={category._id}
                   title={category.title}
@@ -112,9 +112,13 @@ export function CategoriesInner({ preloadedCategories }: CategoriesInnerProps) {
                   onClick={() => handleCategoryClick(category._id)}
                 />
               ))
-              : <div className="col-span-full flex items-center justify-center py-56">
-                <p className="text-muted-foreground text-center">Nenhuma categoria encontrada com este filtro</p>
-              </div>}
+            ) : (
+              <div className="col-span-full flex items-center justify-center py-56">
+                <p className="text-muted-foreground text-center">
+                  Nenhuma categoria encontrada com este filtro
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>

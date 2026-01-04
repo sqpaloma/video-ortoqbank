@@ -189,7 +189,6 @@ export function LessonEditPanel({
         <form onSubmit={handleSubmit} className="space-y-2">
           <div>
             <h2 className="text-xl font-semibold mb-4">Editar Aula</h2>
-
           </div>
 
           <div className="space-y-4">

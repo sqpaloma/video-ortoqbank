@@ -89,9 +89,9 @@ export function PricingPlansPage() {
       : undefined;
     const accessYears = formData.accessYears
       ? formData.accessYears
-        .split(",")
-        .map((y) => Number.parseInt(y.trim(), 10))
-        .filter((y) => !Number.isNaN(y))
+          .split(",")
+          .map((y) => Number.parseInt(y.trim(), 10))
+          .filter((y) => !Number.isNaN(y))
       : undefined;
     const displayOrder = formData.displayOrder
       ? Number.parseInt(formData.displayOrder, 10)

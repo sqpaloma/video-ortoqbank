@@ -60,7 +60,8 @@ export function PricingPlanCard({
               <div className="text-gray-500">
                 {plan.regularPriceNum && (
                   <span>
-                    <strong>Cartão</strong> R$ {plan.regularPriceNum.toFixed(2)}</span>
+                    <strong>Cartão</strong> R$ {plan.regularPriceNum.toFixed(2)}
+                  </span>
                 )}
                 {plan.pixPriceNum && (
                   <span className="ml-2">
@@ -72,10 +73,11 @@ export function PricingPlanCard({
           </div>
           <div className="flex flex-col items-end gap-1">
             <span
-              className={`px-2 py-1 rounded-full text-xs font-bold ${plan.isActive
-                ? "bg-green-100 text-green-700"
-                : "bg-red-100 text-red-700"
-                }`}
+              className={`px-2 py-1 rounded-full text-xs font-bold ${
+                plan.isActive
+                  ? "bg-green-100 text-green-700"
+                  : "bg-red-100 text-red-700"
+              }`}
             >
               {plan.isActive ? "✓ Ativo" : "✗ Inativo"}
             </span>
@@ -128,8 +130,6 @@ export function PricingPlanCard({
           ))}
         </ul>
       </div>
-
-
     </div>
   );
 }
