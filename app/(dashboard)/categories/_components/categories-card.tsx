@@ -15,7 +15,7 @@ export function CategoriesCard({
   imageUrl = "",
   title = "",
   description = "",
-  onClick = () => { },
+  onClick = () => {},
 }: CategoriesCardProps) {
   return (
     <Card
