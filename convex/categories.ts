@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query, type MutationCtx } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { requireAdmin } from "./users";
 
 // Query para listar todas as categorias ordenadas por position (ADMIN - mostra todas)
 export const list = query({
@@ -136,6 +137,9 @@ export const create = mutation({
     iconUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    // SECURITY: Require admin access
+    await requireAdmin(ctx);
+
     // Validate input lengths
     if (args.title.trim().length < 3) {
       throw new Error("Título deve ter pelo menos 3 caracteres");
@@ -203,6 +207,9 @@ export const update = mutation({
     iconUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    // SECURITY: Require admin access
+    await requireAdmin(ctx);
+
     // Validate input lengths
     if (args.title.trim().length < 3) {
       throw new Error("Título deve ter pelo menos 3 caracteres");
@@ -285,6 +292,9 @@ export const remove = mutation({
     id: v.id("categories"),
   },
   handler: async (ctx, args) => {
+    // SECURITY: Require admin access
+    await requireAdmin(ctx);
+
     // Get all units in this category
     const units = await ctx.db
       .query("units")
@@ -344,6 +354,9 @@ export const reorder = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    // SECURITY: Require admin access
+    await requireAdmin(ctx);
+
     // Update all category positions
     for (const update of args.updates) {
       await ctx.db.patch(update.id, {
@@ -361,6 +374,9 @@ export const togglePublish = mutation({
     id: v.id("categories"),
   },
   handler: async (ctx, args) => {
+    // SECURITY: Require admin access
+    await requireAdmin(ctx);
+
     const category = await ctx.db.get(args.id);
 
     if (!category) {

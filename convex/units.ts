@@ -3,6 +3,7 @@ import { mutation, query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
 import { paginationOptsValidator } from "convex/server";
+import { requireAdmin } from "./users";
 
 // ADMIN: List all units with pagination
 export const listPaginated = query({
@@ -126,6 +127,9 @@ export const create = mutation({
     description: v.string(),
   },
   handler: async (ctx, args) => {
+    // SECURITY: Require admin access
+    await requireAdmin(ctx);
+
     // Auto-generate slug from title
     const slug = generateSlug(args.title);
 
@@ -190,6 +194,9 @@ export const update = mutation({
     order_index: v.number(),
   },
   handler: async (ctx, args) => {
+    // SECURITY: Require admin access
+    await requireAdmin(ctx);
+
     // Auto-generate slug from title
     const slug = generateSlug(args.title);
 
@@ -237,6 +244,9 @@ export const remove = mutation({
     id: v.id("units"),
   },
   handler: async (ctx, args) => {
+    // SECURITY: Require admin access
+    await requireAdmin(ctx);
+
     // Get all lessons in this unit
     const lessons = await ctx.db
       .query("lessons")
@@ -281,6 +291,9 @@ export const reorder = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    // SECURITY: Require admin access
+    await requireAdmin(ctx);
+
     // Update all unit order_index
     for (const update of args.updates) {
       await ctx.db.patch(update.id, {
@@ -298,6 +311,9 @@ export const togglePublish = mutation({
     id: v.id("units"),
   },
   handler: async (ctx, args) => {
+    // SECURITY: Require admin access
+    await requireAdmin(ctx);
+
     const unit = await ctx.db.get(args.id);
 
     if (!unit) {

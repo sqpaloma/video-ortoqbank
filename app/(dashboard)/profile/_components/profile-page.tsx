@@ -10,15 +10,15 @@ import RecentViews from "./recent-views";
 import UserInfos from "./user-infos";
 import Dashboard from "./dashboard";
 
-interface ProfileInnerProps {
+interface ProfilePageProps {
   preloadedRecentViews: Preloaded<
     typeof api.recentViews.getRecentViewsWithDetails
   > | null;
 }
 
-export default function ProfileInner({
+export default function ProfilePage({
   preloadedRecentViews,
-}: ProfileInnerProps) {
+}: ProfilePageProps) {
   const router = useRouter();
   const { state } = useSidebar();
 
@@ -42,7 +42,6 @@ export default function ProfileInner({
           </Button>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Perfil</h1>
-            <p className="text-sm text-gray-600">Seus dados e progresso</p>
           </div>
         </div>
       </div>

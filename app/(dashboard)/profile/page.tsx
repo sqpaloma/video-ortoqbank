@@ -1,4 +1,4 @@
-import ProfileInner from "./_components/profile-page";
+import ProfilePageComponent from "./_components/profile-page";
 import { api } from "@/convex/_generated/api";
 import { preloadQuery } from "convex/nextjs";
 import { auth } from "@clerk/nextjs/server";
@@ -28,5 +28,5 @@ export default async function ProfilePage() {
     : null;
 
   // Return JSX outside of try-catch to follow React rules
-  return <ProfileInner preloadedRecentViews={preloadedRecentViews} />;
+  return <ProfilePageComponent preloadedRecentViews={preloadedRecentViews} />;
 }

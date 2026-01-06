@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { LessonEditPanelProps } from "./types";
 import { useUser } from "@clerk/nextjs";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 export function LessonEditPanel({
   lesson,
@@ -48,7 +49,9 @@ export function LessonEditPanel({
   const [unitId, setUnitId] = useState<string>(lesson.unitId);
   const [title, setTitle] = useState(lesson.title);
   const [description, setDescription] = useState(lesson.description);
+  const [thumbnailUrl, setThumbnailUrl] = useState(lesson.thumbnailUrl || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // Video upload states
   const [showUploader, setShowUploader] = useState(false);
@@ -62,9 +65,15 @@ export function LessonEditPanel({
 
   // Update form values when lesson changes
   useEffect(() => {
+    console.log("📝 Carregando aula no editor:", {
+      title: lesson.title,
+      thumbnailUrl: lesson.thumbnailUrl,
+    });
+
     setUnitId(lesson.unitId);
     setTitle(lesson.title);
     setDescription(lesson.description);
+    setThumbnailUrl(lesson.thumbnailUrl || "");
     setCurrentVideoId(lesson.videoId);
   }, [lesson]);
 
@@ -72,11 +81,14 @@ export function LessonEditPanel({
     e.preventDefault();
     setIsSubmitting(true);
     try {
+      console.log("📸 Thumbnail URL ao salvar edição:", thumbnailUrl);
+
       await onSave({
         unitId: unitId as Id<"units">,
         title,
         description,
         videoId: currentVideoId,
+        thumbnailUrl: thumbnailUrl || undefined,
       });
     } finally {
       setIsSubmitting(false);
@@ -93,6 +105,7 @@ export function LessonEditPanel({
             unitId: unitId as Id<"units">,
             title,
             description,
+            thumbnailUrl: thumbnailUrl || undefined,
             durationSeconds: lesson.durationSeconds,
             order_index: lesson.order_index,
             isPublished: lesson.isPublished,
@@ -229,6 +242,25 @@ export function LessonEditPanel({
               />
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="edit-lesson-thumbnail">
+                Thumbnail (Opcional)
+              </Label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Imagem que aparecerá nos favoritos, vídeos relacionados e
+                visualizações recentes
+              </p>
+              <ImageUpload
+                id="edit-lesson-thumbnail"
+                value={thumbnailUrl}
+                onChange={setThumbnailUrl}
+                onRemove={() => setThumbnailUrl("")}
+                disabled={isSubmitting || isUploading}
+                folder="/lessons"
+                onUploadStateChange={setIsUploadingImage}
+              />
+            </div>
+
             {/* Video Management Section */}
             <div className="space-y-3 pt-4 ">
               <Label>Gerenciar Vídeo</Label>
@@ -361,16 +393,21 @@ export function LessonEditPanel({
               type="button"
               variant="outline"
               onClick={onCancel}
-              disabled={isSubmitting || isUploading}
+              disabled={isSubmitting || isUploading || isUploadingImage}
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting || isUploading}>
-              {isUploading
-                ? "Aguarde o upload..."
-                : isSubmitting
-                  ? "Salvando..."
-                  : "Salvar Alterações"}
+            <Button
+              type="submit"
+              disabled={isSubmitting || isUploading || isUploadingImage}
+            >
+              {isUploadingImage
+                ? "Aguarde o upload da imagem..."
+                : isUploading
+                  ? "Aguarde o upload do vídeo..."
+                  : isSubmitting
+                    ? "Salvando..."
+                    : "Salvar Alterações"}
             </Button>
           </div>
         </form>

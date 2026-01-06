@@ -461,7 +461,7 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
               </div>
 
               {/* Video Player (both mobile and desktop) */}
-              <div className="px-6 py-6 md:px-6">
+              <div className="px-6 py-2 md:px-4">
                 {/* Video Player with Watermark */}
                 {currentLesson.videoId ? (
                   <div className="mb-6">
@@ -558,7 +558,7 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
               {/* Desktop: Lesson info (no tabs) */}
               <div className="hidden md:block px-6">
                 {/* Título e Descrição */}
-                <div className="mb-6">
+                <div className="mb-2">
                   <h2 className="text-2xl font-bold mb-3">
                     {currentLesson.title}
                   </h2>
@@ -630,7 +630,7 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
 
                     {/* Rating */}
                     {user?.id && currentLessonId && currentUnitId && (
-                      <div className="border-t pt-4">
+                      <div className=" pt-0">
                         <Rating
                           userId={user.id}
                           lessonId={currentLessonId}

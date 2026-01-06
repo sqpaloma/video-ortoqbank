@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import {
@@ -10,11 +11,14 @@ import {
   PercentIcon,
   UsersIcon,
   BookIcon,
+  ChevronLeftIcon,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export function AdminHub() {
   const { state } = useSidebar();
+  const router = useRouter();
 
   const adminPages = [
     {
@@ -73,8 +77,20 @@ export function AdminHub() {
       />
 
       {/* Header */}
-      <div className="py-6 px-8 flex items-center gap-3">
-        <h1 className="text-2xl font-bold">Administração</h1>
+      <div className="border-b ">
+        <div className="p-4 flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.back()}
+            className="text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+          >
+            <ChevronLeftIcon size={24} />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Administração</h1>
+          </div>
+        </div>
       </div>
 
       {/* Content */}

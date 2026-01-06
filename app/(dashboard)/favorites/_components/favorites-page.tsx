@@ -5,12 +5,11 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   PlayCircleIcon,
-  ClockIcon,
   StarIcon,
 } from "lucide-react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { useRouter } from "next/navigation";
 import { useMutation } from "convex/react";
@@ -28,6 +27,7 @@ interface Video {
   categoryName: string;
   subthemeName: string;
   categoryId?: string;
+  thumbnailUrl?: string;
 }
 
 export function FavoritesInner({
@@ -51,9 +51,9 @@ export function FavoritesInner({
   const displayFavorites = initialFavorites.slice(startIndex, endIndex);
 
   const handleVideoClick = (video: Video) => {
-    // Navigate to the units page for this category
+    // Navigate to the units page for this category with the specific lesson
     if (video.categoryId) {
-      router.push(`/units/${video.categoryId}`);
+      router.push(`/units/${video.categoryId}?lesson=${video._id}`);
     }
   };
 
@@ -95,7 +95,7 @@ export function FavoritesInner({
 
       {/* Header */}
       <div className="border-b">
-        <div className="p-6 flex items-center gap-4">
+        <div className="p-4 flex items-center gap-4">
           <Button
             variant="ghost"
             size="icon"
@@ -108,18 +108,17 @@ export function FavoritesInner({
             <h1 className="text-2xl font-bold text-gray-900">
               Aulas Favoritas
             </h1>
-            <p className="text-sm text-gray-600">
-              Seus aulas favoritas para assistir depois
-            </p>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-8 pb-24 md:pb-8">
+      <div className="max-w-7xl mx-auto p-8 pb-24 md:pb-6">
         {/* Favorites Section */}
-        <section className="mb-12">
+        <section className="mb-2">
           <div className="flex items-center gap-2 mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Meus Favoritos</h2>
+            <h2 className="text-xl font-semibold text-gray-900">
+              Meus Favoritos
+            </h2>
           </div>
 
           {displayFavorites.length > 0 ? (
@@ -129,47 +128,58 @@ export function FavoritesInner({
                   <Card
                     key={video._id}
                     onClick={() => handleVideoClick(video)}
-                    className="cursor-pointer hover:shadow-md transition-all duration-300 hover:border-primary group relative overflow-hidden"
+                    className="cursor-pointer hover:shadow-md transition-all duration-300 hover:border-primary group relative overflow-hidden p-0"
                   >
-                    <div className="w-full h-40 bg-linear-to-b from-primary/20 via-primary/10 to-primary/5 flex items-center justify-center relative">
-                      <PlayCircleIcon size={48} className="text-primary/30" />
+                    <div className="w-full h-48 bg-linear-to-b from-primary/20 via-primary/10 to-primary/5 flex items-center justify-center relative rounded-t-lg overflow-hidden">
+                      {video.thumbnailUrl ? (
+                        <Image
+                          src={video.thumbnailUrl}
+                          alt={video.title}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        />
+                      ) : (
+                        <PlayCircleIcon size={40} className="text-primary/30" />
+                      )}
                       {/* Favorite Button */}
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="absolute top-2 right-2 bg-white/90 hover:bg-white"
+                        className="absolute top-2 right-2 bg-white/90 hover:bg-white z-10"
                         onClick={(e) => handleRemoveFavorite(e, video._id)}
                       >
                         <StarIcon
-                          size={20}
+                          size={18}
                           className="text-yellow-500 fill-yellow-500"
                         />
                       </Button>
                     </div>
 
-                    <div className="p-4">
-                      <CardTitle className="text-base font-bold mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                    <div className="px-3 pt-2 pb-3">
+                      <CardTitle className="text-sm font-bold mb-1.5 group-hover:text-primary transition-colors line-clamp-2">
                         {video.title}
                       </CardTitle>
 
-                      <p className="text-xs text-gray-600 mb-3 line-clamp-2">
+                      <p className="text-xs text-gray-600 mb-2 line-clamp-2">
                         {video.description}
                       </p>
 
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap mb-2">
-                        <Badge className="text-xs" variant="default">
-                          {video.level}
-                        </Badge>
-                        <div className="flex items-center gap-1">
-                          <ClockIcon size={14} />
-                          <span>{video.duration}</span>
-                        </div>
-                      </div>
-
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-500 mb-3">
                         <p className="font-medium">{video.categoryName}</p>
                         <p>{video.subthemeName}</p>
                       </div>
+
+                      <Button
+                        className="w-full bg-blue-brand hover:bg-blue-brand-dark text-white"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleVideoClick(video);
+                        }}
+                      >
+                        Assistir
+                      </Button>
                     </div>
                   </Card>
                 ))}

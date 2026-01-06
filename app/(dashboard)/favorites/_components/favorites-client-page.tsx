@@ -16,15 +16,13 @@ export function FavoritesClientPage() {
     { initialNumItems: 20 },
   );
 
-  // Get some random lessons for "Watch Also" section
-  // (lessons that are published but not favorited by the user)
-  const allPublishedLessons = useQuery(api.lessons.list);
+  // Get some random lessons with full details for "Watch Also" section
+  const watchAlsoData = useQuery(
+    api.favorites.getWatchAlsoLessons,
+    user?.id ? { userId: user.id, limit: 6 } : "skip",
+  );
 
-  if (
-    !user ||
-    status === "LoadingFirstPage" ||
-    allPublishedLessons === undefined
-  ) {
+  if (!user || status === "LoadingFirstPage" || watchAlsoData === undefined) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
@@ -46,24 +44,22 @@ export function FavoritesClientPage() {
     level: "Básico" as const, // Could be added to lesson schema later
     categoryName: fav.category.title,
     subthemeName: fav.unit.title,
-
     categoryId: fav.category._id,
+    thumbnailUrl: fav.lesson.thumbnailUrl,
   }));
 
-  // Get lessons that user hasn't favorited (for "Watch Also" section)
-  const favoritedIds = new Set(favorites.map((f) => f._id));
-  const watchAlso = allPublishedLessons
-    .filter((lesson) => lesson.isPublished && !favoritedIds.has(lesson._id))
-    .slice(0, 6)
-    .map((lesson) => ({
-      _id: lesson._id,
-      title: lesson.title,
-      description: lesson.description,
-      duration: formatDuration(lesson.durationSeconds),
-      level: "Básico" as const,
-      categoryName: "Categoria", // Will need to fetch if needed
-      subthemeName: "Módulo",
-    }));
+  // Transform watch also data
+  const watchAlso = watchAlsoData.map((item) => ({
+    _id: item.lesson._id,
+    title: item.lesson.title,
+    description: item.lesson.description,
+    duration: formatDuration(item.lesson.durationSeconds),
+    level: "Básico" as const,
+    categoryName: item.category.title,
+    subthemeName: item.unit.title,
+    categoryId: item.category._id,
+    thumbnailUrl: item.lesson.thumbnailUrl,
+  }));
 
   return (
     <div className="space-y-6">

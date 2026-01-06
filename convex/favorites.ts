@@ -223,3 +223,71 @@ export const clearUserFavorites = mutation({
     return favorites.length;
   },
 });
+
+/**
+ * Get published lessons that are NOT favorited by the user (for "Watch Also" section)
+ * Returns lessons with full details (lesson, unit, category)
+ */
+export const getWatchAlsoLessons = query({
+  args: {
+    userId: v.string(),
+    limit: v.number(),
+  },
+  handler: async (ctx, args) => {
+    // Get user's favorited lesson IDs
+    const userFavorites = await ctx.db
+      .query("favorites")
+      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .collect();
+
+    const favoritedIds = new Set(userFavorites.map((f) => f.lessonId));
+
+    // Get published lessons
+    const allLessons = await ctx.db
+      .query("lessons")
+      .withIndex("by_isPublished", (q) => q.eq("isPublished", true))
+      .take(100);
+
+    // Filter out favorited lessons
+    const unfavoritedLessons = allLessons.filter(
+      (lesson) => !favoritedIds.has(lesson._id),
+    );
+
+    // Take only the requested limit
+    const limitedLessons = unfavoritedLessons.slice(0, args.limit);
+
+    // Batch get units
+    const units = await Promise.all(
+      limitedLessons.map((lesson) => ctx.db.get(lesson.unitId)),
+    );
+
+    // Filter out null units and only keep published ones
+    const validUnits = units.filter(
+      (u): u is NonNullable<typeof u> => u !== null && u.isPublished,
+    );
+
+    // Batch get categories
+    const categories = await Promise.all(
+      validUnits.map((unit) => ctx.db.get(unit.categoryId)),
+    );
+
+    // Build result with full details
+    const result = [];
+    for (let i = 0; i < limitedLessons.length; i++) {
+      const lesson = limitedLessons[i];
+      const unit = units[i];
+      if (!unit || !unit.isPublished) continue;
+
+      const category = categories.find((c) => c?._id === unit.categoryId);
+      if (!category || !category.isPublished) continue;
+
+      result.push({
+        lesson,
+        unit,
+        category,
+      });
+    }
+
+    return result;
+  },
+});

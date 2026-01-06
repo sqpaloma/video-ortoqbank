@@ -3,6 +3,7 @@ import { mutation, query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
 import { paginationOptsValidator } from "convex/server";
+import { requireAdmin } from "./users";
 
 // ADMIN: List all lessons with pagination
 export const listPaginated = query({
@@ -142,10 +143,14 @@ export const create = mutation({
     title: v.string(),
     description: v.string(),
     videoId: v.optional(v.string()),
+    thumbnailUrl: v.optional(v.string()),
     durationSeconds: v.optional(v.number()),
     isPublished: v.boolean(),
   },
   handler: async (ctx, args) => {
+    // SECURITY: Require admin access
+    await requireAdmin(ctx);
+
     // Auto-generate slug from title
     const slug = generateSlug(args.title);
 
@@ -187,6 +192,7 @@ export const create = mutation({
       slug: slug,
       description: args.description,
       videoId: args.videoId,
+      thumbnailUrl: args.thumbnailUrl,
       durationSeconds: args.durationSeconds || 0,
       order_index: nextOrderIndex,
       lessonNumber: nextLessonNumber,
@@ -212,11 +218,15 @@ export const update = mutation({
     title: v.string(),
     description: v.string(),
     videoId: v.optional(v.string()),
+    thumbnailUrl: v.optional(v.string()),
     durationSeconds: v.optional(v.number()),
     order_index: v.number(),
     isPublished: v.boolean(),
   },
   handler: async (ctx, args) => {
+    // SECURITY: Require admin access
+    await requireAdmin(ctx);
+
     // Auto-generate slug from title
     const slug = generateSlug(args.title);
 
@@ -248,6 +258,7 @@ export const update = mutation({
       slug: slug,
       description: args.description,
       videoId: args.videoId,
+      thumbnailUrl: args.thumbnailUrl,
       durationSeconds: args.durationSeconds || 0,
       order_index: args.order_index,
       // lessonNumber is NOT updated - it remains the original value
@@ -277,6 +288,9 @@ export const remove = mutation({
     id: v.id("lessons"),
   },
   handler: async (ctx, args) => {
+    // SECURITY: Require admin access
+    await requireAdmin(ctx);
+
     const lesson = await ctx.db.get(args.id);
 
     if (!lesson) {
@@ -312,6 +326,9 @@ export const togglePublish = mutation({
     id: v.id("lessons"),
   },
   handler: async (ctx, args) => {
+    // SECURITY: Require admin access
+    await requireAdmin(ctx);
+
     const lesson = await ctx.db.get(args.id);
 
     if (!lesson) {
@@ -352,6 +369,9 @@ export const reorder = mutation({
     ),
   },
   handler: async (ctx, args) => {
+    // SECURITY: Require admin access
+    await requireAdmin(ctx);
+
     // Update all lesson order_index
     for (const update of args.updates) {
       await ctx.db.patch(update.id, {
@@ -367,6 +387,9 @@ export const reorder = mutation({
 export const backfillCategoryId = mutation({
   args: {},
   handler: async (ctx) => {
+    // SECURITY: Require admin access
+    await requireAdmin(ctx);
+
     const lessons = await ctx.db.query("lessons").collect();
     let updated = 0;
     let skipped = 0;
@@ -403,6 +426,9 @@ export const backfillCategoryId = mutation({
 export const backfillLessonNumberCounter = mutation({
   args: {},
   handler: async (ctx) => {
+    // SECURITY: Require admin access
+    await requireAdmin(ctx);
+
     const units = await ctx.db.query("units").collect();
     let updated = 0;
     let skipped = 0;

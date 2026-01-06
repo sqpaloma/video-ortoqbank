@@ -25,6 +25,9 @@ const sifonn = localFont({
 
 export const metadata: Metadata = {
   title: "OrtoQBank - Banco de Vídeos de Ortopedia",
+  icons: {
+    icon: "/favicon.ico",
+  },
   description:
     "OrtoQBank - Banco de Vídeos de Ortopedia. Conheça nossa plataforma e garanta sua aprovação na prova da SBOT! Feito por especialistas da USP.",
   keywords:

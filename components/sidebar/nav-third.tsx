@@ -11,6 +11,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "../ui/sidebar";
+import { useSession } from "../providers/session-provider";
 
 type UserRole = "admin" | "moderator" | "user";
 
@@ -41,12 +42,25 @@ const items: MenuItem[] = [
 
 export default function NavThird() {
   const { setOpenMobile } = useSidebar();
+  const { userRole } = useSession();
+
+  // Filter menu items based on user role
+  const visibleItems = items.filter((item) => {
+    // If item has no role requirements, show it to everyone
+    if (!item.requiredRoles) return true;
+
+    // If user has no role, don't show items with role requirements
+    if (!userRole) return false;
+
+    // Check if user's role is in the required roles
+    return item.requiredRoles.includes(userRole as UserRole);
+  });
 
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Usuário</SidebarGroupLabel>
       <SidebarMenu>
-        {items.map((item) => (
+        {visibleItems.map((item) => (
           <SidebarMenuItem key={item.title}>
             <SidebarMenuButton asChild>
               <Link

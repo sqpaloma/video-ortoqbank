@@ -2,6 +2,7 @@ import { v } from "convex/values";
 
 import { mutation, query } from "./_generated/server";
 import { checkRateLimit, couponRateLimit } from "./lib/rateLimits";
+import { requireAdmin } from "./users";
 
 export const list = query({
   args: {},
@@ -37,6 +38,9 @@ export const create = mutation({
     validUntil: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    // SECURITY: Require admin access
+    await requireAdmin(ctx);
+
     const code = args.code.toUpperCase();
     // Ensure uniqueness
     const existing = await ctx.db
@@ -68,6 +72,9 @@ export const update = mutation({
     validUntil: v.optional(v.union(v.number(), v.null())),
   },
   handler: async (ctx, args) => {
+    // SECURITY: Require admin access
+    await requireAdmin(ctx);
+
     const { id, ...rest } = args;
     const updates: Record<string, unknown> = { ...rest };
     if (updates.code) updates.code = (updates.code as string).toUpperCase();
@@ -82,6 +89,9 @@ export const update = mutation({
 export const remove = mutation({
   args: { id: v.id("coupons") },
   handler: async (ctx, args) => {
+    // SECURITY: Require admin access
+    await requireAdmin(ctx);
+
     await ctx.db.delete(args.id);
     return null;
   },

@@ -79,6 +79,7 @@ export default defineSchema({
     slug: v.string(),
     description: v.string(),
     videoId: v.optional(v.string()), // Bunny video ID
+    thumbnailUrl: v.optional(v.string()), // ImageKit thumbnail URL
     durationSeconds: v.number(),
     order_index: v.number(),
     lessonNumber: v.number(),
