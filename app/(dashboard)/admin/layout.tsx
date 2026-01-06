@@ -1,41 +1,30 @@
-"use client";
+import { redirect } from "next/navigation";
+import { getCurrentUserServer } from "@/lib/server-auth";
 
-import { useRouter } from "next/navigation";
-
-import { useSession } from "@/components/providers/session-provider";
-
-export default function AdminLayout({
+/**
+ * Server-side admin layout with role-based authorization
+ * This layout enforces that only admin users can access admin routes
+ *
+ * SECURITY: This runs on the server and validates the user's role
+ * before rendering any admin content, preventing unauthorized access
+ * even if users try to access admin URLs directly
+ */
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { isAdmin, isLoading } = useSession();
-  const router = useRouter();
+  // Server-side authorization check
+  // This runs on every admin page request and validates the user's role
+  const user = await getCurrentUserServer();
 
-  // Redirect non-admins immediately when data is loaded
-  if (!isLoading && !isAdmin) {
-    router.push("/");
-    return null; // Don't render anything while redirecting
+  // Redirect to categories (dashboard) if not authenticated or not an admin
+  if (!user || user.role !== "admin") {
+    redirect("/categories");
   }
 
-  // Show loading while checking admin status
-  if (isLoading) {
-    return (
-      <div className="space-y-6 p-2 md:p-6">
-        <div className="flex items-center justify-center min-h-[200px]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Verificando permissões...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  console.log("✅ Admin Layout: Access granted");
 
-  return (
-    <div className="space-y-6 p-2 md:p-6">
-      {/* Page content */}
-      {children}
-    </div>
-  );
+  // Only render content if user is authenticated AND is an admin
+  return <div className="space-y-6 p-2 md:p-6">{children}</div>;
 }

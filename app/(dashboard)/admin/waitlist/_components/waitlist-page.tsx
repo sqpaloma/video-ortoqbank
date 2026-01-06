@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "convex/react";
+import { usePaginatedQuery } from "convex/react";
 import { useState } from "react";
 import * as XLSX from "xlsx";
 
@@ -8,14 +8,22 @@ import { api } from "@/convex/_generated/api";
 import { WaitlistSearch } from "./waitlist-search";
 import { WaitlistTable } from "./waitlist-table";
 import { Button } from "@/components/ui/button";
-import { ArrowLeftIcon } from "lucide-react";
+import { ArrowLeftIcon, ChevronRightIcon } from "lucide-react";
 import Link from "next/link";
 
 export function WaitlistPage() {
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const entries = useQuery(api.waitlist.list);
-  const isLoading = entries === undefined;
+
+  // Use paginatedQuery com 10 itens por página
+  const { results, status, loadMore } = usePaginatedQuery(
+    api.waitlist.list,
+    {},
+    { initialNumItems: 10 },
+  );
+
+  const entries = results;
+  const isLoading = status === "LoadingFirstPage";
 
   const filteredEntries = (entries ?? []).filter((entry) => {
     if (!searchQuery.trim()) return true;
@@ -86,6 +94,32 @@ export function WaitlistPage() {
         isLoading={isLoading}
         hasSearchQuery={!!searchQuery.trim()}
       />
+
+      {/* Botões de Paginação */}
+      {!searchQuery.trim() && (
+        <div className="flex items-center justify-between border-t pt-4">
+          <p className="text-sm text-muted-foreground">
+            Mostrando {entries.length} registro(s)
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => loadMore(10)}
+              disabled={status !== "CanLoadMore"}
+            >
+              {status === "LoadingMore" ? (
+                "Carregando..."
+              ) : (
+                <>
+                  <ChevronRightIcon className="h-4 w-4 mr-1" />
+                  Carregar mais 10
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

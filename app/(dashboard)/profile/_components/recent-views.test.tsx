@@ -38,7 +38,6 @@ const mockRecentViewsData = [
     lesson: {
       _id: "lesson-1" as Id<"lessons">,
       title: "Test Lesson",
-      thumbnailUrl: "https://example.com/thumb.jpg",
       categoryId: "cat-1" as Id<"categories">,
     },
     category: {

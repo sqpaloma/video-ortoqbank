@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { LessonEditPanelProps } from "./types";
 import { useUser } from "@clerk/nextjs";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 export function LessonEditPanel({
   lesson,
@@ -48,9 +49,9 @@ export function LessonEditPanel({
   const [unitId, setUnitId] = useState<string>(lesson.unitId);
   const [title, setTitle] = useState(lesson.title);
   const [description, setDescription] = useState(lesson.description);
-  const [lessonNumber, setLessonNumber] = useState(lesson.lessonNumber);
-  const [tags, setTags] = useState(lesson.tags?.join(", ") || "");
+  const [thumbnailUrl, setThumbnailUrl] = useState(lesson.thumbnailUrl || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   // Video upload states
   const [showUploader, setShowUploader] = useState(false);
@@ -64,11 +65,15 @@ export function LessonEditPanel({
 
   // Update form values when lesson changes
   useEffect(() => {
+    console.log("📝 Carregando aula no editor:", {
+      title: lesson.title,
+      thumbnailUrl: lesson.thumbnailUrl,
+    });
+
     setUnitId(lesson.unitId);
     setTitle(lesson.title);
     setDescription(lesson.description);
-    setLessonNumber(lesson.lessonNumber);
-    setTags(lesson.tags?.join(", ") || "");
+    setThumbnailUrl(lesson.thumbnailUrl || "");
     setCurrentVideoId(lesson.videoId);
   }, [lesson]);
 
@@ -76,20 +81,14 @@ export function LessonEditPanel({
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const tagsArray = tags
-        ? tags
-            .split(",")
-            .map((tag) => tag.trim())
-            .filter(Boolean)
-        : [];
+      console.log("📸 Thumbnail URL ao salvar edição:", thumbnailUrl);
 
       await onSave({
         unitId: unitId as Id<"units">,
         title,
         description,
-        lessonNumber,
-        tags: tagsArray.length > 0 ? tagsArray : undefined,
         videoId: currentVideoId,
+        thumbnailUrl: thumbnailUrl || undefined,
       });
     } finally {
       setIsSubmitting(false);
@@ -101,23 +100,15 @@ export function LessonEditPanel({
       "Tem certeza que deseja remover o vídeo desta aula?",
       async () => {
         try {
-          const tagsArray = tags
-            ? tags
-                .split(",")
-                .map((tag: string) => tag.trim())
-                .filter(Boolean)
-            : [];
-
           await updateLesson({
             id: lesson._id,
             unitId: unitId as Id<"units">,
             title,
             description,
+            thumbnailUrl: thumbnailUrl || undefined,
             durationSeconds: lesson.durationSeconds,
             order_index: lesson.order_index,
-            lessonNumber,
             isPublished: lesson.isPublished,
-            tags: tagsArray.length > 0 ? tagsArray : undefined,
             videoId: undefined,
           });
 
@@ -162,6 +153,7 @@ export function LessonEditPanel({
   };
 
   const handleUploadVideo = async () => {
+    // Validar apenas arquivo e usuário
     if (!uploadFile) {
       showError("Selecione um arquivo de vídeo", "Arquivo não selecionado");
       return;
@@ -173,36 +165,22 @@ export function LessonEditPanel({
     }
 
     try {
-      const { videoId } = await uploadVideo(uploadFile, title, user.id);
+      // Upload para o Bunny
+      const { videoId } = await uploadVideo(
+        uploadFile,
+        title || lesson.title,
+        user.id,
+      );
 
-      // Update lesson with videoId
-      const tagsArray = tags
-        ? tags
-            .split(",")
-            .map((tag: string) => tag.trim())
-            .filter(Boolean)
-        : [];
-
-      await updateLesson({
-        id: lesson._id,
-        unitId: unitId as Id<"units">,
-        title,
-        description,
-        durationSeconds: lesson.durationSeconds,
-        order_index: lesson.order_index,
-        lessonNumber,
-        isPublished: lesson.isPublished,
-        tags: tagsArray.length > 0 ? tagsArray : undefined,
-        videoId: videoId,
-      });
-
+      // Atualiza o videoId local (o usuário salvará a edição depois)
       setCurrentVideoId(videoId);
       setShowUploader(false);
       setUploadFile(null);
 
       toast({
         title: "✅ Vídeo enviado!",
-        description: "Vídeo associado à aula com sucesso!",
+        description:
+          "Vídeo pronto! Clique em 'Salvar Alterações' para confirmar.",
       });
     } catch (error) {
       showError(
@@ -214,13 +192,10 @@ export function LessonEditPanel({
 
   return (
     <Card className="max-w-3xl mx-auto">
-      <CardContent className="pt-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <CardContent className="pt-2">
+        <form onSubmit={handleSubmit} className="space-y-2">
           <div>
             <h2 className="text-xl font-semibold mb-4">Editar Aula</h2>
-            <p className="text-sm text-muted-foreground mb-6">
-              Atualize as informações da aula abaixo
-            </p>
           </div>
 
           <div className="space-y-4">
@@ -229,7 +204,7 @@ export function LessonEditPanel({
               <Select
                 value={unitId}
                 onValueChange={setUnitId}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isUploading}
               >
                 <SelectTrigger id="edit-lesson-unit">
                   <SelectValue placeholder="Selecione uma unidade" />
@@ -250,7 +225,7 @@ export function LessonEditPanel({
                 id="edit-lesson-title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isUploading}
                 required
               />
             </div>
@@ -261,44 +236,38 @@ export function LessonEditPanel({
                 id="edit-lesson-description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                disabled={isSubmitting}
+                disabled={isSubmitting || isUploading}
                 required
                 rows={4}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-lesson-number">Número da Aula *</Label>
-              <Input
-                id="edit-lesson-number"
-                type="number"
-                value={lessonNumber}
-                onChange={(e) => setLessonNumber(parseInt(e.target.value) || 1)}
-                disabled={isSubmitting}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-lesson-tags">
-                Tags (separadas por vírgula)
+              <Label htmlFor="edit-lesson-thumbnail">
+                Thumbnail (Opcional)
               </Label>
-              <Input
-                id="edit-lesson-tags"
-                value={tags}
-                onChange={(e) => setTags(e.target.value)}
-                disabled={isSubmitting}
-                placeholder="ortopedia, medicina, traumatologia"
+              <p className="text-xs text-muted-foreground mb-2">
+                Imagem que aparecerá nos favoritos, vídeos relacionados e
+                visualizações recentes
+              </p>
+              <ImageUpload
+                id="edit-lesson-thumbnail"
+                value={thumbnailUrl}
+                onChange={setThumbnailUrl}
+                onRemove={() => setThumbnailUrl("")}
+                disabled={isSubmitting || isUploading}
+                folder="/lessons"
+                onUploadStateChange={setIsUploadingImage}
               />
             </div>
 
             {/* Video Management Section */}
-            <div className="space-y-3 pt-4 border-t">
+            <div className="space-y-3 pt-4 ">
               <Label>Gerenciar Vídeo</Label>
               {currentVideoId && !showUploader ? (
                 <div className="space-y-2">
                   {video === undefined ? (
-                    <div className="flex items-center gap-2 p-3 rounded-lg bg-gray-100">
+                    <div className="flex items-center gap-2 p-3 rounded-lg bg-gray-50">
                       <LoaderIcon className="h-5 w-5 text-gray-600 animate-spin" />
                       <p className="text-sm text-gray-700">
                         Carregando informações do vídeo...
@@ -367,7 +336,7 @@ export function LessonEditPanel({
                     />
                     {uploadFile && (
                       <p className="text-xs text-muted-foreground">
-                        📁 {uploadFile.name} (
+                        {uploadFile.name} (
                         {(uploadFile.size / (1024 * 1024)).toFixed(2)} MB)
                       </p>
                     )}
@@ -419,17 +388,26 @@ export function LessonEditPanel({
             </div>
           </div>
 
-          <div className="flex gap-2 justify-end pt-4 border-t">
+          <div className="flex gap-2 justify-end pt-4">
             <Button
               type="button"
               variant="outline"
               onClick={onCancel}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isUploading || isUploadingImage}
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Salvando..." : "Salvar Alterações"}
+            <Button
+              type="submit"
+              disabled={isSubmitting || isUploading || isUploadingImage}
+            >
+              {isUploadingImage
+                ? "Aguarde o upload da imagem..."
+                : isUploading
+                  ? "Aguarde o upload do vídeo..."
+                  : isSubmitting
+                    ? "Salvando..."
+                    : "Salvar Alterações"}
             </Button>
           </div>
         </form>

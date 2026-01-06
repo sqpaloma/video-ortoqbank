@@ -9,19 +9,118 @@ import {
   query,
 } from "./_generated/server";
 import { retrier } from "./retrier";
+import {
+  checkRateLimit,
+  checkoutRateLimit,
+  couponRateLimit,
+} from "./lib/rateLimits";
+import type { MutationCtx } from "./_generated/server";
 
 /**
- * AsaaS webhook payment payload structure
- * This represents the payment object received in webhook events
+ * Helper to validate coupon within the same transaction.
+ * This avoids race conditions by keeping validation in the same mutation.
  */
-interface AsaasWebhookPayment {
-  id: string;
-  value: number;
-  totalValue?: number;
-  status: string;
-  externalReference?: string;
-  installmentNumber?: number;
-  installment?: string;
+async function validateCouponInTransaction(
+  ctx: MutationCtx,
+  code: string,
+  originalPrice: number,
+  userCpf: string,
+): Promise<
+  | {
+      isValid: true;
+      finalPrice: number;
+      discountAmount: number;
+      couponCode: string;
+    }
+  | { isValid: false; errorMessage: string }
+> {
+  // Rate limit coupon validation attempts
+  const identifier = userCpf || "anonymous";
+  const { ok, retryAt } = await checkRateLimit(
+    ctx,
+    couponRateLimit,
+    identifier,
+  );
+
+  if (!ok) {
+    const waitSeconds = retryAt ? Math.ceil((retryAt - Date.now()) / 1000) : 60;
+    return {
+      isValid: false,
+      errorMessage: `Muitas tentativas. Aguarde ${waitSeconds} segundos.`,
+    };
+  }
+
+  const normalizedCode = code.toUpperCase().trim();
+
+  if (!normalizedCode) {
+    return {
+      isValid: false,
+      errorMessage: "Código de cupom inválido",
+    };
+  }
+
+  // Find the coupon
+  const coupon = await ctx.db
+    .query("coupons")
+    .withIndex("by_code", (q) => q.eq("code", normalizedCode))
+    .unique();
+
+  if (!coupon) {
+    return {
+      isValid: false,
+      errorMessage: "Cupom não encontrado",
+    };
+  }
+
+  // Check if coupon is active
+  if (!coupon.active) {
+    return {
+      isValid: false,
+      errorMessage: "Cupom inativo",
+    };
+  }
+
+  // Check if coupon is within valid date range
+  const now = Date.now();
+  if (coupon.validFrom !== undefined && now < coupon.validFrom) {
+    return {
+      isValid: false,
+      errorMessage: "Cupom ainda não está válido",
+    };
+  }
+  if (coupon.validUntil !== undefined && now > coupon.validUntil) {
+    return {
+      isValid: false,
+      errorMessage: "Cupom expirado",
+    };
+  }
+
+  // Calculate discount
+  let finalPrice: number;
+
+  if (coupon.type === "fixed_price") {
+    finalPrice = coupon.value;
+  } else if (coupon.type === "percentage") {
+    const discountAmount = (originalPrice * coupon.value) / 100;
+    finalPrice = originalPrice - discountAmount;
+  } else {
+    // fixed discount
+    finalPrice = originalPrice - coupon.value;
+  }
+
+  // Clamp finalPrice to valid range [0, originalPrice]
+  finalPrice = Math.max(0, Math.min(finalPrice, originalPrice));
+
+  // Derive discount amount from clamped final price
+  let discountAmount = originalPrice - finalPrice;
+  discountAmount = Math.max(0, Math.min(discountAmount, originalPrice));
+
+  return {
+    isValid: true,
+    finalPrice: Math.round(finalPrice * 100) / 100,
+    discountAmount: Math.round(discountAmount * 100) / 100,
+    couponCode: normalizedCode,
+  };
 }
 
 /**
@@ -62,15 +161,6 @@ export const createPendingOrder = mutation({
     address: v.optional(v.string()),
     addressNumber: v.optional(v.string()), // Defaults to "SN" if not provided
   },
-  returns: v.object({
-    pendingOrderId: v.id("pendingOrders"),
-    priceBreakdown: v.object({
-      originalPrice: v.number(),
-      couponDiscount: v.number(),
-      pixDiscount: v.number(),
-      finalPrice: v.number(),
-    }),
-  }),
   handler: async (
     ctx,
     args,
@@ -83,6 +173,20 @@ export const createPendingOrder = mutation({
       finalPrice: number;
     };
   }> => {
+    const { ok, retryAt } = await checkRateLimit(
+      ctx,
+      checkoutRateLimit,
+      args.cpf,
+    );
+
+    if (!ok) {
+      const waitMinutes = retryAt
+        ? Math.ceil((retryAt - Date.now()) / 60000)
+        : 5;
+      throw new Error(
+        `Muitas tentativas de checkout. Aguarde ${waitMinutes} minutos.`,
+      );
+    }
     // Get pricing plan to determine correct price
     const pricingPlan = await ctx.runQuery(api.pricingPlans.getByProductId, {
       productId: args.productId,
@@ -111,30 +215,22 @@ export const createPendingOrder = mutation({
     let appliedCouponCode: string | undefined;
 
     // Apply coupon if provided (applies to the selected payment method's price)
+    // Validation is done directly in this transaction to prevent race conditions
     if (args.couponCode && args.couponCode.trim()) {
-      // Validate coupon with user CPF for usage tracking
-      const couponResult = await ctx.runQuery(
-        api.promoCoupons.validateAndApplyCoupon,
-        {
-          code: args.couponCode,
-          originalPrice: basePrice,
-          userCpf: args.cpf.replaceAll(/\D/g, ""),
-        },
+      const couponResult = await validateCouponInTransaction(
+        ctx,
+        args.couponCode,
+        basePrice,
+        args.cpf.replaceAll(/\D/g, ""),
       );
 
-      if (
-        couponResult.isValid &&
-        couponResult.finalPrice !== undefined &&
-        couponResult.discountAmount !== undefined
-      ) {
+      if (couponResult.isValid) {
         finalPrice = couponResult.finalPrice;
         couponDiscount = couponResult.discountAmount;
-        appliedCouponCode = args.couponCode.toUpperCase();
+        appliedCouponCode = couponResult.couponCode;
         console.log(
           `✅ Applied coupon ${appliedCouponCode}: -R$ ${couponDiscount}`,
         );
-      } else if (couponResult.isValid) {
-        throw new Error("Cupom inválido: dados incompletos");
       } else {
         throw new Error(couponResult.errorMessage || "Cupom inválido");
       }
@@ -215,7 +311,6 @@ export const linkPaymentToOrder = mutation({
       }),
     ),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
     // Update the pending order with payment info
     await ctx.db.patch(args.pendingOrderId, {
@@ -243,13 +338,27 @@ export const linkPaymentToOrder = mutation({
 export const processAsaasWebhook = internalAction({
   args: {
     event: v.string(),
-    payment: v.any(), // Keep as v.any() for webhook validation, but cast to interface inside
-    rawWebhookData: v.any(),
+    payment: v.object({
+      id: v.string(),
+      value: v.number(),
+      totalValue: v.optional(v.number()),
+      status: v.string(),
+      externalReference: v.optional(v.string()),
+      installmentNumber: v.optional(v.number()),
+      installment: v.optional(v.string()),
+    }),
+    rawWebhookData: v.object({
+      event: v.string(),
+      payment: v.object({
+        id: v.string(),
+        value: v.number(),
+        status: v.string(),
+      }),
+    }),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
     const { event } = args;
-    const payment = args.payment as AsaasWebhookPayment;
+    const payment = args.payment;
 
     console.log(`Processing AsaaS webhook: ${event} for payment ${payment.id}`);
 
@@ -406,13 +515,6 @@ export const confirmPayment = internalMutation({
     pendingOrderId: v.id("pendingOrders"),
     asaasPaymentId: v.string(),
   },
-  returns: v.union(
-    v.object({
-      email: v.string(),
-      name: v.string(),
-    }),
-    v.null(),
-  ),
   handler: async (ctx, args) => {
     // Find the pending order
     const order = await ctx.db.get(args.pendingOrderId);
@@ -511,7 +613,6 @@ export const maybeProvisionAccess = internalMutation({
   args: {
     orderId: v.id("pendingOrders"),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
     const order = await ctx.db.get(args.orderId);
 
@@ -590,10 +691,6 @@ export const claimOrderByEmail = internalMutation({
     email: v.string(),
     clerkUserId: v.string(),
   },
-  returns: v.object({
-    success: v.boolean(),
-    message: v.string(),
-  }),
   handler: async (ctx, args) => {
     // Query by email index only (avoid using .filter() per Convex guidelines)
     const order = await ctx.db
@@ -638,7 +735,6 @@ export const sendClerkInvitation = internalAction({
     orderId: v.id("pendingOrders"),
     customerName: v.string(),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
     // Create pending invitation record
     const invitationId = await ctx.runMutation(
@@ -703,7 +799,6 @@ export const sendClerkInvitationAttempt = internalAction({
     invitationId: v.id("emailInvitations"),
     attemptNumber: v.number(),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
     const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY;
 
@@ -759,27 +854,6 @@ export const checkPaymentStatus = query({
   args: {
     pendingOrderId: v.id("pendingOrders"),
   },
-  returns: v.object({
-    status: v.union(
-      v.literal("pending"),
-      v.literal("confirmed"),
-      v.literal("failed"),
-    ),
-    orderDetails: v.optional(
-      v.object({
-        email: v.string(),
-        productId: v.string(),
-        finalPrice: v.number(),
-      }),
-    ),
-    pixData: v.optional(
-      v.object({
-        qrPayload: v.optional(v.string()),
-        qrCodeBase64: v.optional(v.string()),
-        expirationDate: v.optional(v.string()),
-      }),
-    ),
-  }),
   handler: async (ctx, args) => {
     // Find the order by ID
     const order = await ctx.db.get(args.pendingOrderId);
@@ -823,25 +897,6 @@ export const getPendingOrderById = query({
   args: {
     orderId: v.id("pendingOrders"),
   },
-  returns: v.union(
-    v.object({
-      _id: v.id("pendingOrders"),
-      _creationTime: v.number(),
-      email: v.string(),
-      cpf: v.string(),
-      name: v.string(),
-      productId: v.string(),
-      finalPrice: v.number(),
-      originalPrice: v.number(),
-      couponCode: v.optional(v.string()),
-      couponDiscount: v.optional(v.number()),
-      pixDiscount: v.optional(v.number()),
-      paymentMethod: v.string(),
-      status: v.string(),
-      installmentCount: v.optional(v.number()),
-    }),
-    v.null(),
-  ),
   handler: async (ctx, args) => {
     const order = await ctx.db.get(args.orderId);
     if (!order) {
@@ -876,7 +931,6 @@ export const createEmailInvitation = internalMutation({
     customerName: v.string(),
     retrierRunId: v.optional(v.string()),
   },
-  returns: v.id("emailInvitations"),
   handler: async (ctx, args) => {
     return await ctx.db.insert("emailInvitations", {
       orderId: args.orderId,
@@ -898,7 +952,6 @@ export const updateEmailInvitationSuccess = internalMutation({
     clerkInvitationId: v.string(),
     retryCount: v.number(),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
     await ctx.db.patch(args.invitationId, {
       status: "sent",
@@ -920,7 +973,6 @@ export const updateEmailInvitationFailure = internalMutation({
     errorDetails: v.optional(v.string()),
     retryCount: v.number(),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
     await ctx.db.patch(args.invitationId, {
       status: "failed",
@@ -937,7 +989,6 @@ export const updateEmailInvitationFailure = internalMutation({
  */
 export const updateEmailInvitationAccepted = internalMutation({
   args: { invitationId: v.id("emailInvitations") },
-  returns: v.null(),
   handler: async (ctx, args) => {
     await ctx.db.patch(args.invitationId, {
       status: "accepted",
@@ -952,12 +1003,6 @@ export const updateEmailInvitationAccepted = internalMutation({
  */
 export const findSentInvitationByEmail = query({
   args: { email: v.string() },
-  returns: v.union(
-    v.object({
-      _id: v.id("emailInvitations"),
-    }),
-    v.null(),
-  ),
   handler: async (ctx, args) => {
     // Query by email index only (avoid using .filter() per Convex guidelines)
     const invitation = await ctx.db

@@ -20,7 +20,6 @@ export const addView = mutation({
       v.literal("completed"),
     ),
   },
-  returns: v.id("recentViews"),
   handler: async (ctx, args) => {
     const lesson = await ctx.db.get(args.lessonId);
     if (!lesson) throw new Error("Aula não encontrada");
@@ -45,7 +44,6 @@ export const clearOldViews = mutation({
     userId: v.string(),
     keepCount: v.number(),
   },
-  returns: v.number(),
   handler: async (ctx, args) => {
     const allViews = await ctx.db
       .query("recentViews")
@@ -65,7 +63,6 @@ export const clearOldViews = mutation({
 
 export const clearAllViews = mutation({
   args: { userId: v.string() },
-  returns: v.number(),
   handler: async (ctx, args) => {
     const views = await ctx.db
       .query("recentViews")
@@ -85,21 +82,6 @@ export const getRecentViews = query({
     userId: v.string(),
     limit: v.optional(v.number()),
   },
-  returns: v.array(
-    v.object({
-      _id: v.id("recentViews"),
-      _creationTime: v.number(),
-      userId: v.string(),
-      lessonId: v.id("lessons"),
-      unitId: v.id("units"),
-      viewedAt: v.number(),
-      action: v.union(
-        v.literal("started"),
-        v.literal("resumed"),
-        v.literal("completed"),
-      ),
-    }),
-  ),
   handler: async (ctx, args) => {
     const limit = args.limit || 10;
 
@@ -118,59 +100,6 @@ export const getRecentViewsWithDetails = query({
     userId: v.string(),
     limit: v.optional(v.number()),
   },
-  returns: v.array(
-    v.object({
-      _id: v.id("recentViews"),
-      _creationTime: v.number(),
-      viewedAt: v.number(),
-      action: v.union(
-        v.literal("started"),
-        v.literal("resumed"),
-        v.literal("completed"),
-      ),
-      isCompleted: v.boolean(),
-      lesson: v.object({
-        _id: v.id("lessons"),
-        _creationTime: v.number(),
-        unitId: v.id("units"),
-        categoryId: v.id("categories"),
-        title: v.string(),
-        slug: v.string(),
-        description: v.string(),
-        bunnyStoragePath: v.optional(v.string()),
-        publicUrl: v.optional(v.string()),
-        thumbnailUrl: v.optional(v.string()),
-        durationSeconds: v.number(),
-        order_index: v.number(),
-        lessonNumber: v.number(),
-        isPublished: v.boolean(),
-        tags: v.optional(v.array(v.string())),
-        videoId: v.optional(v.string()),
-      }),
-      unit: v.object({
-        _id: v.id("units"),
-        _creationTime: v.number(),
-        categoryId: v.id("categories"),
-        title: v.string(),
-        slug: v.string(),
-        description: v.string(),
-        order_index: v.number(),
-        totalLessonVideos: v.number(),
-        lessonCounter: v.optional(v.number()),
-        isPublished: v.boolean(),
-      }),
-      category: v.object({
-        _id: v.id("categories"),
-        _creationTime: v.number(),
-        title: v.string(),
-        slug: v.string(),
-        description: v.string(),
-        position: v.number(),
-        iconUrl: v.optional(v.string()),
-        isPublished: v.boolean(),
-      }),
-    }),
-  ),
   handler: async (ctx, args) => {
     const limit = args.limit || 10;
 
@@ -264,22 +193,6 @@ export const getLastViewForLesson = query({
     userId: v.string(),
     lessonId: v.id("lessons"),
   },
-  returns: v.union(
-    v.object({
-      _id: v.id("recentViews"),
-      _creationTime: v.number(),
-      userId: v.string(),
-      lessonId: v.id("lessons"),
-      unitId: v.id("units"),
-      viewedAt: v.number(),
-      action: v.union(
-        v.literal("started"),
-        v.literal("resumed"),
-        v.literal("completed"),
-      ),
-    }),
-    v.null(),
-  ),
   handler: async (ctx, args) => {
     const views = await ctx.db
       .query("recentViews")
@@ -295,7 +208,6 @@ export const getLastViewForLesson = query({
 
 export const getUniqueViewedLessonsCount = query({
   args: { userId: v.string() },
-  returns: v.number(),
   handler: async (ctx, args) => {
     const views = await ctx.db
       .query("recentViews")

@@ -180,7 +180,7 @@ export function PricingPlansPage() {
         </Button>
       </div>
 
-      <div className="`bg-gradient-to-br` from-slate-50 to-brand-blue/10 py-8 rounded-2xl">
+      <div className=" py-8 rounded-2xl">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-7xl mx-auto px-4">
           {isCreating && (
             <CreatePlanCard
@@ -196,7 +196,7 @@ export function PricingPlansPage() {
           {plans?.map((plan) => (
             <div
               key={plan._id}
-              className="relative bg-white rounded-2xl shadow-xl overflow-hidden w-full flex flex-col"
+              className="relative rounded-2xl border pb-6 overflow-hidden w-full flex flex-col"
             >
               {editingId === plan._id ? (
                 <EditPlanCard

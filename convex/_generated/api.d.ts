@@ -18,6 +18,7 @@ import type * as feedback from "../feedback.js";
 import type * as http from "../http.js";
 import type * as invoices from "../invoices.js";
 import type * as lessons from "../lessons.js";
+import type * as lib_rateLimits from "../lib/rateLimits.js";
 import type * as myFunctions from "../myFunctions.js";
 import type * as payments from "../payments.js";
 import type * as pricingPlans from "../pricingPlans.js";
@@ -36,6 +37,7 @@ import type * as userAccess from "../userAccess.js";
 import type * as users from "../users.js";
 import type * as videos from "../videos.js";
 import type * as waitlist from "../waitlist.js";
+import type * as watermark from "../watermark.js";
 
 import type {
   ApiFromModules,
@@ -54,6 +56,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   invoices: typeof invoices;
   lessons: typeof lessons;
+  "lib/rateLimits": typeof lib_rateLimits;
   myFunctions: typeof myFunctions;
   payments: typeof payments;
   pricingPlans: typeof pricingPlans;
@@ -72,6 +75,7 @@ declare const fullApi: ApiFromModules<{
   users: typeof users;
   videos: typeof videos;
   waitlist: typeof waitlist;
+  watermark: typeof watermark;
 }>;
 
 /**

@@ -71,15 +71,17 @@ export function UnitTreeItem({
         </div>
         <button
           onClick={() => onToggle(unit._id)}
-          className="flex items-center gap-2 flex-1 text-left"
+          className="flex items-center gap-2 flex-1 min-w-0 text-left"
         >
           {isExpanded ? (
             <ChevronDownIcon className="h-4 w-4 shrink-0 text-primary" />
           ) : (
             <ChevronRightIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
           )}
-          <div className="flex-1 min-w-0">
-            <p className="font-medium text-sm truncate">{unit.title}</p>
+          <div className="flex-1 min-w-0 overflow-hidden">
+            <p className="font-medium text-sm truncate" title={unit.title}>
+              {unit.title}
+            </p>
             <p className="text-xs text-muted-foreground">
               {unitLessons.length} {unitLessons.length === 1 ? "aula" : "aulas"}
             </p>

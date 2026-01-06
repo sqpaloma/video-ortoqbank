@@ -10,28 +10,6 @@ import { query } from "./_generated/server";
  */
 export const getSuggestions = query({
   args: { query: v.string() },
-  returns: v.object({
-    units: v.array(
-      v.object({
-        _id: v.id("units"),
-        title: v.string(),
-        description: v.string(),
-        categoryId: v.id("categories"),
-        categoryTitle: v.string(),
-      }),
-    ),
-    lessons: v.array(
-      v.object({
-        _id: v.id("lessons"),
-        title: v.string(),
-        description: v.string(),
-        unitId: v.id("units"),
-        unitTitle: v.string(),
-        categoryId: v.id("categories"),
-        categoryTitle: v.string(),
-      }),
-    ),
-  }),
   handler: async (ctx, args) => {
     const searchQuery = args.query.toLowerCase().trim();
 
@@ -146,18 +124,6 @@ export const getSuggestions = query({
  */
 export const searchCategories = query({
   args: { query: v.string() },
-  returns: v.array(
-    v.object({
-      _id: v.id("categories"),
-      _creationTime: v.number(),
-      title: v.string(),
-      slug: v.string(),
-      description: v.string(),
-      position: v.number(),
-      iconUrl: v.optional(v.string()),
-      isPublished: v.boolean(),
-    }),
-  ),
   handler: async (ctx, args) => {
     const searchQuery = args.query.toLowerCase().trim();
 

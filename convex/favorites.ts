@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
+import { paginationOptsValidator } from "convex/server";
 
 /**
  * Favorites - Optimized with batch gets
@@ -11,7 +12,6 @@ export const addFavorite = mutation({
     userId: v.string(),
     lessonId: v.id("lessons"),
   },
-  returns: v.id("favorites"),
   handler: async (ctx, args) => {
     const lesson = await ctx.db.get(args.lessonId);
     if (!lesson) throw new Error("Aula não encontrada");
@@ -39,7 +39,6 @@ export const removeFavorite = mutation({
     userId: v.string(),
     lessonId: v.id("lessons"),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
     const favorite = await ctx.db
       .query("favorites")
@@ -61,7 +60,6 @@ export const toggleFavorite = mutation({
     userId: v.string(),
     lessonId: v.id("lessons"),
   },
-  returns: v.boolean(),
   handler: async (ctx, args) => {
     const existing = await ctx.db
       .query("favorites")
@@ -91,7 +89,6 @@ export const isFavorited = query({
     userId: v.string(),
     lessonId: v.id("lessons"),
   },
-  returns: v.boolean(),
   handler: async (ctx, args) => {
     const favorite = await ctx.db
       .query("favorites")
@@ -106,14 +103,6 @@ export const isFavorited = query({
 
 export const getUserFavorites = query({
   args: { userId: v.string() },
-  returns: v.array(
-    v.object({
-      _id: v.id("favorites"),
-      _creationTime: v.number(),
-      userId: v.string(),
-      lessonId: v.id("lessons"),
-    }),
-  ),
   handler: async (ctx, args) => {
     const favorites = await ctx.db
       .query("favorites")
@@ -125,62 +114,22 @@ export const getUserFavorites = query({
 });
 
 /**
- * Get favorite lessons with full details
+ * Get favorite lessons with full details (PAGINATED)
  * OPTIMIZED: Uses batch gets instead of N+1 queries
  */
 export const getUserFavoriteLessons = query({
-  args: { userId: v.string() },
-  returns: v.array(
-    v.object({
-      _id: v.id("favorites"),
-      _creationTime: v.number(),
-      lesson: v.object({
-        _id: v.id("lessons"),
-        _creationTime: v.number(),
-        unitId: v.id("units"),
-        categoryId: v.id("categories"),
-        title: v.string(),
-        slug: v.string(),
-        description: v.string(),
-        bunnyStoragePath: v.optional(v.string()),
-        publicUrl: v.optional(v.string()),
-        thumbnailUrl: v.optional(v.string()),
-        durationSeconds: v.number(),
-        order_index: v.number(),
-        lessonNumber: v.number(),
-        isPublished: v.boolean(),
-        tags: v.optional(v.array(v.string())),
-        videoId: v.optional(v.string()),
-      }),
-      unit: v.object({
-        _id: v.id("units"),
-        _creationTime: v.number(),
-        categoryId: v.id("categories"),
-        title: v.string(),
-        slug: v.string(),
-        description: v.string(),
-        order_index: v.number(),
-        totalLessonVideos: v.number(),
-        lessonCounter: v.optional(v.number()),
-        isPublished: v.boolean(),
-      }),
-      category: v.object({
-        _id: v.id("categories"),
-        _creationTime: v.number(),
-        title: v.string(),
-        slug: v.string(),
-        description: v.string(),
-        position: v.number(),
-        iconUrl: v.optional(v.string()),
-        isPublished: v.boolean(),
-      }),
-    }),
-  ),
+  args: {
+    userId: v.string(),
+    paginationOpts: paginationOptsValidator,
+  },
   handler: async (ctx, args) => {
-    const favorites = await ctx.db
+    const paginatedFavorites = await ctx.db
       .query("favorites")
       .withIndex("by_userId", (q) => q.eq("userId", args.userId))
-      .collect();
+      .order("desc")
+      .paginate(args.paginationOpts);
+
+    const favorites = paginatedFavorites.page;
 
     // BEFORE: Loop with individual gets (N+1 problem)
     // AFTER: Batch gets
@@ -207,7 +156,7 @@ export const getUserFavoriteLessons = query({
     );
 
     // Build result
-    const result = [];
+    const page = [];
     for (let i = 0; i < favorites.length; i++) {
       const favorite = favorites[i];
       const lesson = lessons[i];
@@ -219,7 +168,7 @@ export const getUserFavoriteLessons = query({
       const category = categories.find((c) => c?._id === unit.categoryId);
       if (!category) continue;
 
-      result.push({
+      page.push({
         _id: favorite._id,
         _creationTime: favorite._creationTime,
         lesson,
@@ -228,13 +177,15 @@ export const getUserFavoriteLessons = query({
       });
     }
 
-    return result;
+    return {
+      ...paginatedFavorites,
+      page,
+    };
   },
 });
 
 export const getFavoritesCount = query({
   args: { userId: v.string() },
-  returns: v.number(),
   handler: async (ctx, args) => {
     const favorites = await ctx.db
       .query("favorites")
@@ -247,7 +198,6 @@ export const getFavoritesCount = query({
 
 export const getLessonFavoritesCount = query({
   args: { lessonId: v.id("lessons") },
-  returns: v.number(),
   handler: async (ctx, args) => {
     const favorites = await ctx.db
       .query("favorites")
@@ -260,7 +210,6 @@ export const getLessonFavoritesCount = query({
 
 export const clearUserFavorites = mutation({
   args: { userId: v.string() },
-  returns: v.number(),
   handler: async (ctx, args) => {
     const favorites = await ctx.db
       .query("favorites")
@@ -272,5 +221,73 @@ export const clearUserFavorites = mutation({
     }
 
     return favorites.length;
+  },
+});
+
+/**
+ * Get published lessons that are NOT favorited by the user (for "Watch Also" section)
+ * Returns lessons with full details (lesson, unit, category)
+ */
+export const getWatchAlsoLessons = query({
+  args: {
+    userId: v.string(),
+    limit: v.number(),
+  },
+  handler: async (ctx, args) => {
+    // Get user's favorited lesson IDs
+    const userFavorites = await ctx.db
+      .query("favorites")
+      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .collect();
+
+    const favoritedIds = new Set(userFavorites.map((f) => f.lessonId));
+
+    // Get published lessons
+    const allLessons = await ctx.db
+      .query("lessons")
+      .withIndex("by_isPublished", (q) => q.eq("isPublished", true))
+      .take(100);
+
+    // Filter out favorited lessons
+    const unfavoritedLessons = allLessons.filter(
+      (lesson) => !favoritedIds.has(lesson._id),
+    );
+
+    // Take only the requested limit
+    const limitedLessons = unfavoritedLessons.slice(0, args.limit);
+
+    // Batch get units
+    const units = await Promise.all(
+      limitedLessons.map((lesson) => ctx.db.get(lesson.unitId)),
+    );
+
+    // Filter out null units and only keep published ones
+    const validUnits = units.filter(
+      (u): u is NonNullable<typeof u> => u !== null && u.isPublished,
+    );
+
+    // Batch get categories
+    const categories = await Promise.all(
+      validUnits.map((unit) => ctx.db.get(unit.categoryId)),
+    );
+
+    // Build result with full details
+    const result = [];
+    for (let i = 0; i < limitedLessons.length; i++) {
+      const lesson = limitedLessons[i];
+      const unit = units[i];
+      if (!unit || !unit.isPublished) continue;
+
+      const category = categories.find((c) => c?._id === unit.categoryId);
+      if (!category || !category.isPublished) continue;
+
+      result.push({
+        lesson,
+        unit,
+        category,
+      });
+    }
+
+    return result;
   },
 });

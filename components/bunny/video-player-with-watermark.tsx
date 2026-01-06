@@ -4,15 +4,23 @@ import { useState, useEffect, useRef } from "react";
 
 interface VideoPlayerWithWatermarkProps {
   embedUrl: string;
-  userName: string;
-  userCpf: string;
+  /**
+   * Pre-computed watermark identifier.
+   * This should be fetched from the server using the `api.watermark.generateWatermarkId`
+   * query, which computes an HMAC-SHA256 hash of the user's CPF with a server-side secret.
+   *
+   * The watermark ID is:
+   * - Non-reversible: Cannot be used to recover the original CPF
+   * - Cryptographically secure: Uses HMAC-SHA256 with a secret key
+   * - Resistant to brute force: Secret key prevents offline attacks
+   */
+  watermarkId: string | undefined;
   speed?: number; // Movement speed (pixels per frame), default 0.5
 }
 
 export function VideoPlayerWithWatermark({
   embedUrl,
-  userName,
-  userCpf,
+  watermarkId,
   speed = 0.5,
 }: VideoPlayerWithWatermarkProps) {
   const [mounted, setMounted] = useState(false);
@@ -106,7 +114,7 @@ export function VideoPlayerWithWatermark({
       />
 
       {/* Watermark overlay - Continuous slow movement */}
-      {mounted && (
+      {mounted && watermarkId && (
         <div
           ref={watermarkRef}
           className="absolute pointer-events-none z-10"
@@ -123,8 +131,7 @@ export function VideoPlayerWithWatermark({
             willChange: "transform",
           }}
         >
-          <div>{userName}</div>
-          <div style={{ opacity: 0.8 }}>CPF: {userCpf}</div>
+          <div>{watermarkId}</div>
         </div>
       )}
     </div>

@@ -34,7 +34,7 @@ export function CategoriesCard({
       </div>
 
       {/* White area with title and description */}
-      <div className="bg-white p-3 md:p-4 rounded-b-lg">
+      <div className="bg-white p-3 md:p-4 md:pt-0 rounded-b-lg">
         <CardTitle className="text-sm md:text-base font-bold mb-1.5 md:mb-2 group-hover:text-primary transition-colors">
           {title}
         </CardTitle>

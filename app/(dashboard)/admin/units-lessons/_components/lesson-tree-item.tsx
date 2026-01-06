@@ -50,8 +50,11 @@ export function LessonTreeItem({
       >
         <GripVerticalIcon className="h-4 w-4 text-muted-foreground" />
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm truncate">
+      <div className="flex-1 min-w-0 overflow-hidden">
+        <p
+          className="text-sm truncate"
+          title={`${lesson.lessonNumber}. ${lesson.title}`}
+        >
           {lesson.lessonNumber}. {lesson.title}
         </p>
       </div>

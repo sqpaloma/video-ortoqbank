@@ -31,7 +31,7 @@ export function UnitsTreeSidebar({
   };
 
   return (
-    <div className="hidden lg:block lg:w-[400px] border-r overflow-y-auto bg-gray-50">
+    <div className="hidden lg:block lg:w-[400px] overflow-y-auto border rounded-lg ">
       <div className="p-4">
         <h3 className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">
           Visualização

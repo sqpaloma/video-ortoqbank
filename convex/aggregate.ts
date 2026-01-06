@@ -41,12 +41,6 @@ export async function getTotalLessonsCount(
  */
 export const get = query({
   args: {},
-  returns: v.object({
-    totalLessons: v.number(),
-    totalUnits: v.number(),
-    totalCategories: v.number(),
-    updatedAt: v.number(),
-  }),
   handler: async (ctx) => {
     // Use aggregates to count efficiently
     const totalLessons = await getTotalLessonsCount(ctx);
@@ -67,7 +61,6 @@ export const get = query({
  */
 export const incrementLessons = internalMutation({
   args: { amount: v.number() },
-  returns: v.null(),
   handler: async (ctx, args) => {
     // Insert multiple items into aggregate to increment count
     for (let i = 0; i < args.amount; i++) {
@@ -85,7 +78,6 @@ export const incrementLessons = internalMutation({
  */
 export const decrementLessons = internalMutation({
   args: { amount: v.number() },
-  returns: v.null(),
   handler: async (ctx, args) => {
     // Get items from aggregate and delete them
     const result = await lessonsAggregate.paginate(ctx, {
@@ -103,7 +95,6 @@ export const decrementLessons = internalMutation({
  */
 export const incrementUnits = internalMutation({
   args: { amount: v.number() },
-  returns: v.null(),
   handler: async (ctx, args) => {
     for (let i = 0; i < args.amount; i++) {
       await unitsAggregate.insert(ctx, {
@@ -120,7 +111,6 @@ export const incrementUnits = internalMutation({
  */
 export const decrementUnits = internalMutation({
   args: { amount: v.number() },
-  returns: v.null(),
   handler: async (ctx, args) => {
     const result = await unitsAggregate.paginate(ctx, {
       pageSize: args.amount,
@@ -137,7 +127,6 @@ export const decrementUnits = internalMutation({
  */
 export const incrementCategories = internalMutation({
   args: { amount: v.number() },
-  returns: v.null(),
   handler: async (ctx, args) => {
     for (let i = 0; i < args.amount; i++) {
       await categoriesAggregate.insert(ctx, {
@@ -154,7 +143,6 @@ export const incrementCategories = internalMutation({
  */
 export const decrementCategories = internalMutation({
   args: { amount: v.number() },
-  returns: v.null(),
   handler: async (ctx, args) => {
     const result = await categoriesAggregate.paginate(ctx, {
       pageSize: args.amount,
@@ -172,7 +160,6 @@ export const decrementCategories = internalMutation({
  */
 export const initialize = internalMutation({
   args: {},
-  returns: v.null(),
   handler: async (ctx) => {
     // Clear existing aggregates
     const existingLessons = await lessonsAggregate.paginate(ctx, {
@@ -240,7 +227,6 @@ export const initialize = internalMutation({
  */
 export const recalculate = internalMutation({
   args: {},
-  returns: v.null(),
   handler: async (ctx) => {
     // Call initialize to clear and reinitialize
     await ctx.runMutation(internal.aggregate.initialize, {});

@@ -11,11 +11,11 @@ import { Preloaded, usePreloadedQuery, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
-interface CategoriesInnerProps {
+interface CategoriesPageProps {
   preloadedCategories: Preloaded<typeof api.categories.listPublished>;
 }
 
-export function CategoriesInner({ preloadedCategories }: CategoriesInnerProps) {
+export function CategoriesPage({ preloadedCategories }: CategoriesPageProps) {
   const categories = usePreloadedQuery(preloadedCategories);
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
@@ -50,9 +50,6 @@ export function CategoriesInner({ preloadedCategories }: CategoriesInnerProps) {
   const filteredCategories =
     searchQuery && searchResults ? searchResults : categories;
 
-  // Placeholder cards quando não há categorias
-  const placeholderCards = Array.from({ length: 9 }, (_, i) => i);
-
   return (
     <div className="min-h-screen bg-white relative">
       {/* Sidebar trigger - follows sidebar position */}
@@ -60,9 +57,9 @@ export function CategoriesInner({ preloadedCategories }: CategoriesInnerProps) {
         className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-blue-brand hover:text-blue-brand-dark hover:bg-blue-brand-light transition-[left] duration-200 ease-linear z-10 ${state === "collapsed" ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]" : "left-[calc(var(--sidebar-width)+0.25rem)]"}`}
       />
 
-      <div className="px-12 sm:px-16 md:px-24 lg:px-24 xl:px-42 pb-24 md:pb-4 pt-16 md:pt-14">
+      <div className="px-12 sm:px-16 md:px-24 lg:px-24 xl:px-42 pb-24 md:pb-3 pt-8 md:pt-8">
         {/* Barra de pesquisa com progresso total - alinhado com o grid */}
-        <div className="mb-4 md:mb-6 grid grid-cols-1 lg:grid-cols-3 gap-3">
+        <div className="mb-4 md:mb-8 grid grid-cols-1 lg:grid-cols-3 gap-3">
           <div className="col-span-1 flex items-center gap-2">
             <SearchBar onSearch={handleSearch} />
             {searchQuery && (
@@ -105,26 +102,25 @@ export function CategoriesInner({ preloadedCategories }: CategoriesInnerProps) {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-            {filteredCategories.length > 0
-              ? filteredCategories.map((category) => (
-                  <CategoriesCard
-                    key={category._id}
-                    title={category.title}
-                    description={category.description}
-                    imageUrl={category.iconUrl}
-                    onClick={() => handleCategoryClick(category._id)}
-                  />
-                ))
-              : placeholderCards.map((index) => (
-                  <div
-                    key={`placeholder-${index}`}
-                    className="border-2 border-dashed border-muted-foreground/20 rounded-lg h-[140px] md:h-[160px] flex items-center justify-center bg-muted/5"
-                  >
-                    <p className="text-xs text-muted-foreground/40">
-                      Adicionar categoria
-                    </p>
-                  </div>
-                ))}
+            {filteredCategories.length > 0 ? (
+              filteredCategories.map((category) => (
+                <CategoriesCard
+                  key={category._id}
+                  title={category.title}
+                  description={category.description}
+                  imageUrl={category.iconUrl}
+                  onClick={() => handleCategoryClick(category._id)}
+                />
+              ))
+            ) : (
+              <div className="col-span-full flex items-center justify-center py-20">
+                <p className="text-muted-foreground text-center">
+                  {searchQuery
+                    ? "Nenhuma categoria encontrada com este filtro"
+                    : "Nenhuma categoria encontrada"}
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>

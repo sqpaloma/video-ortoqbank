@@ -1,4 +1,4 @@
-import { CategoriesInner } from "./_components/categories-page";
+import { CategoriesPage as CategoriesPageComponent } from "@/app/(dashboard)/categories/_components/categories-page";
 import { api } from "@/convex/_generated/api";
 import { preloadQuery } from "convex/nextjs";
 import { requireVideoAccess } from "@/lib/access";
@@ -11,5 +11,5 @@ export default async function CategoriesPage() {
   // This simplifies the component and avoids conditional hook patterns
   const preloadedCategories = await preloadQuery(api.categories.listPublished);
 
-  return <CategoriesInner preloadedCategories={preloadedCategories} />;
+  return <CategoriesPageComponent preloadedCategories={preloadedCategories} />;
 }

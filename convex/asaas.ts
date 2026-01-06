@@ -262,9 +262,6 @@ export const createAsaasCustomer = action({
     address: v.optional(v.string()),
     addressNumber: v.optional(v.string()),
   },
-  returns: v.object({
-    customerId: v.string(),
-  }),
   handler: async (ctx, args) => {
     const asaas = new AsaasClient();
 
@@ -294,14 +291,6 @@ export const createPixPayment = action({
     productId: v.string(),
     pendingOrderId: v.string(),
   },
-  returns: v.object({
-    paymentId: v.string(),
-    value: v.number(),
-    qrPayload: v.optional(v.string()),
-    qrCodeBase64: v.optional(v.string()),
-    expirationDate: v.optional(v.string()),
-    qrCodeError: v.optional(v.string()),
-  }),
   handler: async (
     ctx,
     args,
@@ -417,13 +406,6 @@ export const createCreditCardPayment = action({
     remoteIp: v.optional(v.string()),
     installments: v.optional(v.number()),
   },
-  returns: v.object({
-    paymentId: v.string(),
-    value: v.number(),
-    status: v.string(),
-    creditCardToken: v.optional(v.string()),
-    invoiceUrl: v.optional(v.string()),
-  }),
   handler: async (
     ctx,
     args,
@@ -583,15 +565,6 @@ export const getPaymentStatus = action({
   args: {
     paymentId: v.string(),
   },
-  returns: v.object({
-    status: v.string(),
-    paymentId: v.string(),
-    value: v.number(),
-    paymentDate: v.optional(v.string()),
-    confirmedDate: v.optional(v.string()),
-    dueDate: v.string(),
-    asaasStatus: v.string(),
-  }),
   handler: async (ctx, args) => {
     const asaas = new AsaasClient();
 
@@ -651,14 +624,6 @@ export const getFiscalServiceId = action({
   args: {
     serviceDescription: v.string(),
   },
-  returns: v.union(
-    v.object({
-      serviceId: v.string(),
-      description: v.string(),
-      issTax: v.number(),
-    }),
-    v.null(),
-  ),
   handler: async (ctx, args) => {
     const asaas = new AsaasClient();
 
@@ -751,10 +716,6 @@ export const scheduleInvoice = action({
       }),
     ),
   },
-  returns: v.object({
-    invoiceId: v.string(),
-    status: v.string(),
-  }),
   handler: async (ctx, args) => {
     const asaas = new AsaasClient();
 

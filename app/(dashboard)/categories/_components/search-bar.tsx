@@ -15,7 +15,7 @@ interface SearchBarProps {
 }
 
 export function SearchBar({
-  placeholder = "Pesquise por temas, subtemas e grupos...",
+  placeholder = "Pesquise por módulos e aulas...",
   onSearch,
 }: SearchBarProps) {
   const [query, setQuery] = useState("");
@@ -74,10 +74,13 @@ export function SearchBar({
     router.push(`/units/${categoryId}`);
   };
 
-  const handleLessonClick = (lessonId: Id<"lessons">) => {
+  const handleLessonClick = (
+    lessonId: Id<"lessons">,
+    categoryId: Id<"categories">,
+  ) => {
     setIsManuallyHidden(true);
     setQuery("");
-    router.push(`/lesson/${lessonId}`);
+    router.push(`/units/${categoryId}?lesson=${lessonId}`);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,7 +103,7 @@ export function SearchBar({
           value={query}
           onChange={handleInputChange}
           placeholder={placeholder}
-          className="pl-10 md:pl-11 pr-3 md:pr-4 h-12 md:h-14 rounded-full border text-sm md:text-base"
+          className="pl-10 md:pl-11 pr-3 md:pr-4 h-12 md:h-10 rounded-full border text-sm md:text-base"
           onFocus={() => {
             if (hasSuggestions) {
               setIsManuallyHidden(false);
@@ -156,7 +159,9 @@ export function SearchBar({
                 <button
                   key={lesson._id}
                   type="button"
-                  onClick={() => handleLessonClick(lesson._id)}
+                  onClick={() =>
+                    handleLessonClick(lesson._id, lesson.categoryId)
+                  }
                   className="w-full text-left px-3 py-2.5 hover:bg-green-50 rounded-md transition-colors group"
                 >
                   <div className="flex items-start gap-3">

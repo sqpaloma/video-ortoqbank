@@ -33,6 +33,7 @@ export function ImageUpload({
   const { error, showError, hideError } = useErrorModal();
 
   useEffect(() => {
+    console.log("🖼️ ImageUpload recebeu value:", value);
     setPreviewUrl(value || "");
   }, [value]);
 

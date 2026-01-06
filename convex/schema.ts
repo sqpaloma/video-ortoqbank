@@ -1,7 +1,11 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { rateLimitTables } from "convex-helpers/server/rateLimit";
 
 export default defineSchema({
+  // Rate limiting table (required by convex-helpers)
+  ...rateLimitTables,
+
   numbers: defineTable({
     value: v.number(),
   }),
@@ -58,6 +62,7 @@ export default defineSchema({
     order_index: v.number(),
     totalLessonVideos: v.number(),
     lessonCounter: v.optional(v.number()), // Atomic counter for lesson order_index allocation
+    lessonNumberCounter: v.optional(v.number()), // Atomic counter for lesson number allocation (prevents race conditions)
     isPublished: v.boolean(),
   })
     .index("by_categoryId", ["categoryId"])
@@ -73,15 +78,12 @@ export default defineSchema({
     title: v.string(),
     slug: v.string(),
     description: v.string(),
-    bunnyStoragePath: v.optional(v.string()),
-    publicUrl: v.optional(v.string()),
-    thumbnailUrl: v.optional(v.string()),
+    videoId: v.optional(v.string()), // Bunny video ID
+    thumbnailUrl: v.optional(v.string()), // ImageKit thumbnail URL
     durationSeconds: v.number(),
     order_index: v.number(),
     lessonNumber: v.number(),
     isPublished: v.boolean(),
-    tags: v.optional(v.array(v.string())),
-    videoId: v.optional(v.string()), // Bunny video ID
   })
     .index("by_unitId", ["unitId"])
     .index("by_categoryId", ["categoryId"])
@@ -89,7 +91,6 @@ export default defineSchema({
     .index("by_unitId_and_order", ["unitId", "order_index"])
     .index("by_categoryId_and_order", ["categoryId", "order_index"])
     .index("by_isPublished", ["isPublished"])
-    .index("by_videoId", ["videoId"])
     .index("by_unitId_isPublished_order", [
       "unitId",
       "isPublished",
@@ -98,11 +99,10 @@ export default defineSchema({
 
   // Videos table (Bunny Stream videos)
   videos: defineTable({
-    videoId: v.string(), // Bunny library video id
-    libraryId: v.string(), // Bunny library id
+    videoId: v.string(), // Bunny video ID
+    libraryId: v.string(), // Bunny library ID
     title: v.string(),
     description: v.string(),
-    thumbnailUrl: v.optional(v.string()),
     hlsUrl: v.optional(v.string()),
     mp4Urls: v.optional(
       v.array(v.object({ quality: v.string(), url: v.string() })),
@@ -122,7 +122,12 @@ export default defineSchema({
         height: v.optional(v.number()), // Video height in pixels
         framerate: v.optional(v.number()), // Video framerate (fps)
         bitrate: v.optional(v.number()), // Video bitrate
-        extras: v.optional(v.record(v.string(), v.any())), // Additional dynamic fields
+        extras: v.optional(
+          v.record(
+            v.string(),
+            v.union(v.string(), v.number(), v.boolean(), v.null()),
+          ),
+        ), // Additional dynamic fields (string, number, boolean or null)
       }),
     ),
   })

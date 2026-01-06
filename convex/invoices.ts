@@ -20,7 +20,6 @@ export const generateInvoice = internalMutation({
     totalValue: v.number(), // Total invoice value (full order amount)
     totalInstallments: v.optional(v.number()), // Number of installments (for payment info)
   },
-  returns: v.union(v.id("invoices"), v.null()),
   handler: async (ctx, args) => {
     const totalInstallments = args.totalInstallments || 1;
 
@@ -109,7 +108,6 @@ export const processInvoiceGeneration = internalAction({
   args: {
     invoiceId: v.id("invoices"),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
     // Get invoice record (outside try block so we can reference it in catch)
     const invoice: FunctionReturnType<typeof internal.invoices.getInvoiceById> =
@@ -213,7 +211,6 @@ export const processInvoiceGeneration = internalAction({
 // Helper queries and mutations for invoice processing
 export const getInvoiceById = internalQuery({
   args: { invoiceId: v.id("invoices") },
-  returns: v.union(v.any(), v.null()),
   handler: async (ctx, args) => {
     return await ctx.db.get(args.invoiceId);
   },
@@ -224,7 +221,6 @@ export const updateInvoiceServiceId = internalMutation({
     invoiceId: v.id("invoices"),
     municipalServiceId: v.string(),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
     await ctx.db.patch(args.invoiceId, {
       municipalServiceId: args.municipalServiceId,
@@ -239,7 +235,6 @@ export const updateInvoiceSuccess = internalMutation({
     invoiceId: v.id("invoices"),
     asaasInvoiceId: v.string(),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
     await ctx.db.patch(args.invoiceId, {
       asaasInvoiceId: args.asaasInvoiceId,
@@ -255,7 +250,6 @@ export const updateInvoiceError = internalMutation({
     invoiceId: v.id("invoices"),
     errorMessage: v.string(),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
     await ctx.db.patch(args.invoiceId, {
       status: "failed",

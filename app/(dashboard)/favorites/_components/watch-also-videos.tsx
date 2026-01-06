@@ -3,13 +3,13 @@
 import { Card, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PlayCircleIcon, StarIcon, ClockIcon } from "lucide-react";
-import Image from "next/image";
+import { PlayCircleIcon, StarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useUser } from "@clerk/nextjs";
 import { Id } from "@/convex/_generated/dataModel";
+import Image from "next/image";
 
 interface Video {
   _id: string;
@@ -19,8 +19,8 @@ interface Video {
   level: "Básico" | "Intermediário" | "Avançado";
   categoryName: string;
   subthemeName: string;
-  thumbnailUrl?: string;
   categoryId?: string;
+  thumbnailUrl?: string;
 }
 
 interface WatchAlsoVideosProps {
@@ -34,7 +34,7 @@ export function WatchAlsoVideos({ watchAlsoVideos }: WatchAlsoVideosProps) {
 
   const handleVideoClick = (video: Video) => {
     if (video.categoryId) {
-      router.push(`/units/${video.categoryId}`);
+      router.push(`/units/${video.categoryId}?lesson=${video._id}`);
     }
   };
 
@@ -55,74 +55,77 @@ export function WatchAlsoVideos({ watchAlsoVideos }: WatchAlsoVideosProps) {
   return (
     <section>
       <div className="mb-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Assista Também</h2>
-        <p className="text-sm text-gray-600">
-          Vídeos que você ainda não assistiu - comece novos cursos
-        </p>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          Assista Também
+        </h2>
       </div>
 
       {watchAlsoVideos.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {watchAlsoVideos.map((video) => (
+          {watchAlsoVideos.slice(0, 3).map((video) => (
             <Card
               key={video._id}
               onClick={() => handleVideoClick(video)}
-              className="cursor-pointer hover:shadow-md transition-all duration-300 hover:border-primary group relative overflow-hidden"
+              className="cursor-pointer hover:shadow-md transition-all duration-300 hover:border-primary group relative overflow-hidden p-0"
             >
-              {/* Thumbnail/Background */}
-              <div className="w-full h-40 bg-linear-to-br from-blue-500/20 via-blue-400/10 to-blue-300/5 flex items-center justify-center relative">
+              <div className="w-full h-48 bg-gradient-to-br from-blue-500/20 via-blue-400/10 to-blue-300/5 flex items-center justify-center relative rounded-t-lg overflow-hidden">
                 {video.thumbnailUrl ? (
                   <Image
                     src={video.thumbnailUrl}
                     alt={video.title}
                     fill
                     className="object-cover"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                 ) : (
-                  <PlayCircleIcon size={48} className="text-blue-500/30" />
+                  <PlayCircleIcon size={40} className="text-blue-500/30" />
                 )}
                 {/* Favorite Button */}
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="absolute top-2 right-2 bg-white/90 hover:bg-white"
+                  className="absolute top-2 right-2 bg-white/90 hover:bg-white z-10"
                   onClick={(e) => handleAddFavorite(e, video._id)}
                 >
                   <StarIcon
-                    size={20}
+                    size={18}
                     className="text-gray-400 hover:text-yellow-500"
                   />
                 </Button>
               </div>
 
-              <div className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Badge className="text-xs bg-blue-100 text-blue-700 hover:bg-blue-100">
+              <div className="px-3 pt-2 pb-3">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <Badge className="text-xs py-0 bg-blue-100 text-blue-700 hover:bg-blue-100">
                     Novo curso
                   </Badge>
                 </div>
 
-                <CardTitle className="text-base font-bold mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                <CardTitle className="text-sm font-bold mb-1.5 group-hover:text-primary transition-colors line-clamp-2">
                   {video.title}
                 </CardTitle>
 
-                <p className="text-xs text-gray-600 mb-3 line-clamp-2">
+                <p className="text-xs text-gray-600 mb-2 line-clamp-2">
                   {video.description}
                 </p>
 
-                <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap mb-2">
-                  <Badge className="text-xs" variant="default">
-                    {video.level}
-                  </Badge>
-                  <div className="flex items-center gap-1">
-                    <ClockIcon size={14} />
-                    <span>{video.duration}</span>
-                  </div>
-                </div>
+                <div className="text-xs text-gray-500 mb-3">
+                  <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+                    {video.description}
+                  </p>
 
-                <div className="text-xs text-gray-500">
-                  <p className="font-medium">{video.categoryName}</p>
-                  <p>{video.subthemeName}</p>
+                  <div className="text-xs text-gray-500 mb-3"></div>
+
+                  <Button
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleVideoClick(video);
+                    }}
+                  >
+                    Assistir
+                  </Button>
                 </div>
               </div>
             </Card>

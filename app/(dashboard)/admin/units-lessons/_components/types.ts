@@ -66,9 +66,8 @@ export interface LessonEditPanelProps {
     unitId: Id<"units">;
     title: string;
     description: string;
-    lessonNumber: number;
-    tags?: string[];
     videoId?: string;
+    thumbnailUrl?: string;
   }) => void;
   onCancel: () => void;
 }

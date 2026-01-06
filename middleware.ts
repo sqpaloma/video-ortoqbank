@@ -17,8 +17,13 @@ export default clerkMiddleware(async (auth, req) => {
     return NextResponse.next();
   }
 
-  // AUTH ONLY
+  // AUTH ONLY - Check authentication first
   await auth.protect();
+
+  // Role-based authorization is enforced in Server Components
+  // for /admin routes using requireAdminServer() utility
+  // This is more efficient than checking roles in middleware
+  // as it avoids additional Convex queries on every request
 
   // NÃO checa acesso pago aqui
   // Isso acontece no Convex / Server Components

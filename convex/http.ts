@@ -140,9 +140,6 @@ http.route({
         await ctx.runMutation(internal.videos.updateFromWebhook, {
           videoId: VideoGuid,
           status: config.status,
-          thumbnailUrl: videoInfo.thumbnailFileName
-            ? `https://vz-${libraryId}.b-cdn.net/${VideoGuid}/${videoInfo.thumbnailFileName}`
-            : undefined,
           hlsUrl: config.playable
             ? `https://vz-${libraryId}.b-cdn.net/${VideoGuid}/playlist.m3u8`
             : undefined,
@@ -192,7 +189,7 @@ http.route({
   method: "POST",
   handler: httpAction(async (ctx, request) => {
     try {
-      // Get webhook body
+      // Get raw webhook body (but don't parse yet)
       const rawBody = await request.text();
       const timestamp = new Date().toISOString();
 
@@ -243,8 +240,24 @@ http.route({
         verified: true,
       });
 
-      const body = JSON.parse(rawBody);
-      const { event, payment, checkout } = body;
+      // Parse the body only after authentication is verified
+      let body;
+      let payment;
+      try {
+        body = JSON.parse(rawBody);
+        payment = body.payment;
+      } catch (parseError) {
+        console.error("[AsaaS Webhook] JSON parsing error", {
+          timestamp,
+          error:
+            parseError instanceof Error
+              ? parseError.message
+              : "Unknown parsing error",
+        });
+        return new Response("Invalid JSON payload", { status: 400 });
+      }
+
+      const { event, checkout } = body;
 
       // Log safe webhook metadata only (no PII/sensitive data)
       console.log("[AsaaS Webhook] Event received", {

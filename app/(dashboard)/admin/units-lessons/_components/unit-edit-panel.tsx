@@ -50,7 +50,7 @@ export function UnitEditPanel({
 
   return (
     <Card className="max-w-3xl mx-auto">
-      <CardContent className="pt-6">
+      <CardContent className="pt-2">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold mb-4">Editar Unidade</h2>
@@ -104,7 +104,7 @@ export function UnitEditPanel({
             </div>
           </div>
 
-          <div className="flex gap-2 justify-end pt-4 border-t">
+          <div className="flex gap-2 justify-end pt-4 ">
             <Button
               type="button"
               variant="outline"

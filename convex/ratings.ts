@@ -11,7 +11,6 @@ export const submitRating = mutation({
     unitId: v.id("units"),
     rating: v.number(), // 1-5
   },
-  returns: v.id("lessonRatings"),
   handler: async (ctx, args) => {
     if (args.rating < 1 || args.rating > 5) {
       throw new Error("Rating deve ser entre 1 e 5");
@@ -54,18 +53,6 @@ export const getUserRating = query({
     userId: v.string(),
     lessonId: v.id("lessons"),
   },
-  returns: v.union(
-    v.object({
-      _id: v.id("lessonRatings"),
-      _creationTime: v.number(),
-      userId: v.string(),
-      lessonId: v.id("lessons"),
-      unitId: v.id("units"),
-      rating: v.number(),
-      createdAt: v.number(),
-    }),
-    v.null(),
-  ),
   handler: async (ctx, args) => {
     const rating = await ctx.db
       .query("lessonRatings")
@@ -85,10 +72,6 @@ export const getLessonAverageRating = query({
   args: {
     lessonId: v.id("lessons"),
   },
-  returns: v.object({
-    average: v.number(),
-    count: v.number(),
-  }),
   handler: async (ctx, args) => {
     const ratings = await ctx.db
       .query("lessonRatings")

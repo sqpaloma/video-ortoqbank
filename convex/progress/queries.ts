@@ -9,18 +9,6 @@ export const getLessonProgress = query({
     userId: v.string(),
     lessonId: v.id("lessons"),
   },
-  returns: v.union(
-    v.object({
-      _id: v.id("userProgress"),
-      _creationTime: v.number(),
-      userId: v.string(),
-      lessonId: v.id("lessons"),
-      unitId: v.id("units"),
-      completed: v.boolean(),
-      completedAt: v.optional(v.number()),
-    }),
-    v.null(),
-  ),
   handler: async (ctx, args) => {
     const progress = await ctx.db
       .query("userProgress")
@@ -41,19 +29,6 @@ export const getUnitProgress = query({
     userId: v.string(),
     unitId: v.id("units"),
   },
-  returns: v.union(
-    v.object({
-      _id: v.id("unitProgress"),
-      _creationTime: v.number(),
-      userId: v.string(),
-      unitId: v.id("units"),
-      completedLessonsCount: v.number(),
-      totalLessonVideos: v.number(),
-      progressPercent: v.number(),
-      updatedAt: v.number(),
-    }),
-    v.null(),
-  ),
   handler: async (ctx, args) => {
     const progress = await ctx.db
       .query("unitProgress")
@@ -73,17 +48,6 @@ export const getGlobalProgress = query({
   args: {
     userId: v.string(),
   },
-  returns: v.union(
-    v.object({
-      _id: v.id("userGlobalProgress"),
-      _creationTime: v.number(),
-      userId: v.string(),
-      completedLessonsCount: v.number(),
-      progressPercent: v.number(),
-      updatedAt: v.number(),
-    }),
-    v.null(),
-  ),
   handler: async (ctx, args) => {
     const progress = await ctx.db
       .query("userGlobalProgress")
@@ -102,17 +66,6 @@ export const getUnitLessonsProgress = query({
     userId: v.string(),
     unitId: v.id("units"),
   },
-  returns: v.array(
-    v.object({
-      _id: v.id("userProgress"),
-      _creationTime: v.number(),
-      userId: v.string(),
-      lessonId: v.id("lessons"),
-      unitId: v.id("units"),
-      completed: v.boolean(),
-      completedAt: v.optional(v.number()),
-    }),
-  ),
   handler: async (ctx, args) => {
     const progress = await ctx.db
       .query("userProgress")
@@ -132,18 +85,6 @@ export const getAllUnitProgress = query({
   args: {
     userId: v.string(),
   },
-  returns: v.array(
-    v.object({
-      _id: v.id("unitProgress"),
-      _creationTime: v.number(),
-      userId: v.string(),
-      unitId: v.id("units"),
-      completedLessonsCount: v.number(),
-      totalLessonVideos: v.number(),
-      progressPercent: v.number(),
-      updatedAt: v.number(),
-    }),
-  ),
   handler: async (ctx, args) => {
     const progress = await ctx.db
       .query("unitProgress")
@@ -161,17 +102,6 @@ export const getCompletedLessons = query({
   args: {
     userId: v.string(),
   },
-  returns: v.array(
-    v.object({
-      _id: v.id("userProgress"),
-      _creationTime: v.number(),
-      userId: v.string(),
-      lessonId: v.id("lessons"),
-      unitId: v.id("units"),
-      completed: v.boolean(),
-      completedAt: v.optional(v.number()),
-    }),
-  ),
   handler: async (ctx, args) => {
     const progress = await ctx.db
       .query("userProgress")
@@ -192,7 +122,6 @@ export const getCompletedPublishedLessonsCount = query({
   args: {
     userId: v.string(),
   },
-  returns: v.number(),
   handler: async (ctx, args) => {
     // Use the aggregate table instead of counting manually
     const globalProgress = await ctx.db
@@ -213,18 +142,6 @@ export const getUnitProgressByCategory = query({
     userId: v.string(),
     categoryId: v.id("categories"),
   },
-  returns: v.array(
-    v.object({
-      _id: v.id("unitProgress"),
-      _creationTime: v.number(),
-      userId: v.string(),
-      unitId: v.id("units"),
-      completedLessonsCount: v.number(),
-      totalLessonVideos: v.number(),
-      progressPercent: v.number(),
-      updatedAt: v.number(),
-    }),
-  ),
   handler: async (ctx, args) => {
     // Get units for this category
     const units = await ctx.db
@@ -252,17 +169,6 @@ export const getCompletedLessonsByCategory = query({
     userId: v.string(),
     categoryId: v.id("categories"),
   },
-  returns: v.array(
-    v.object({
-      _id: v.id("userProgress"),
-      _creationTime: v.number(),
-      userId: v.string(),
-      lessonId: v.id("lessons"),
-      unitId: v.id("units"),
-      completed: v.boolean(),
-      completedAt: v.optional(v.number()),
-    }),
-  ),
   handler: async (ctx, args) => {
     // Get lessons for this category
     const lessons = await ctx.db

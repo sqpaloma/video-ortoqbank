@@ -28,7 +28,7 @@ describe("SearchBar", () => {
     render(<SearchBar />);
 
     const input = screen.getByPlaceholderText(
-      "Pesquise por temas, subtemas e grupos...",
+      "Pesquise por módulos e aulas...",
     );
     expect(input).toBeDefined();
   });
@@ -52,7 +52,7 @@ describe("SearchBar", () => {
     render(<SearchBar />);
 
     const input = screen.getByPlaceholderText(
-      "Pesquise por temas, subtemas e grupos...",
+      "Pesquise por módulos e aulas...",
     ) as HTMLInputElement;
     await user.type(input, "test query");
 
@@ -66,7 +66,7 @@ describe("SearchBar", () => {
     render(<SearchBar onSearch={mockOnSearch} />);
 
     const input = screen.getByPlaceholderText(
-      "Pesquise por temas, subtemas e grupos...",
+      "Pesquise por módulos e aulas...",
     );
     await user.type(input, "test query");
     await user.keyboard("{Enter}");
@@ -82,7 +82,7 @@ describe("SearchBar", () => {
     render(<SearchBar />);
 
     const input = screen.getByPlaceholderText(
-      "Pesquise por temas, subtemas e grupos...",
+      "Pesquise por módulos e aulas...",
     );
     await user.type(input, "test query");
     await user.keyboard("{Enter}");
@@ -98,7 +98,7 @@ describe("SearchBar", () => {
     render(<SearchBar onSearch={mockOnSearch} />);
 
     const input = screen.getByPlaceholderText(
-      "Pesquise por temas, subtemas e grupos...",
+      "Pesquise por módulos e aulas...",
     ) as HTMLInputElement;
     await user.type(input, "test query");
     await user.keyboard("{Enter}");
@@ -118,7 +118,7 @@ describe("SearchBar", () => {
     render(<SearchBar onSearch={mockOnSearch} />);
 
     const input = screen.getByPlaceholderText(
-      "Pesquise por temas, subtemas e grupos...",
+      "Pesquise por módulos e aulas...",
     );
     // Submit the form with empty query (input is already empty)
     await user.click(input);

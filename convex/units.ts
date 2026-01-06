@@ -3,6 +3,7 @@ import { mutation, query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
 import { paginationOptsValidator } from "convex/server";
+import { requireAdmin } from "./users";
 
 // ADMIN: List all units with pagination
 export const listPaginated = query({
@@ -15,20 +16,6 @@ export const listPaginated = query({
 // Query para listar todas as unidades (ADMIN - deprecated, use listPaginated)
 export const list = query({
   args: {},
-  returns: v.array(
-    v.object({
-      _id: v.id("units"),
-      _creationTime: v.number(),
-      categoryId: v.id("categories"),
-      title: v.string(),
-      slug: v.string(),
-      description: v.string(),
-      order_index: v.number(),
-      totalLessonVideos: v.number(),
-      lessonCounter: v.optional(v.number()),
-      isPublished: v.boolean(),
-    }),
-  ),
   handler: async (ctx) => {
     // DEPRECATED: Use listPaginated for better performance
     const units = await ctx.db.query("units").take(100); // Limited to 100
@@ -39,20 +26,6 @@ export const list = query({
 // Query para listar apenas unidades PUBLICADAS (USER)
 export const listPublished = query({
   args: {},
-  returns: v.array(
-    v.object({
-      _id: v.id("units"),
-      _creationTime: v.number(),
-      categoryId: v.id("categories"),
-      title: v.string(),
-      slug: v.string(),
-      description: v.string(),
-      order_index: v.number(),
-      totalLessonVideos: v.number(),
-      lessonCounter: v.optional(v.number()),
-      isPublished: v.boolean(),
-    }),
-  ),
   handler: async (ctx) => {
     const units = await ctx.db
       .query("units")
@@ -81,20 +54,6 @@ export const listByCategoryPaginated = query({
 // Query para listar unidades de uma categoria específica (ADMIN - deprecated)
 export const listByCategory = query({
   args: { categoryId: v.id("categories") },
-  returns: v.array(
-    v.object({
-      _id: v.id("units"),
-      _creationTime: v.number(),
-      categoryId: v.id("categories"),
-      title: v.string(),
-      slug: v.string(),
-      description: v.string(),
-      order_index: v.number(),
-      totalLessonVideos: v.number(),
-      lessonCounter: v.optional(v.number()),
-      isPublished: v.boolean(),
-    }),
-  ),
   handler: async (ctx, args) => {
     const units = await ctx.db
       .query("units")
@@ -110,20 +69,6 @@ export const listByCategory = query({
 // Query para listar apenas unidades PUBLICADAS de uma categoria PUBLICADA (USER)
 export const listPublishedByCategory = query({
   args: { categoryId: v.id("categories") },
-  returns: v.array(
-    v.object({
-      _id: v.id("units"),
-      _creationTime: v.number(),
-      categoryId: v.id("categories"),
-      title: v.string(),
-      slug: v.string(),
-      description: v.string(),
-      order_index: v.number(),
-      totalLessonVideos: v.number(),
-      lessonCounter: v.optional(v.number()),
-      isPublished: v.boolean(),
-    }),
-  ),
   handler: async (ctx, args) => {
     // Check if category is published
     const category = await ctx.db.get(args.categoryId);
@@ -145,21 +90,6 @@ export const listPublishedByCategory = query({
 // Query para buscar uma unidade por ID
 export const getById = query({
   args: { id: v.id("units") },
-  returns: v.union(
-    v.object({
-      _id: v.id("units"),
-      _creationTime: v.number(),
-      categoryId: v.id("categories"),
-      title: v.string(),
-      slug: v.string(),
-      description: v.string(),
-      order_index: v.number(),
-      totalLessonVideos: v.number(),
-      lessonCounter: v.optional(v.number()),
-      isPublished: v.boolean(),
-    }),
-    v.null(),
-  ),
   handler: async (ctx, args) => {
     const unit = await ctx.db.get(args.id);
     return unit;
@@ -169,21 +99,6 @@ export const getById = query({
 // Query para buscar uma unidade por slug
 export const getBySlug = query({
   args: { slug: v.string() },
-  returns: v.union(
-    v.object({
-      _id: v.id("units"),
-      _creationTime: v.number(),
-      categoryId: v.id("categories"),
-      title: v.string(),
-      slug: v.string(),
-      description: v.string(),
-      order_index: v.number(),
-      totalLessonVideos: v.number(),
-      lessonCounter: v.optional(v.number()),
-      isPublished: v.boolean(),
-    }),
-    v.null(),
-  ),
   handler: async (ctx, args) => {
     const unit = await ctx.db
       .query("units")
@@ -211,8 +126,10 @@ export const create = mutation({
     title: v.string(),
     description: v.string(),
   },
-  returns: v.id("units"),
   handler: async (ctx, args) => {
+    // SECURITY: Require admin access
+    await requireAdmin(ctx);
+
     // Auto-generate slug from title
     const slug = generateSlug(args.title);
 
@@ -254,6 +171,7 @@ export const create = mutation({
       order_index: nextOrderIndex,
       totalLessonVideos: 0,
       lessonCounter: 0,
+      lessonNumberCounter: 0, // Atomic counter for lesson number allocation
       isPublished: category.isPublished ?? true, // Inherit from category, default to true
     });
 
@@ -275,8 +193,10 @@ export const update = mutation({
     description: v.string(),
     order_index: v.number(),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
+    // SECURITY: Require admin access
+    await requireAdmin(ctx);
+
     // Auto-generate slug from title
     const slug = generateSlug(args.title);
 
@@ -305,9 +225,6 @@ export const update = mutation({
 // Query para obter informações sobre exclusão em cascata
 export const getCascadeDeleteInfo = query({
   args: { id: v.id("units") },
-  returns: v.object({
-    lessonsCount: v.number(),
-  }),
   handler: async (ctx, args) => {
     // Count lessons in this unit
     const lessons = await ctx.db
@@ -326,8 +243,10 @@ export const remove = mutation({
   args: {
     id: v.id("units"),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
+    // SECURITY: Require admin access
+    await requireAdmin(ctx);
+
     // Get all lessons in this unit
     const lessons = await ctx.db
       .query("lessons")
@@ -371,8 +290,10 @@ export const reorder = mutation({
       }),
     ),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
+    // SECURITY: Require admin access
+    await requireAdmin(ctx);
+
     // Update all unit order_index
     for (const update of args.updates) {
       await ctx.db.patch(update.id, {
@@ -389,8 +310,10 @@ export const togglePublish = mutation({
   args: {
     id: v.id("units"),
   },
-  returns: v.boolean(),
   handler: async (ctx, args) => {
+    // SECURITY: Require admin access
+    await requireAdmin(ctx);
+
     const unit = await ctx.db.get(args.id);
 
     if (!unit) {

@@ -9,9 +9,9 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { PlayCircle, CheckCircle2 } from "lucide-react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
+import Image from "next/image";
 import { Preloaded, usePreloadedQuery, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -109,22 +109,26 @@ function RecentViewsContent({
                 return (
                   <div
                     key={view._id}
-                    onClick={() => router.push(`/units/${view.category._id}`)}
+                    onClick={() =>
+                      router.push(
+                        `/units/${view.category._id}?lesson=${view.lesson._id}`,
+                      )
+                    }
                     className="flex items-center gap-4 p-3 rounded-lg border hover:bg-accent transition-colors cursor-pointer"
                   >
-                    {view.lesson.thumbnailUrl ? (
-                      <Image
-                        src={view.lesson.thumbnailUrl}
-                        alt={view.lesson.title}
-                        width={96}
-                        height={64}
-                        className="rounded object-cover"
-                      />
-                    ) : (
-                      <div className="w-24 h-16 rounded bg-muted flex items-center justify-center">
+                    <div className="w-24 h-16 rounded bg-muted flex items-center justify-center relative overflow-hidden flex-shrink-0">
+                      {view.lesson.thumbnailUrl ? (
+                        <Image
+                          src={view.lesson.thumbnailUrl}
+                          alt={view.lesson.title}
+                          fill
+                          className="object-cover"
+                          sizes="96px"
+                        />
+                      ) : (
                         <PlayCircle className="h-8 w-8 text-muted-foreground" />
-                      </div>
-                    )}
+                      )}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <h4 className={`font-medium truncate ${textColor}`}>
                         {view.lesson.title}

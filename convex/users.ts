@@ -17,36 +17,6 @@ import {
  */
 export const current = query({
   args: {},
-  returns: v.union(
-    v.object({
-      _id: v.id("users"),
-      _creationTime: v.number(),
-      firstName: v.string(),
-      lastName: v.string(),
-      email: v.string(),
-      imageUrl: v.optional(v.string()),
-      clerkUserId: v.string(),
-      onboardingCompleted: v.boolean(),
-      role: v.union(v.literal("user"), v.literal("admin")),
-      status: v.union(
-        v.literal("active"),
-        v.literal("inactive"),
-        v.literal("suspended"),
-      ),
-      hasActiveYearAccess: v.boolean(),
-      paid: v.boolean(),
-      paymentDate: v.optional(v.number()),
-      paymentId: v.optional(v.string()),
-      paymentStatus: v.union(
-        v.literal("pending"),
-        v.literal("completed"),
-        v.literal("failed"),
-        v.literal("refunded"),
-      ),
-      testeId: v.optional(v.string()),
-    }),
-    v.null(),
-  ),
   handler: async (context) => {
     return await getCurrentUser(context);
   },
@@ -58,7 +28,6 @@ export const current = query({
  */
 export const ensureCurrentUser = mutation({
   args: {},
-  returns: v.union(v.id("users"), v.null()),
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
@@ -94,36 +63,6 @@ export const ensureCurrentUser = mutation({
  */
 export const getUserByClerkId = internalQuery({
   args: { clerkUserId: v.string() },
-  returns: v.union(
-    v.object({
-      _id: v.id("users"),
-      _creationTime: v.number(),
-      firstName: v.string(),
-      lastName: v.string(),
-      email: v.string(),
-      imageUrl: v.optional(v.string()),
-      clerkUserId: v.string(),
-      onboardingCompleted: v.boolean(),
-      role: v.union(v.literal("user"), v.literal("admin")),
-      status: v.union(
-        v.literal("active"),
-        v.literal("inactive"),
-        v.literal("suspended"),
-      ),
-      hasActiveYearAccess: v.boolean(),
-      paid: v.boolean(),
-      paymentDate: v.optional(v.number()),
-      paymentId: v.optional(v.string()),
-      paymentStatus: v.union(
-        v.literal("pending"),
-        v.literal("completed"),
-        v.literal("failed"),
-        v.literal("refunded"),
-      ),
-      testeId: v.optional(v.string()),
-    }),
-    v.null(),
-  ),
   handler: async (ctx, args) => {
     return await userByClerkUserId(ctx, args.clerkUserId);
   },
@@ -162,7 +101,6 @@ export const upsertFromClerk = internalMutation({
       ),
     }),
   },
-  returns: v.union(v.id("users"), v.null()),
   async handler(context, { data }) {
     // Extract any payment data from Clerk's public metadata
     const publicMetadata = data.public_metadata || {};
@@ -257,7 +195,6 @@ export const upsertFromClerk = internalMutation({
  */
 export const deleteFromClerk = internalMutation({
   args: { clerkUserId: v.string() },
-  returns: v.null(),
   async handler(context, { clerkUserId }) {
     const user = await userByClerkUserId(context, clerkUserId);
 

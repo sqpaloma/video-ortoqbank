@@ -12,40 +12,6 @@ import { requireAdmin } from "./users";
  */
 export const getByVideoId = query({
   args: { videoId: v.string() },
-  returns: v.union(
-    v.object({
-      _id: v.id("videos"),
-      _creationTime: v.number(),
-      videoId: v.string(),
-      libraryId: v.string(),
-      title: v.string(),
-      description: v.string(),
-      thumbnailUrl: v.optional(v.string()),
-      hlsUrl: v.optional(v.string()),
-      mp4Urls: v.optional(
-        v.array(v.object({ quality: v.string(), url: v.string() })),
-      ),
-      status: v.union(
-        v.literal("uploading"),
-        v.literal("processing"),
-        v.literal("ready"),
-        v.literal("failed"),
-      ),
-      createdBy: v.string(),
-      isPrivate: v.boolean(),
-      metadata: v.optional(
-        v.object({
-          duration: v.optional(v.number()),
-          width: v.optional(v.number()),
-          height: v.optional(v.number()),
-          framerate: v.optional(v.number()),
-          bitrate: v.optional(v.number()),
-          extras: v.optional(v.record(v.string(), v.any())),
-        }),
-      ),
-    }),
-    v.null(),
-  ),
   handler: async (ctx, args) => {
     const video = await ctx.db
       .query("videos")
@@ -61,40 +27,6 @@ export const getByVideoId = query({
  */
 export const getById = query({
   args: { id: v.id("videos") },
-  returns: v.union(
-    v.object({
-      _id: v.id("videos"),
-      _creationTime: v.number(),
-      videoId: v.string(),
-      libraryId: v.string(),
-      title: v.string(),
-      description: v.string(),
-      thumbnailUrl: v.optional(v.string()),
-      hlsUrl: v.optional(v.string()),
-      mp4Urls: v.optional(
-        v.array(v.object({ quality: v.string(), url: v.string() })),
-      ),
-      status: v.union(
-        v.literal("uploading"),
-        v.literal("processing"),
-        v.literal("ready"),
-        v.literal("failed"),
-      ),
-      createdBy: v.string(),
-      isPrivate: v.boolean(),
-      metadata: v.optional(
-        v.object({
-          duration: v.optional(v.number()),
-          width: v.optional(v.number()),
-          height: v.optional(v.number()),
-          framerate: v.optional(v.number()),
-          bitrate: v.optional(v.number()),
-          extras: v.optional(v.record(v.string(), v.any())),
-        }),
-      ),
-    }),
-    v.null(),
-  ),
   handler: async (ctx, args) => {
     return await ctx.db.get(args.id);
   },
@@ -105,39 +37,6 @@ export const getById = query({
  */
 export const listByUser = query({
   args: { userId: v.string() },
-  returns: v.array(
-    v.object({
-      _id: v.id("videos"),
-      _creationTime: v.number(),
-      videoId: v.string(),
-      libraryId: v.string(),
-      title: v.string(),
-      description: v.string(),
-      thumbnailUrl: v.optional(v.string()),
-      hlsUrl: v.optional(v.string()),
-      mp4Urls: v.optional(
-        v.array(v.object({ quality: v.string(), url: v.string() })),
-      ),
-      status: v.union(
-        v.literal("uploading"),
-        v.literal("processing"),
-        v.literal("ready"),
-        v.literal("failed"),
-      ),
-      createdBy: v.string(),
-      isPrivate: v.boolean(),
-      metadata: v.optional(
-        v.object({
-          duration: v.optional(v.number()),
-          width: v.optional(v.number()),
-          height: v.optional(v.number()),
-          framerate: v.optional(v.number()),
-          bitrate: v.optional(v.number()),
-          extras: v.optional(v.record(v.string(), v.any())),
-        }),
-      ),
-    }),
-  ),
   handler: async (ctx, args) => {
     const videos = await ctx.db
       .query("videos")
@@ -171,7 +70,6 @@ export const create = mutation({
         v.literal("failed"),
       ),
     ),
-    thumbnailUrl: v.optional(v.string()),
     hlsUrl: v.optional(v.string()),
     mp4Urls: v.optional(
       v.array(v.object({ quality: v.string(), url: v.string() })),
@@ -186,7 +84,6 @@ export const create = mutation({
       }),
     ),
   },
-  returns: v.id("videos"),
   handler: async (ctx, args) => {
     // Check if video already exists
     const existing = await ctx.db
@@ -206,7 +103,6 @@ export const create = mutation({
       createdBy: args.createdBy,
       isPrivate: args.isPrivate,
       status: args.status || "uploading",
-      thumbnailUrl: args.thumbnailUrl,
       hlsUrl: args.hlsUrl,
       mp4Urls: args.mp4Urls,
       metadata: args.metadata,
@@ -224,7 +120,6 @@ export const update = mutation({
     videoId: v.string(),
     title: v.optional(v.string()),
     description: v.optional(v.string()),
-    thumbnailUrl: v.optional(v.string()),
     hlsUrl: v.optional(v.string()),
     mp4Urls: v.optional(
       v.array(v.object({ quality: v.string(), url: v.string() })),
@@ -247,7 +142,6 @@ export const update = mutation({
       }),
     ),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
     const video = await ctx.db
       .query("videos")
@@ -264,13 +158,12 @@ export const update = mutation({
       height?: number;
       framerate?: number;
       bitrate?: number;
-      extras?: Record<string, unknown>;
+      extras?: Record<string, string | number | boolean | null>;
     };
 
     const updates: Partial<{
       title: string;
       description: string;
-      thumbnailUrl: string;
       hlsUrl: string;
       mp4Urls: Array<{ quality: string; url: string }>;
       status: "uploading" | "processing" | "ready" | "failed";
@@ -279,8 +172,6 @@ export const update = mutation({
 
     if (args.title !== undefined) updates.title = args.title;
     if (args.description !== undefined) updates.description = args.description;
-    if (args.thumbnailUrl !== undefined)
-      updates.thumbnailUrl = args.thumbnailUrl;
     if (args.hlsUrl !== undefined) updates.hlsUrl = args.hlsUrl;
     if (args.mp4Urls !== undefined) updates.mp4Urls = args.mp4Urls;
     if (args.status !== undefined) updates.status = args.status;
@@ -296,7 +187,6 @@ export const update = mutation({
  */
 export const remove = mutation({
   args: { videoId: v.string() },
-  returns: v.null(),
   handler: async (ctx, args) => {
     const video = await ctx.db
       .query("videos")
@@ -318,7 +208,6 @@ export const remove = mutation({
  */
 export const markAsReady = mutation({
   args: { videoId: v.string() },
-  returns: v.null(),
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
 
@@ -350,19 +239,6 @@ export const markAsReady = mutation({
  */
 export const getVideoStatus = query({
   args: { videoId: v.string() },
-  returns: v.union(
-    v.object({
-      status: v.union(
-        v.literal("uploading"),
-        v.literal("processing"),
-        v.literal("ready"),
-        v.literal("failed"),
-      ),
-      hlsUrl: v.optional(v.string()),
-      thumbnailUrl: v.optional(v.string()),
-    }),
-    v.null(),
-  ),
   handler: async (ctx, args) => {
     const video = await ctx.db
       .query("videos")
@@ -376,7 +252,6 @@ export const getVideoStatus = query({
     return {
       status: video.status,
       hlsUrl: video.hlsUrl,
-      thumbnailUrl: video.thumbnailUrl,
     };
   },
 });
@@ -387,7 +262,6 @@ export const getVideoStatus = query({
  */
 export const syncFromBunny = mutation({
   args: { videoId: v.string() },
-  returns: v.null(),
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
 
@@ -437,9 +311,6 @@ export const syncFromBunny = mutation({
         status === "ready"
           ? `https://vz-${video.libraryId}.b-cdn.net/${args.videoId}/playlist.m3u8`
           : undefined,
-      thumbnailUrl: bunnyData.thumbnailFileName
-        ? `https://vz-${video.libraryId}.b-cdn.net/${args.videoId}/${bunnyData.thumbnailFileName}`
-        : undefined,
       metadata: {
         duration: bunnyData.length || undefined,
         width: bunnyData.width || undefined,
@@ -458,39 +329,6 @@ export const syncFromBunny = mutation({
  */
 export const listAll = query({
   args: {},
-  returns: v.array(
-    v.object({
-      _id: v.id("videos"),
-      _creationTime: v.number(),
-      videoId: v.string(),
-      libraryId: v.string(),
-      title: v.string(),
-      description: v.string(),
-      thumbnailUrl: v.optional(v.string()),
-      hlsUrl: v.optional(v.string()),
-      mp4Urls: v.optional(
-        v.array(v.object({ quality: v.string(), url: v.string() })),
-      ),
-      status: v.union(
-        v.literal("uploading"),
-        v.literal("processing"),
-        v.literal("ready"),
-        v.literal("failed"),
-      ),
-      createdBy: v.string(),
-      isPrivate: v.boolean(),
-      metadata: v.optional(
-        v.object({
-          duration: v.optional(v.number()),
-          width: v.optional(v.number()),
-          height: v.optional(v.number()),
-          framerate: v.optional(v.number()),
-          bitrate: v.optional(v.number()),
-          extras: v.optional(v.record(v.string(), v.any())),
-        }),
-      ),
-    }),
-  ),
   handler: async (ctx) => {
     await requireAdmin(ctx);
     return await ctx.db.query("videos").take(100);
@@ -509,7 +347,6 @@ export const updateFromWebhook = internalMutation({
     videoId: v.string(),
     title: v.optional(v.string()),
     description: v.optional(v.string()),
-    thumbnailUrl: v.optional(v.string()),
     hlsUrl: v.optional(v.string()),
     mp4Urls: v.optional(
       v.array(v.object({ quality: v.string(), url: v.string() })),
@@ -532,7 +369,6 @@ export const updateFromWebhook = internalMutation({
       }),
     ),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
     const video = await ctx.db
       .query("videos")
@@ -550,13 +386,12 @@ export const updateFromWebhook = internalMutation({
       height?: number;
       framerate?: number;
       bitrate?: number;
-      extras?: Record<string, unknown>;
+      extras?: Record<string, string | number | boolean | null>;
     };
 
     const updates: Partial<{
       title: string;
       description: string;
-      thumbnailUrl: string;
       hlsUrl: string;
       mp4Urls: Array<{ quality: string; url: string }>;
       status: "uploading" | "processing" | "ready" | "failed";
@@ -565,8 +400,6 @@ export const updateFromWebhook = internalMutation({
 
     if (args.title !== undefined) updates.title = args.title;
     if (args.description !== undefined) updates.description = args.description;
-    if (args.thumbnailUrl !== undefined)
-      updates.thumbnailUrl = args.thumbnailUrl;
     if (args.hlsUrl !== undefined) updates.hlsUrl = args.hlsUrl;
     if (args.mp4Urls !== undefined) updates.mp4Urls = args.mp4Urls;
     if (args.status !== undefined) updates.status = args.status;

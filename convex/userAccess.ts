@@ -41,7 +41,6 @@ function hasVideoAccess(user: {
  */
 export const checkUserHasVideoAccess = query({
   args: {},
-  returns: v.boolean(),
   async handler(ctx) {
     const user = await getCurrentUser(ctx);
     if (!user) return false;
@@ -58,7 +57,6 @@ export const checkUserHasVideoAccess = query({
  */
 export const checkUserHasVideoAccessByClerkId = query({
   args: { clerkUserId: v.string() },
-  returns: v.boolean(),
   async handler(ctx, args) {
     const user = await ctx.db
       .query("users")
@@ -80,24 +78,6 @@ export const checkUserHasVideoAccessByClerkId = query({
  */
 export const getVideoAccessDetails = query({
   args: {},
-  returns: v.object({
-    hasAccess: v.boolean(),
-    paid: v.boolean(),
-    hasActiveYearAccess: v.boolean(),
-    status: v.union(
-      v.literal("active"),
-      v.literal("inactive"),
-      v.literal("suspended"),
-    ),
-    paymentDate: v.optional(v.number()),
-    paymentStatus: v.union(
-      v.literal("pending"),
-      v.literal("completed"),
-      v.literal("failed"),
-      v.literal("refunded"),
-    ),
-    daysUntilExpiration: v.optional(v.number()),
-  }),
   async handler(ctx): Promise<{
     hasAccess: boolean;
     paid: boolean;
@@ -168,7 +148,6 @@ export const updatePayment = mutation({
     paymentDate: v.optional(v.number()),
     paymentId: v.optional(v.string()),
   },
-  returns: v.null(),
   async handler(ctx, args) {
     await requireAdmin(ctx);
 
@@ -193,7 +172,6 @@ export const updatePayment = mutation({
  */
 export const checkUserHasVideoAccessById = query({
   args: { userId: v.id("users") },
-  returns: v.boolean(),
   async handler(ctx, args) {
     await requireAdmin(ctx);
 
@@ -210,7 +188,6 @@ export const checkUserHasVideoAccessById = query({
 
 export const completeOnboarding = mutation({
   args: {},
-  returns: v.null(),
   async handler(ctx) {
     const user = await getCurrentUser(ctx);
     if (!user) return null;

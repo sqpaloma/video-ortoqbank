@@ -21,10 +21,6 @@ export const createVideo = action({
     title: v.string(),
     createdBy: v.string(),
   },
-  returns: v.object({
-    videoId: v.string(),
-    libraryId: v.string(),
-  }),
   handler: async (ctx, args) => {
     const apiKey = process.env.BUNNY_API_KEY;
     const libraryId = process.env.BUNNY_LIBRARY_ID;

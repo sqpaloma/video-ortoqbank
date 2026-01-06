@@ -11,7 +11,6 @@ export const submitFeedback = mutation({
     unitId: v.id("units"),
     feedback: v.string(),
   },
-  returns: v.id("lessonFeedback"),
   handler: async (ctx, args) => {
     if (!args.feedback || args.feedback.trim().length === 0) {
       throw new Error("Feedback não pode estar vazio");
@@ -36,17 +35,6 @@ export const getFeedbackByLesson = query({
   args: {
     lessonId: v.id("lessons"),
   },
-  returns: v.array(
-    v.object({
-      _id: v.id("lessonFeedback"),
-      _creationTime: v.number(),
-      userId: v.string(),
-      lessonId: v.id("lessons"),
-      unitId: v.id("units"),
-      feedback: v.string(),
-      createdAt: v.number(),
-    }),
-  ),
   handler: async (ctx, args) => {
     const feedbacks = await ctx.db
       .query("lessonFeedback")
@@ -66,18 +54,6 @@ export const getUserFeedback = query({
     userId: v.string(),
     lessonId: v.id("lessons"),
   },
-  returns: v.union(
-    v.object({
-      _id: v.id("lessonFeedback"),
-      _creationTime: v.number(),
-      userId: v.string(),
-      lessonId: v.id("lessons"),
-      unitId: v.id("units"),
-      feedback: v.string(),
-      createdAt: v.number(),
-    }),
-    v.null(),
-  ),
   handler: async (ctx, args) => {
     const feedback = await ctx.db
       .query("lessonFeedback")

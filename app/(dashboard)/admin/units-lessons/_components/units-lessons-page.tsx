@@ -313,9 +313,8 @@ export function UnitsLessonsPage({
     unitId: Id<"units">;
     title: string;
     description: string;
-    lessonNumber: number;
-    tags?: string[];
     videoId?: string;
+    thumbnailUrl?: string;
   }) => {
     if (editMode.type !== "lesson") return;
 
@@ -325,12 +324,11 @@ export function UnitsLessonsPage({
         unitId: data.unitId,
         title: data.title,
         description: data.description,
-        lessonNumber: data.lessonNumber,
         durationSeconds: editMode.lesson.durationSeconds,
         order_index: editMode.lesson.order_index,
         isPublished: editMode.lesson.isPublished,
-        tags: data.tags,
         videoId: data.videoId ?? editMode.lesson.videoId,
+        thumbnailUrl: data.thumbnailUrl ?? editMode.lesson.thumbnailUrl,
       });
 
       toast({
@@ -348,7 +346,7 @@ export function UnitsLessonsPage({
   };
 
   return (
-    <div className="min-h-screen bg-white relative">
+    <div className=" bg-white relative">
       {/* Sidebar trigger - follows sidebar position */}
       <SidebarTrigger
         className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-blue-brand hover:text-blue-brand-dark hover:bg-blue-brand-light transition-[left] duration-200 ease-linear z-10 ${
@@ -359,7 +357,7 @@ export function UnitsLessonsPage({
       />
 
       {/* Header */}
-      <div className="py-6 px-8 flex items-center gap-3 border-b">
+      <div className="py-6 px-8 flex items-center gap-3 ">
         <Link href="/admin">
           <Button variant="ghost" size="icon" className="h-8 w-8">
             <ArrowLeftIcon className="h-4 w-4" />
@@ -371,7 +369,7 @@ export function UnitsLessonsPage({
       </div>
 
       {/* Category Selector */}
-      <div className="py-4 px-8 border-b bg-gray-50">
+      <div className="py-4 px-8 ">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-4">
             <label className="text-sm font-medium whitespace-nowrap">
@@ -443,7 +441,7 @@ export function UnitsLessonsPage({
           />
 
           {/* Right Content Area - Edit Forms or Empty State */}
-          <div className="flex-1 overflow-y-auto p-8">
+          <div className="flex-1 overflow-y-auto p-2">
             {editMode.type === "none" ? (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center text-muted-foreground space-y-2">

@@ -5,35 +5,6 @@ import { requireAdmin } from "./users";
 
 export const getPricingPlans = query({
   args: {},
-  returns: v.array(
-    v.object({
-      _id: v.id("pricingPlans"),
-      _creationTime: v.number(),
-      name: v.string(),
-      badge: v.string(),
-      originalPrice: v.optional(v.string()),
-      price: v.string(),
-      installments: v.string(),
-      installmentDetails: v.string(),
-      description: v.string(),
-      features: v.array(v.string()),
-      buttonText: v.string(),
-      productId: v.string(),
-      category: v.optional(
-        v.union(
-          v.literal("year_access"),
-          v.literal("premium_pack"),
-          v.literal("addon"),
-        ),
-      ),
-      year: v.optional(v.number()),
-      regularPriceNum: v.optional(v.number()),
-      pixPriceNum: v.optional(v.number()),
-      accessYears: v.optional(v.array(v.number())),
-      isActive: v.optional(v.boolean()),
-      displayOrder: v.optional(v.number()),
-    }),
-  ),
   handler: async (ctx) => {
     return await ctx.db.query("pricingPlans").order("asc").collect();
   },
@@ -67,7 +38,6 @@ export const savePricingPlan = mutation({
     isActive: v.optional(v.boolean()),
     displayOrder: v.optional(v.number()),
   },
-  returns: v.id("pricingPlans"),
   handler: async (ctx, args) => {
     // Verificação de admin usando a função existente do users.ts
     await requireAdmin(ctx);
@@ -87,7 +57,6 @@ export const savePricingPlan = mutation({
 
 export const removePricingPlan = mutation({
   args: { id: v.id("pricingPlans") },
-  returns: v.null(),
   handler: async (ctx, args) => {
     // Verificação de admin usando a função existente do users.ts
     await requireAdmin(ctx);
@@ -102,35 +71,6 @@ export const removePricingPlan = mutation({
  */
 export const getActiveProducts = query({
   args: {},
-  returns: v.array(
-    v.object({
-      _id: v.id("pricingPlans"),
-      _creationTime: v.number(),
-      name: v.string(),
-      badge: v.string(),
-      originalPrice: v.optional(v.string()),
-      price: v.string(),
-      installments: v.string(),
-      installmentDetails: v.string(),
-      description: v.string(),
-      features: v.array(v.string()),
-      buttonText: v.string(),
-      productId: v.string(),
-      category: v.optional(
-        v.union(
-          v.literal("year_access"),
-          v.literal("premium_pack"),
-          v.literal("addon"),
-        ),
-      ),
-      year: v.optional(v.number()),
-      regularPriceNum: v.optional(v.number()),
-      pixPriceNum: v.optional(v.number()),
-      accessYears: v.optional(v.array(v.number())),
-      isActive: v.optional(v.boolean()),
-      displayOrder: v.optional(v.number()),
-    }),
-  ),
   handler: async (ctx) => {
     return await ctx.db
       .query("pricingPlans")
@@ -144,36 +84,6 @@ export const getActiveProducts = query({
  */
 export const getByProductId = query({
   args: { productId: v.string() },
-  returns: v.union(
-    v.object({
-      _id: v.id("pricingPlans"),
-      _creationTime: v.number(),
-      name: v.string(),
-      badge: v.string(),
-      originalPrice: v.optional(v.string()),
-      price: v.string(),
-      installments: v.string(),
-      installmentDetails: v.string(),
-      description: v.string(),
-      features: v.array(v.string()),
-      buttonText: v.string(),
-      productId: v.string(),
-      category: v.optional(
-        v.union(
-          v.literal("year_access"),
-          v.literal("premium_pack"),
-          v.literal("addon"),
-        ),
-      ),
-      year: v.optional(v.number()),
-      regularPriceNum: v.optional(v.number()),
-      pixPriceNum: v.optional(v.number()),
-      accessYears: v.optional(v.array(v.number())),
-      isActive: v.optional(v.boolean()),
-      displayOrder: v.optional(v.number()),
-    }),
-    v.null(),
-  ),
   handler: async (ctx, args) => {
     return await ctx.db
       .query("pricingPlans")

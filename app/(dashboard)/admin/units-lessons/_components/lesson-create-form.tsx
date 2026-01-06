@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useErrorModal } from "@/hooks/use-error-modal";
 import { ErrorModal } from "@/components/ui/error-modal";
 import { Doc, Id } from "@/convex/_generated/dataModel";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 interface LessonFormProps {
   units: Doc<"units">[];
@@ -33,8 +34,8 @@ export function LessonForm({ units, onSuccess }: LessonFormProps) {
   const [unitId, setUnitId] = useState<string>(units[0]?._id || "");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [lessonNumber, setLessonNumber] = useState(1);
-  const [tags, setTags] = useState("");
+  const [thumbnailUrl, setThumbnailUrl] = useState("");
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -50,21 +51,13 @@ export function LessonForm({ units, onSuccess }: LessonFormProps) {
         return;
       }
 
-      const tagsArray = tags
-        ? tags
-            .split(",")
-            .map((tag) => tag.trim())
-            .filter(Boolean)
-        : [];
-
       await createLesson({
         unitId: unitId as Id<"units">,
         title,
         description,
-        lessonNumber,
+        thumbnailUrl: thumbnailUrl || undefined,
         durationSeconds: 0,
         isPublished: false,
-        tags: tagsArray.length > 0 ? tagsArray : undefined,
       });
 
       toast({
@@ -74,8 +67,7 @@ export function LessonForm({ units, onSuccess }: LessonFormProps) {
 
       setTitle("");
       setDescription("");
-      setLessonNumber(1);
-      setTags("");
+      setThumbnailUrl("");
       setUnitId(units[0]?._id || "");
 
       if (onSuccess) {
@@ -140,34 +132,32 @@ export function LessonForm({ units, onSuccess }: LessonFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="create-lesson-number">Número da Aula *</Label>
-          <Input
-            id="create-lesson-number"
-            type="number"
-            value={lessonNumber}
-            onChange={(e) => setLessonNumber(parseInt(e.target.value) || 1)}
+          <Label htmlFor="create-lesson-thumbnail">Thumbnail (Opcional)</Label>
+          <p className="text-xs text-muted-foreground mb-2">
+            Imagem que aparecerá nos favoritos, vídeos relacionados e
+            visualizações recentes
+          </p>
+          <ImageUpload
+            id="create-lesson-thumbnail"
+            value={thumbnailUrl}
+            onChange={setThumbnailUrl}
+            onRemove={() => setThumbnailUrl("")}
             disabled={isSubmitting}
-            required
-            min={1}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="create-lesson-tags">
-            Tags (separadas por vírgula)
-          </Label>
-          <Input
-            id="create-lesson-tags"
-            value={tags}
-            onChange={(e) => setTags(e.target.value)}
-            disabled={isSubmitting}
-            placeholder="ortopedia, medicina, traumatologia"
+            folder="/lessons"
+            onUploadStateChange={setIsUploadingImage}
           />
         </div>
 
         <div className="flex gap-2 justify-end pt-4">
-          <Button type="submit" disabled={isSubmitting || !unitId}>
-            {isSubmitting ? "Criando..." : "Criar Aula"}
+          <Button
+            type="submit"
+            disabled={isSubmitting || !unitId || isUploadingImage}
+          >
+            {isSubmitting
+              ? "Criando..."
+              : isUploadingImage
+                ? "Aguarde o upload..."
+                : "Criar Aula"}
           </Button>
         </div>
       </form>

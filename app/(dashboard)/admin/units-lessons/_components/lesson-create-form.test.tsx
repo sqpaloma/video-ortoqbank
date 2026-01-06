@@ -44,18 +44,6 @@ describe("LessonForm", () => {
     expect(screen.getByLabelText("Descrição *")).toBeInTheDocument();
   });
 
-  it("should render the number input", () => {
-    render(<LessonForm units={[]} />);
-    expect(screen.getByLabelText("Número da Aula *")).toBeInTheDocument();
-  });
-
-  it("should render the tags input", () => {
-    render(<LessonForm units={[]} />);
-    expect(
-      screen.getByLabelText("Tags (separadas por vírgula)"),
-    ).toBeInTheDocument();
-  });
-
   it("should render the submit button", () => {
     render(<LessonForm units={[]} />);
     expect(screen.getByText("Criar Aula")).toBeInTheDocument();

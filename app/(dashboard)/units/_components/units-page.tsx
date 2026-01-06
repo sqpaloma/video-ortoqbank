@@ -10,6 +10,7 @@ import {
   useMutation,
 } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useQueryState, parseAsString } from "nuqs";
 import {
   ArrowLeftIcon,
   PlayCircleIcon,
@@ -40,6 +41,12 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
   const router = useRouter();
   const { user } = useUser();
   const { state } = useSidebar();
+
+  // URL state for selected lesson (nuqs)
+  const [lessonIdParam, setLessonIdParam] = useQueryState(
+    "lesson",
+    parseAsString.withDefault(""),
+  );
 
   // Mutations
   const markCompleted = useMutation(api.progress.mutations.markLessonCompleted);
@@ -90,6 +97,15 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
     nextUnitId ? { unitId: nextUnitId } : "skip",
   );
 
+  // Query lesson from URL parameter (if provided)
+  // Validate that lessonIdParam is a non-empty string before casting to Id<"lessons">
+  const lessonFromUrl = useQuery(
+    api.lessons.getById,
+    lessonIdParam && lessonIdParam.length > 0
+      ? { id: lessonIdParam as Id<"lessons"> }
+      : "skip",
+  );
+
   // Queries for current state
   const currentLesson = useQuery(
     api.lessons.getById,
@@ -116,17 +132,60 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
       : "skip",
   );
 
-  // Initialize first lesson when data becomes available
+  // Get secure watermark ID from server (HMAC-SHA256 of CPF with secret)
+  const userCpf = (user?.publicMetadata?.cpf as string) || "";
+  const watermarkId = useQuery(
+    api.watermark.generateWatermarkId,
+    userCpf ? { cpf: userCpf } : "skip",
+  );
+
+  // Initialize lesson from URL or fallback to first lesson
   // Using queueMicrotask to defer state updates and avoid cascading renders
   useEffect(() => {
-    if (initialValues && !currentLessonId) {
+    // Handle invalid URL param: clear it and fallback to first lesson
+    if (
+      lessonIdParam &&
+      lessonFromUrl === null &&
+      initialValues &&
+      !currentLessonId
+    ) {
       queueMicrotask(() => {
+        // Clear invalid URL param and set default lesson
+        setLessonIdParam(initialValues.lessonId);
         setCurrentLessonId(initialValues.lessonId);
         setCurrentUnitId(initialValues.unitId);
         setExpandedUnits(initialValues.expandedUnits);
       });
+      return;
     }
-  }, [initialValues, currentLessonId]);
+
+    // If we have a valid lesson from URL, use it
+    if (lessonFromUrl && lessonIdParam && !currentLessonId) {
+      queueMicrotask(() => {
+        setCurrentLessonId(lessonIdParam as Id<"lessons">);
+        setCurrentUnitId(lessonFromUrl.unitId);
+        setExpandedUnits(new Set([lessonFromUrl.unitId]));
+      });
+      return;
+    }
+
+    // Fallback: use first lesson of first unit when no URL param exists
+    if (initialValues && !currentLessonId && !lessonIdParam) {
+      queueMicrotask(() => {
+        setCurrentLessonId(initialValues.lessonId);
+        setCurrentUnitId(initialValues.unitId);
+        setExpandedUnits(initialValues.expandedUnits);
+        // Update URL with the initial lesson
+        setLessonIdParam(initialValues.lessonId);
+      });
+    }
+  }, [
+    initialValues,
+    currentLessonId,
+    lessonFromUrl,
+    lessonIdParam,
+    setLessonIdParam,
+  ]);
 
   // Fetch signed embed URL when lesson changes
   useEffect(() => {
@@ -138,7 +197,12 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
     const fetchEmbedUrl = async () => {
       setEmbedLoading(true);
       try {
-        const libraryId = process.env.NEXT_PUBLIC_BUNNY_LIBRARY_ID || "566190";
+        const libraryId = process.env.NEXT_PUBLIC_BUNNY_LIBRARY_ID;
+        if (!libraryId) {
+          throw new Error(
+            "NEXT_PUBLIC_BUNNY_LIBRARY_ID environment variable is not configured",
+          );
+        }
         const result = await getSignedEmbedUrl(
           currentLesson.videoId!,
           libraryId,
@@ -177,6 +241,9 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
       setCurrentLessonId(lessonId);
       setCurrentUnitId(unitId);
 
+      // Update URL with lesson ID (nuqs)
+      setLessonIdParam(lessonId);
+
       // Register the view
       if (user?.id) {
         try {
@@ -191,7 +258,7 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
         }
       }
     },
-    [user, addRecentView],
+    [user, addRecentView, setLessonIdParam],
   );
 
   // Handle transition to first lesson of next unit
@@ -394,7 +461,7 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
               </div>
 
               {/* Video Player (both mobile and desktop) */}
-              <div className="px-6 py-6 md:px-6">
+              <div className="px-6 py-2 md:px-4">
                 {/* Video Player with Watermark */}
                 {currentLesson.videoId ? (
                   <div className="mb-6">
@@ -410,13 +477,7 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
                     ) : embedUrl ? (
                       <VideoPlayerWithWatermark
                         embedUrl={embedUrl}
-                        userName={
-                          user?.fullName || user?.firstName || "Usuário"
-                        }
-                        userCpf={
-                          (user?.publicMetadata?.cpf as string) ||
-                          "000.000.000-00"
-                        }
+                        watermarkId={watermarkId}
                       />
                     ) : (
                       <div className="aspect-video bg-red-50 rounded-lg flex items-center justify-center">
@@ -497,7 +558,7 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
               {/* Desktop: Lesson info (no tabs) */}
               <div className="hidden md:block px-6">
                 {/* Título e Descrição */}
-                <div className="mb-6">
+                <div className="mb-2">
                   <h2 className="text-2xl font-bold mb-3">
                     {currentLesson.title}
                   </h2>
@@ -569,7 +630,7 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
 
                     {/* Rating */}
                     {user?.id && currentLessonId && currentUnitId && (
-                      <div className="border-t pt-4">
+                      <div className=" pt-0">
                         <Rating
                           userId={user.id}
                           lessonId={currentLessonId}

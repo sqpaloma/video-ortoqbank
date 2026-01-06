@@ -12,7 +12,6 @@ export const markLessonCompleted = mutation({
     userId: v.string(), // clerkUserId
     lessonId: v.id("lessons"),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
     // Get the lesson to find its unitId
     const lesson = await ctx.db.get(args.lessonId);
@@ -144,7 +143,6 @@ export const markLessonIncomplete = mutation({
     userId: v.string(),
     lessonId: v.id("lessons"),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
     // Get the lesson to find its unitId
     const lesson = await ctx.db.get(args.lessonId);
@@ -248,7 +246,6 @@ export const recalculateGlobalProgress = mutation({
   args: {
     userId: v.string(),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
     const now = Date.now();
 
@@ -304,7 +301,6 @@ export const saveVideoProgress = mutation({
     currentTimeSec: v.number(),
     durationSec: v.number(),
   },
-  returns: v.null(),
   handler: async (ctx, args) => {
     // Get the lesson to find its unitId
     const lesson = await ctx.db.get(args.lessonId);

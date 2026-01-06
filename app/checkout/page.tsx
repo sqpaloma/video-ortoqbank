@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import cardValidator from "card-validator";
 import { useAction, useMutation, useQuery } from "convex/react";
-import { Loader2, Tag } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -309,7 +309,7 @@ function CheckoutPageContent() {
       const { ConvexHttpClient } = await import("convex/browser");
       const client = new ConvexHttpClient(convexUrl);
 
-      const validateResult = (await client.query(
+      const validateResult = (await client.mutation(
         api.promoCoupons.validateAndApplyCoupon,
         {
           code: couponCode,
@@ -731,7 +731,6 @@ function CheckoutPageContent() {
                     </Label>
                     {appliedCoupon ? (
                       <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 p-3">
-                        <Tag className="h-4 w-4 text-green-600" />
                         <div className="flex-1">
                           <div className="font-medium text-green-900">
                             {couponCode}
@@ -754,7 +753,6 @@ function CheckoutPageContent() {
                     ) : (
                       <div className="flex gap-2">
                         <div className="relative flex-1">
-                          <Tag className="absolute top-3 left-3 h-4 w-4 text-gray-400" />
                           <Input
                             id="couponCode"
                             type="text"
@@ -764,7 +762,6 @@ function CheckoutPageContent() {
                               setCouponCode(e.target.value.toUpperCase())
                             }
                             disabled={isLoading || isValidatingCoupon}
-                            className="pl-10"
                             onKeyDown={(e) => {
                               if (e.key === "Enter") {
                                 e.preventDefault();

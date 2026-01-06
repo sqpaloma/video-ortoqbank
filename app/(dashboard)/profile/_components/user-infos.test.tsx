@@ -4,9 +4,14 @@ import UserInfos from "./user-infos";
 
 // Mock Convex useQuery hook
 const mockUseQuery = vi.fn();
+const mockUseUser = vi.fn();
 
 vi.mock("convex/react", () => ({
   useQuery: (query: unknown, args?: unknown) => mockUseQuery(query, args),
+}));
+
+vi.mock("@clerk/nextjs", () => ({
+  useUser: () => mockUseUser(),
 }));
 
 describe("UserInfos", () => {
@@ -15,6 +20,14 @@ describe("UserInfos", () => {
   });
 
   it("should render", () => {
+    mockUseUser.mockReturnValue({
+      isLoaded: true,
+      user: {
+        fullName: "Test User",
+        imageUrl: null,
+        primaryEmailAddress: { emailAddress: "test@example.com" },
+      },
+    });
     mockUseQuery.mockReturnValue({
       _id: "user-123",
       firstName: "Test",
@@ -28,13 +41,24 @@ describe("UserInfos", () => {
   });
 
   it("should render with loading state", () => {
-    // Mock useQuery to return undefined (loading state)
+    mockUseUser.mockReturnValue({
+      isLoaded: false,
+      user: null,
+    });
     mockUseQuery.mockReturnValue(undefined);
     render(<UserInfos />);
-    expect(screen.getByText("Usuário")).toBeInTheDocument();
+    expect(screen.getByText("Carregando...")).toBeInTheDocument();
   });
 
   it("should render with custom props", () => {
+    mockUseUser.mockReturnValue({
+      isLoaded: true,
+      user: {
+        fullName: "Custom User",
+        imageUrl: null,
+        primaryEmailAddress: { emailAddress: "custom@example.com" },
+      },
+    });
     mockUseQuery.mockReturnValue({
       _id: "user-456",
       firstName: "Custom",

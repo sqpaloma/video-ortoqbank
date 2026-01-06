@@ -1,8 +1,8 @@
+import { SignInButton } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { SignInButton } from "@clerk/nextjs";
 
 export default function Header() {
   return (
