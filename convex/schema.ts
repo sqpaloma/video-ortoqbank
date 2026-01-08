@@ -380,6 +380,7 @@ export default defineSchema({
   })
     .index("by_email", ["email"])
     .index("by_user_id", ["userId"])
+    .index("by_account_email", ["accountEmail"])
     .index("by_status", ["status"])
     .index("by_asaas_payment", ["asaasPaymentId"])
     .index("by_external_reference", ["externalReference"]),

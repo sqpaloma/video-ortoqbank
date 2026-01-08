@@ -300,3 +300,58 @@ export const setRole = mutation({
     });
   },
 });
+
+/**
+ * Get the CPF of the current user from their order data.
+ * Used for video watermark display.
+ * Returns null if user is not authenticated or has no CPF on record.
+ */
+export const getCurrentUserCpf = query({
+  args: {},
+  returns: v.union(v.string(), v.null()),
+  handler: async (ctx) => {
+    const user = await getCurrentUser(ctx);
+    if (!user) {
+      return null;
+    }
+
+    const clerkUserId = user.clerkUserId;
+    const userEmail = user.email;
+
+    // Try pending orders by userId first (most reliable for linked accounts)
+    if (clerkUserId) {
+      const orderByUserId = await ctx.db
+        .query("pendingOrders")
+        .withIndex("by_user_id", (q) => q.eq("userId", clerkUserId))
+        .first();
+
+      if (orderByUserId?.cpf) {
+        return orderByUserId.cpf;
+      }
+    }
+
+    // Try pending orders by accountEmail
+    if (userEmail) {
+      const orderByAccountEmail = await ctx.db
+        .query("pendingOrders")
+        .withIndex("by_account_email", (q) => q.eq("accountEmail", userEmail))
+        .first();
+
+      if (orderByAccountEmail?.cpf) {
+        return orderByAccountEmail.cpf;
+      }
+
+      // Try pending orders by checkout email
+      const orderByEmail = await ctx.db
+        .query("pendingOrders")
+        .withIndex("by_email", (q) => q.eq("email", userEmail))
+        .first();
+
+      if (orderByEmail?.cpf) {
+        return orderByEmail.cpf;
+      }
+    }
+
+    return null;
+  },
+});

@@ -1008,3 +1008,33 @@ export const findSentInvitationByEmail = query({
     return { _id: invitation._id };
   },
 });
+
+/**
+ * Admin mutation to link a pending order to a user account.
+ * Used when the checkout email differs from the account email.
+ */
+export const linkOrderToUser = internalMutation({
+  args: {
+    orderId: v.id("pendingOrders"),
+    clerkUserId: v.string(),
+    accountEmail: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const order = await ctx.db.get(args.orderId);
+    if (!order) {
+      throw new Error("Order not found");
+    }
+
+    await ctx.db.patch(args.orderId, {
+      userId: args.clerkUserId,
+      accountEmail: args.accountEmail,
+    });
+
+    // Trigger idempotent provisioning (will only provision if order is also paid)
+    await ctx.runMutation(internal.payments.maybeProvisionAccess, {
+      orderId: args.orderId,
+    });
+
+    return { success: true };
+  },
+});
