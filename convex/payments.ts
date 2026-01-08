@@ -9,11 +9,7 @@ import {
   query,
 } from "./_generated/server";
 import { retrier } from "./retrier";
-import {
-  checkRateLimit,
-  checkoutRateLimit,
-  couponRateLimit,
-} from "./lib/rateLimits";
+import { rateLimiter } from "./lib/rateLimits";
 import type { MutationCtx } from "./_generated/server";
 
 /**
@@ -36,14 +32,12 @@ async function validateCouponInTransaction(
 > {
   // Rate limit coupon validation attempts
   const identifier = userCpf || "anonymous";
-  const { ok, retryAt } = await checkRateLimit(
-    ctx,
-    couponRateLimit,
-    identifier,
-  );
+  const { ok, retryAfter } = await rateLimiter.limit(ctx, "coupon_validation", {
+    key: identifier,
+  });
 
   if (!ok) {
-    const waitSeconds = retryAt ? Math.ceil((retryAt - Date.now()) / 1000) : 60;
+    const waitSeconds = retryAfter ? Math.ceil(retryAfter / 1000) : 60;
     return {
       isValid: false,
       errorMessage: `Muitas tentativas. Aguarde ${waitSeconds} segundos.`,
@@ -173,16 +167,12 @@ export const createPendingOrder = mutation({
       finalPrice: number;
     };
   }> => {
-    const { ok, retryAt } = await checkRateLimit(
-      ctx,
-      checkoutRateLimit,
-      args.cpf,
-    );
+    const { ok, retryAfter } = await rateLimiter.limit(ctx, "checkout", {
+      key: args.cpf,
+    });
 
     if (!ok) {
-      const waitMinutes = retryAt
-        ? Math.ceil((retryAt - Date.now()) / 60000)
-        : 5;
+      const waitMinutes = retryAfter ? Math.ceil(retryAfter / 60000) : 5;
       throw new Error(
         `Muitas tentativas de checkout. Aguarde ${waitMinutes} minutos.`,
       );

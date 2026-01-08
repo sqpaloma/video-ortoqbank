@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 
 import { mutation, query } from "./_generated/server";
-import { checkRateLimit, couponRateLimit } from "./lib/rateLimits";
+import { rateLimiter } from "./lib/rateLimits";
 import { requireAdmin } from "./users";
 
 export const list = query({
@@ -112,16 +112,16 @@ export const validateAndApplyCoupon = mutation({
   handler: async (ctx, args) => {
     const identifier = args.userCpf || "anonymous";
 
-    const { ok, retryAt } = await checkRateLimit(
+    const { ok, retryAfter } = await rateLimiter.limit(
       ctx,
-      couponRateLimit,
-      identifier,
+      "coupon_validation",
+      {
+        key: identifier,
+      },
     );
 
     if (!ok) {
-      const waitSeconds = retryAt
-        ? Math.ceil((retryAt - Date.now()) / 1000)
-        : 60;
+      const waitSeconds = retryAfter ? Math.ceil(retryAfter / 1000) : 60;
       return {
         isValid: false,
         errorMessage: `Muitas tentativas. Aguarde ${waitSeconds} segundos.`,

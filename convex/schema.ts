@@ -1,11 +1,7 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
-import { rateLimitTables } from "convex-helpers/server/rateLimit";
 
 export default defineSchema({
-  // Rate limiting table (required by convex-helpers)
-  ...rateLimitTables,
-
   numbers: defineTable({
     value: v.number(),
   }),
