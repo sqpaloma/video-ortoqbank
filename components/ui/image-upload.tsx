@@ -92,6 +92,14 @@ export function ImageUpload({
       formData.append("expire", authData.expire.toString());
       formData.append("publicKey", publicKey);
 
+      console.log("[ImageUpload] Sending upload to ImageKit...", {
+        fileName: file.name,
+        folder,
+        token: authData.token.substring(0, 8) + "...",
+        expire: authData.expire,
+        signatureLength: authData.signature.length,
+      });
+
       const uploadResponse = await fetch(
         "https://upload.imagekit.io/api/v1/files/upload",
         {
@@ -102,8 +110,43 @@ export function ImageUpload({
 
       const uploadData = await uploadResponse.json();
 
+      console.log("[ImageUpload] ImageKit response:", {
+        status: uploadResponse.status,
+        ok: uploadResponse.ok,
+        data: uploadResponse.ok ? { url: uploadData.url } : uploadData,
+      });
+
       if (!uploadResponse.ok) {
-        throw new Error(uploadData.message || "Erro ao fazer upload da imagem");
+        // Log detailed error for debugging
+        console.error("[ImageUpload] Upload failed:", {
+          status: uploadResponse.status,
+          statusText: uploadResponse.statusText,
+          response: uploadData,
+        });
+
+        // Handle specific error codes
+        let errorMessage: string;
+        if (uploadResponse.status === 403) {
+          errorMessage =
+            "Erro de autenticação com ImageKit (403). " +
+            "Verifique se as chaves IMAGEKIT_PRIVATE_KEY e IMAGEKIT_PUBLIC_KEY estão corretas e correspondem à mesma conta.";
+          console.error(
+            "[ImageUpload] 403 Error - Possible causes:",
+            "\n1. Invalid or mismatched API keys",
+            "\n2. Expired authentication token",
+            "\n3. Account storage limit exceeded",
+            "\n4. Advanced security settings blocking the request",
+          );
+        } else if (uploadResponse.status === 401) {
+          errorMessage =
+            "Chave pública ou privada do ImageKit inválida (401).";
+        } else {
+          errorMessage =
+            uploadData.message ||
+            uploadData.error ||
+            `Erro ${uploadResponse.status}: ${uploadResponse.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
 
       const imageUrl = uploadData.url;
