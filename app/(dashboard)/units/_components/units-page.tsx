@@ -28,7 +28,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { LessonInfoSection } from "./lesson-info-section";
 import { Feedback } from "./feedback";
 import { Rating } from "./rating";
-import { cn } from "@/lib/utils";
+import { cn, formatCpf } from "@/lib/utils";
 import { getSignedEmbedUrl } from "@/app/actions/bunny";
 
 interface UnitsPageProps {
@@ -132,12 +132,10 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
       : "skip",
   );
 
-  // Get secure watermark ID from server (HMAC-SHA256 of CPF with secret)
-  const userCpf = (user?.publicMetadata?.cpf as string) || "";
-  const watermarkId = useQuery(
-    api.watermark.generateWatermarkId,
-    userCpf ? { cpf: userCpf } : "skip",
-  );
+  // Get CPF from user's order data for watermark display
+  const userCpf = useQuery(api.users.getCurrentUserCpf);
+  // Guard: only compute watermarkId when userCpf is available
+  const watermarkId = userCpf ? formatCpf(userCpf) : undefined;
 
   // Initialize lesson from URL or fallback to first lesson
   // Using queueMicrotask to defer state updates and avoid cascading renders
