@@ -138,8 +138,7 @@ export function ImageUpload({
             "\n4. Advanced security settings blocking the request",
           );
         } else if (uploadResponse.status === 401) {
-          errorMessage =
-            "Chave pública ou privada do ImageKit inválida (401).";
+          errorMessage = "Chave pública ou privada do ImageKit inválida (401).";
         } else {
           errorMessage =
             uploadData.message ||
