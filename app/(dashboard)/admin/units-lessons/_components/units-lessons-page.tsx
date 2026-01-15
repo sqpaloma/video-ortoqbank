@@ -10,8 +10,7 @@ import {
 } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
-import { ArrowLeftIcon, PlusIcon } from "lucide-react";
-import Link from "next/link";
+import { PlusIcon } from "lucide-react";
 import { Id, Doc } from "@/convex/_generated/dataModel";
 import {
   Select,
@@ -346,25 +345,21 @@ export function UnitsLessonsPage({
   };
 
   return (
-    <div className=" bg-white relative">
+    <div className=" relative">
       {/* Sidebar trigger - follows sidebar position */}
       <SidebarTrigger
-        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-blue-brand hover:text-blue-brand-dark hover:bg-blue-brand-light transition-[left] duration-200 ease-linear z-10 ${
-          state === "collapsed"
-            ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
-            : "left-[calc(var(--sidebar-width)+0.25rem)]"
-        }`}
+        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-blue-brand hover:text-blue-brand-dark hover:bg-blue-brand-light transition-[left] duration-200 ease-linear z-10 ${state === "collapsed"
+          ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
+          : "left-[calc(var(--sidebar-width)+0.25rem)]"
+          }`}
       />
 
       {/* Header */}
-      <div className="py-6 px-8 flex items-center gap-3 ">
-        <Link href="/admin">
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <ArrowLeftIcon className="h-4 w-4" />
-          </Button>
-        </Link>
-        <div className="flex-1">
-          <h1 className="text-2xl font-semibold">Gerenciar Unidades e Aulas</h1>
+      <div className="border-b ">
+        <div className="p-4 pt-12 flex items-center pl-14 gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Gerenciar Unidades e Aulas</h1>
+          </div>
         </div>
       </div>
 

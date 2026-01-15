@@ -28,7 +28,7 @@ export function WaitlistSearch({
         value={searchInput}
         onChange={(e) => onSearchInputChange(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && onSearch()}
-        className="max-w-md"
+        className="max-w-md bg-white"
       />
       <Button onClick={onSearch} size="default">
         <Search className="mr-2 h-4 w-4" />
@@ -41,7 +41,7 @@ export function WaitlistSearch({
         disabled={isLoading || !hasResults}
         title="Exportar para Excel"
       >
-        <Download className="h-4 w-4" />
+        <Download className="h-4 w-4 bg-white" />
       </Button>
     </div>
   );

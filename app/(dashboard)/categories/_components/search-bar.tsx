@@ -103,7 +103,7 @@ export function SearchBar({
           value={query}
           onChange={handleInputChange}
           placeholder={placeholder}
-          className="pl-10 md:pl-11 pr-3 md:pr-4 h-12 md:h-10 rounded-full border text-sm md:text-base"
+          className="pl-10 md:pl-11 pr-3 md:pr-4 h-12 md:h-10 bg-white border border-base-100 rounded-full text-sm md:text-base"
           onFocus={() => {
             if (hasSuggestions) {
               setIsManuallyHidden(false);

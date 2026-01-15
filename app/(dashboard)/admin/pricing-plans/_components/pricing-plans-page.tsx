@@ -1,9 +1,7 @@
 "use client";
 
 import { useMutation, useQuery } from "convex/react";
-import { ArrowLeftIcon, Plus } from "lucide-react";
 import { useState } from "react";
-import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
@@ -13,6 +11,9 @@ import { FormData } from "./pricing-plan-form-fields";
 import { CreatePlanCard } from "./create-plan-card";
 import { EditPlanCard } from "./edit-plan-card";
 import { PricingPlanCard } from "./pricing-plan-card";
+import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
+import { PlusIcon } from "lucide-react";
+
 
 type PricingPlan = Doc<"pricingPlans">;
 
@@ -40,6 +41,7 @@ export function PricingPlansPage() {
   const plans = useQuery(api.pricingPlans.getPricingPlans) || [];
   const savePlan = useMutation(api.pricingPlans.savePricingPlan);
   const removePlan = useMutation(api.pricingPlans.removePricingPlan);
+  const { state } = useSidebar();
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<FormData>>({});
@@ -89,9 +91,9 @@ export function PricingPlansPage() {
       : undefined;
     const accessYears = formData.accessYears
       ? formData.accessYears
-          .split(",")
-          .map((y) => Number.parseInt(y.trim(), 10))
-          .filter((y) => !Number.isNaN(y))
+        .split(",")
+        .map((y) => Number.parseInt(y.trim(), 10))
+        .filter((y) => !Number.isNaN(y))
       : undefined;
     const displayOrder = formData.displayOrder
       ? Number.parseInt(formData.displayOrder, 10)
@@ -161,24 +163,28 @@ export function PricingPlansPage() {
   }
 
   return (
-    <div className="space-y-6 md:p-36 md:pt-12">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link href="/admin">
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <ArrowLeftIcon className="h-4 w-4" />
-            </Button>
-          </Link>
-          <h1 className="text-2xl font-semibold">Planos de Preços</h1>
+    <div className="min-h-screen relative">
+      {/* Sidebar trigger - follows sidebar position */}
+      <SidebarTrigger
+        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-brand-blue hover:text-brand-blue hover:bg-brand-blue transition-[left] duration-200 ease-linear z-10 ${state === "collapsed" ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]" : "left-[calc(var(--sidebar-width)+0.25rem)]"}`}
+      />
+
+      <div className="border-b ">
+        <div className="p-4 pt-12 flex items-center justify-between pr-46 pl-14 gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Gerenciar Categorias</h1>
+          </div>
+
+          <Button
+            onClick={() => setIsCreating(true)}
+            className="flex items-center gap-2"
+          >
+            <PlusIcon className="w-4 h-4" />
+            Novo Plano
+          </Button>
         </div>
-        <Button
-          onClick={() => setIsCreating(true)}
-          className="flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Novo Plano
-        </Button>
       </div>
+
 
       <div className=" py-8 rounded-2xl">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-7xl mx-auto px-4">
@@ -196,7 +202,7 @@ export function PricingPlansPage() {
           {plans?.map((plan) => (
             <div
               key={plan._id}
-              className="relative rounded-2xl border pb-6 overflow-hidden w-full flex flex-col"
+              className="relative rounded-2xl bg-white border pb-6 overflow-hidden w-full flex flex-col"
             >
               {editingId === plan._id ? (
                 <EditPlanCard

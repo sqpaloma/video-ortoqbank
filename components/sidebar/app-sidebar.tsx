@@ -10,10 +10,10 @@ import {
 
 import NavLogo from "./nav-logo";
 import NavMain from "./nav-main";
-
 import NavThird from "./nav-third";
+
 import NavUser from "./nav-user";
-import QuestionsPromo from "./questions-promo";
+import NavQuestions from "./nav-questions";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -25,9 +25,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain />
       </SidebarContent>
       <SidebarFooter>
-        <QuestionsPromo />
+        <NavQuestions />
         <NavThird />
-
         <NavUser />
       </SidebarFooter>
       <SidebarRail />

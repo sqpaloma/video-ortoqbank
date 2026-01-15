@@ -1,13 +1,13 @@
-import Image from "next/image";
-import Link from "next/link";
+import Image from 'next/image';
+import Link from 'next/link';
 
-import { Separator } from "../ui/separator";
+import { Separator } from '../ui/separator';
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "../ui/sidebar";
+} from '../ui/sidebar';
 
 export default function NavLogo() {
   const { setOpenMobile } = useSidebar();
@@ -15,11 +15,11 @@ export default function NavLogo() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <SidebarMenuButton asChild>
+        <SidebarMenuButton variant="logo" size="lg" asChild>
           <Link href="/" onClick={() => setOpenMobile(false)}>
-            <div className="flex aspect-square size-6 items-center justify-center rounded-lg">
+            <div className="flex aspect-square size-8 items-center justify-center rounded-lg">
               <Image
-                src="/logo-transparente.png"
+                src="/logo.webp"
                 alt="OrtoQBank Logo"
                 width={32}
                 height={32}

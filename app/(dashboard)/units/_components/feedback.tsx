@@ -58,7 +58,7 @@ export function Feedback({
         placeholder="Digite seu feedback ou dúvida aqui..."
         value={feedbackText}
         onChange={(e) => setFeedbackText(e.target.value)}
-        className="h-full flex-1 resize-none"
+        className="h-full bg-gray-50 flex-1 resize-none"
         aria-label="Campo de feedback"
       />
       <Button

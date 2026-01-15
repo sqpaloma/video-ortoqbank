@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import { useRouter } from "next/navigation";
 import {
   Preloaded,
   usePreloadedQuery,
@@ -12,11 +11,10 @@ import {
 import { api } from "@/convex/_generated/api";
 import { useQueryState, parseAsString } from "nuqs";
 import {
-  ArrowLeftIcon,
   PlayCircleIcon,
   CheckCircleIcon,
   StarIcon,
-  ChevronRightIcon,
+  ChevronRightIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -38,7 +36,6 @@ interface UnitsPageProps {
 
 export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
   const units = usePreloadedQuery(preloadedUnits);
-  const router = useRouter();
   const { user } = useUser();
   const { state } = useSidebar();
 
@@ -217,9 +214,7 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
     fetchEmbedUrl();
   }, [currentLesson?.videoId]);
 
-  const handleBackClick = () => {
-    router.push("/categories");
-  };
+
 
   const toggleUnit = (unitId: string) => {
     setExpandedUnits((prev) => {
@@ -366,9 +361,9 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
   const globalProgressPercent =
     totalLessonsCount > 0
       ? Math.min(
-          100,
-          Math.round((totalCompletedLessons / totalLessonsCount) * 100),
-        )
+        100,
+        Math.round((totalCompletedLessons / totalLessonsCount) * 100),
+      )
       : 0;
 
   if (units.length === 0) {
@@ -382,22 +377,15 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-white relative">
+    <div className="min-h-screen relative">
       {/* Sidebar trigger - follows sidebar position */}
       <SidebarTrigger
-        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-blue-brand hover:text-blue-brand-dark hover:bg-blue-brand-light transition-[left] duration-200 ease-linear z-10 ${state === "collapsed" ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]" : "left-[calc(var(--sidebar-width)+0.25rem)]"}`}
+        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-brand-blue hover:text-brand-blue hover:bg-brand-blue transition-[left] duration-200 ease-linear z-10 ${state === "collapsed" ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]" : "left-[calc(var(--sidebar-width)+0.25rem)]"}`}
       />
 
       {/* Header */}
-      <div className="py-4 px-6 flex items-center gap-4 border-b">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleBackClick}
-          className="hover:bg-accent"
-        >
-          <ArrowLeftIcon size={20} />
-        </Button>
+      <div className="py-4 pl-16 px-6 flex items-center gap-4 border-b">
+
         <div className="flex-1">
           <h1 className="text-xl font-bold">{categoryTitle}</h1>
           <p className="text-xs text-muted-foreground">
@@ -411,7 +399,7 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
       {/* Main Content */}
       <div className="flex h-[calc(100vh-80px)]">
         {/* Left Sidebar - Units and Lessons (Desktop Only) */}
-        <div className="hidden md:block md:w-[400px] border-r overflow-y-auto bg-gray-50">
+        <div className="hidden md:block md:w-[400px] border-r border-white overflow-y-auto ">
           {/* Progress Bar */}
           <div className="p-4 bg-white border-b">
             <div className="flex items-center justify-between mb-2">
@@ -589,7 +577,7 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
                           className={cn(
                             "flex-1 lg:flex-none lg:min-w-[160px]",
                             isLessonCompleted &&
-                              "bg-white text-green-600 hover:bg-green-50 border-green-600 border-2",
+                            "bg-white text-green-600 hover:bg-green-50 border-green-600 border-2",
                           )}
                         >
                           <CheckCircleIcon

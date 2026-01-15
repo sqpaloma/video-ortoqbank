@@ -26,5 +26,5 @@ export default async function AdminLayout({
   console.log("✅ Admin Layout: Access granted");
 
   // Only render content if user is authenticated AND is an admin
-  return <div className="space-y-6 p-2 md:p-6">{children}</div>;
+  return <div className="space-y-6">{children}</div>;
 }

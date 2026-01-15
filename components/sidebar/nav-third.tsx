@@ -57,10 +57,11 @@ export default function NavThird() {
   });
 
   return (
-    <SidebarGroup>
+
+    <SidebarGroup className="pl-0">
       <SidebarGroupLabel>Usuário</SidebarGroupLabel>
       <SidebarMenu>
-        {visibleItems.map((item) => (
+        {visibleItems.map(item => (
           <SidebarMenuItem key={item.title}>
             <SidebarMenuButton asChild>
               <Link
@@ -68,7 +69,7 @@ export default function NavThird() {
                 className="flex items-center gap-3 py-5"
                 onClick={() => setOpenMobile(false)}
               >
-                <item.icon className="size-5" />
+                <item.icon className="size-5 " />
                 <span className="text-base">{item.title}</span>
               </Link>
             </SidebarMenuButton>
