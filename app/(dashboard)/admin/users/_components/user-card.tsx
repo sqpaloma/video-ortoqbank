@@ -45,12 +45,13 @@ export function UserCard({
           Cargo Atual:
         </span>
         <span
-          className={`ml-2 inline-flex rounded-full px-2 py-1 text-xs font-medium ${role === "admin"
-            ? "bg-brand-blue/10 text-brand-blue/90 dark:bg-brand-blue/30 dark:text-brand-blue/40"
-            : role === "user"
-              ? "bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-400"
-              : "bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-400"
-            }`}
+          className={`ml-2 inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+            role === "admin"
+              ? "bg-brand-blue/10 text-brand-blue/90 dark:bg-brand-blue/30 dark:text-brand-blue/40"
+              : role === "user"
+                ? "bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-400"
+                : "bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-400"
+          }`}
         >
           {role === "admin" ? "Administrador" : "Usuário"}
         </span>

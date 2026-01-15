@@ -14,7 +14,7 @@ import {
   PlayCircleIcon,
   CheckCircleIcon,
   StarIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -214,8 +214,6 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
     fetchEmbedUrl();
   }, [currentLesson?.videoId]);
 
-
-
   const toggleUnit = (unitId: string) => {
     setExpandedUnits((prev) => {
       const newSet = new Set(prev);
@@ -361,9 +359,9 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
   const globalProgressPercent =
     totalLessonsCount > 0
       ? Math.min(
-        100,
-        Math.round((totalCompletedLessons / totalLessonsCount) * 100),
-      )
+          100,
+          Math.round((totalCompletedLessons / totalLessonsCount) * 100),
+        )
       : 0;
 
   if (units.length === 0) {
@@ -385,7 +383,6 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
 
       {/* Header */}
       <div className="py-4 pl-16 px-6 flex items-center gap-4 border-b">
-
         <div className="flex-1">
           <h1 className="text-xl font-bold">{categoryTitle}</h1>
           <p className="text-xs text-muted-foreground">
@@ -577,7 +574,7 @@ export function UnitsPage({ preloadedUnits, categoryTitle }: UnitsPageProps) {
                           className={cn(
                             "flex-1 lg:flex-none lg:min-w-[160px]",
                             isLessonCompleted &&
-                            "bg-white text-green-600 hover:bg-green-50 border-green-600 border-2",
+                              "bg-white text-green-600 hover:bg-green-50 border-green-600 border-2",
                           )}
                         >
                           <CheckCircleIcon

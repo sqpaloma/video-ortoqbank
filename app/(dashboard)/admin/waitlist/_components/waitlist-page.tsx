@@ -68,21 +68,23 @@ export function WaitlistPage() {
     <div className="min-h-screen relative">
       {/* Sidebar trigger - follows sidebar position */}
       <SidebarTrigger
-        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-brand-blue hover:text-brand-blue hover:bg-brand-blue transition-[left] duration-200 ease-linear z-10 ${state === "collapsed"
-          ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
-          : "left-[calc(var(--sidebar-width)+0.25rem)]"
-          }`}
+        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-brand-blue hover:text-brand-blue hover:bg-brand-blue transition-[left] duration-200 ease-linear z-10 ${
+          state === "collapsed"
+            ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
+            : "left-[calc(var(--sidebar-width)+0.25rem)]"
+        }`}
       />
 
       {/* Header */}
       <div className="border-b ">
         <div className="p-4 pt-12 flex items-center pl-14 gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Lista de Espera</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Lista de Espera
+            </h1>
           </div>
         </div>
       </div>
-
 
       <div className="p-8 pl-24 pr-24 pb-2">
         <WaitlistSearch
@@ -136,11 +138,8 @@ export function WaitlistPage() {
               </Button>
             </div>
           </div>
-
-
-        )
-        }
+        )}
       </div>
-    </div >
+    </div>
   );
 }

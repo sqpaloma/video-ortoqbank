@@ -6,8 +6,6 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { MobileBottomNav } from "@/components/nav/mobile-bottom-nav";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 
-
-
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { isLoading } = useCurrentUser();
 
@@ -32,10 +30,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         <main className="via-brand-blue/10 min-h-screen w-full bg-gradient-to-b from-slate-50 to-indigo-100">
           {/* Add padding-bottom for mobile nav, remove for desktop */}
-          <div className="mx-auto">
-            {children}
-          </div>
-
+          <div className="mx-auto">{children}</div>
         </main>
 
         {/* Mobile bottom nav visible only on screens smaller than md */}

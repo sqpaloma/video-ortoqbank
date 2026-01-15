@@ -15,7 +15,7 @@ export function CategoriesCard({
   imageUrl = "",
   title = "",
   description = "",
-  onClick = () => { },
+  onClick = () => {},
 }: CategoriesCardProps) {
   return (
     <Card
@@ -25,12 +25,7 @@ export function CategoriesCard({
       {/* Imagem de fundo ocupando todo o card */}
       <div className="">
         {imageUrl ? (
-          <Image
-            src={imageUrl}
-            alt={title}
-            fill
-            className="object-cover"
-          />
+          <Image src={imageUrl} alt={title} fill className="object-cover" />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <PlayCircle size={48} className="text-primary/30 md:w-16 md:h-16" />

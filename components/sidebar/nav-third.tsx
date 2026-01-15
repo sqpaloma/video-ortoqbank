@@ -57,11 +57,10 @@ export default function NavThird() {
   });
 
   return (
-
     <SidebarGroup className="pl-0">
       <SidebarGroupLabel>Usuário</SidebarGroupLabel>
       <SidebarMenu>
-        {visibleItems.map(item => (
+        {visibleItems.map((item) => (
           <SidebarMenuItem key={item.title}>
             <SidebarMenuButton asChild>
               <Link

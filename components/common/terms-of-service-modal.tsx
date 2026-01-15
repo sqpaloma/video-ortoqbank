@@ -1,7 +1,7 @@
-'use client';
-import { useEffect, useRef } from 'react';
+"use client";
+import { useEffect, useRef } from "react";
 
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -9,7 +9,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 
 interface TermsOfServiceModalProps {
   open: boolean;
@@ -49,9 +49,9 @@ export function TermsOfServiceModal({
           ref={scrollRef}
           className="prose prose-sm dark:prose-invert max-w-none flex-1 overflow-y-auto px-4 py-2"
           style={{
-            height: '400px',
-            scrollbarWidth: 'thin',
-            scrollbarColor: '#888 #f1f1f1',
+            height: "400px",
+            scrollbarWidth: "thin",
+            scrollbarColor: "#888 #f1f1f1",
           }}
         >
           <h2 className="mb-3 text-xl font-bold">Introdução</h2>
@@ -68,7 +68,7 @@ export function TermsOfServiceModal({
 
           <h2 className="mt-6 mb-3 text-xl font-bold">Condições de Uso</h2>
           <p className="mb-4">
-            <span className="font-semibold">Uso Pessoal e Intransferível:</span>{' '}
+            <span className="font-semibold">Uso Pessoal e Intransferível:</span>{" "}
             O acesso ao OrtoQBank é fornecido ao Usuário de forma pessoal e
             intransferível. É estritamente proibida a reprodução, revenda,
             distribuição ou compartilhamento, total ou parcial, de qualquer
@@ -90,7 +90,7 @@ export function TermsOfServiceModal({
           <p className="mb-4">
             <span className="font-semibold">
               Nenhuma Garantia de Resultado:
-            </span>{' '}
+            </span>{" "}
             O OrtoQBank é um instrumento de estudo e reforço acadêmico. Embora
             nosso objetivo seja oferecer questões de qualidade com gabaritos
             comentados para auxiliar na preparação, não garantimos qualquer
@@ -107,7 +107,7 @@ export function TermsOfServiceModal({
             OrtoQBank:
           </p>
           <p className="mb-4">
-            <span className="font-semibold">Veracidade das Informações:</span>{' '}
+            <span className="font-semibold">Veracidade das Informações:</span>{" "}
             Fornecer dados cadastrais verdadeiros e atualizados no momento da
             criação da conta e da compra do acesso. O Usuário é responsável por
             manter seus dados de contato (como e-mail e telefone) atualizados
@@ -116,7 +116,7 @@ export function TermsOfServiceModal({
           <p className="mb-4">
             <span className="font-semibold">
               Confidencialidade de Credenciais:
-            </span>{' '}
+            </span>{" "}
             Manter em sigilo seu login e senha de acesso. Essas credenciais são
             de uso pessoal e não devem ser compartilhadas com terceiros. O
             Usuário é integralmente responsável por quaisquer atividades
@@ -126,7 +126,7 @@ export function TermsOfServiceModal({
             providências.
           </p>
           <p className="mb-4">
-            <span className="font-semibold">Uso Adequado do Conteúdo:</span>{' '}
+            <span className="font-semibold">Uso Adequado do Conteúdo:</span>{" "}
             Utilizar o conteúdo do OrtoQBank apenas para estudo pessoal. É
             vedado ao Usuário copiar, reproduzir, publicar, compartilhar ou
             distribuir as questões, respostas comentadas, textos, imagens ou
@@ -135,7 +135,7 @@ export function TermsOfServiceModal({
             criar obras derivadas, compilações ou produtos concorrentes.
           </p>
           <p className="mb-4">
-            <span className="font-semibold">Equipamentos e Conexão:</span>{' '}
+            <span className="font-semibold">Equipamentos e Conexão:</span>{" "}
             Garantir que possui os equipamentos (computador, smartphone, etc.) e
             conexão à internet necessários para acessar a plataforma. A
             OrtoQBank não será responsável por impossibilidades de acesso
@@ -171,7 +171,7 @@ export function TermsOfServiceModal({
           <p className="mb-4">
             <span className="font-semibold">
               Vedação de Uso Não Autorizado:
-            </span>{' '}
+            </span>{" "}
             Qualquer uso do conteúdo em desacordo com estes Termos, incluindo
             reprodução, armazenamento, distribuição, transmissão, exibição ou
             execução pública do conteúdo do OrtoQBank sem permissão, constitui
@@ -181,7 +181,7 @@ export function TermsOfServiceModal({
             da legislação brasileira.
           </p>
           <p className="mb-4">
-            <span className="font-semibold">Marcas e Sinais Distintivos:</span>{' '}
+            <span className="font-semibold">Marcas e Sinais Distintivos:</span>{" "}
             As marcas, nomes comerciais ou logotipos presentes no OrtoQBank são
             de titularidade da empresa proprietária do OrtoQBank. É vedada a
             utilização de quaisquer desses sinais distintivos pelo Usuário,
@@ -200,7 +200,7 @@ export function TermsOfServiceModal({
           <p className="mb-4">
             <span className="font-semibold">
               Período de Validade do Acesso:
-            </span>{' '}
+            </span>{" "}
             O Usuário terá direito de acesso ao OrtoQBank por tempo limitado, ou
             seja, até a data da prova de título de especialista em Ortopedia
             (SBOT) do ano em que foi realizada a compra. Após essa data, o
@@ -222,7 +222,7 @@ export function TermsOfServiceModal({
           <p className="mb-4">
             <span className="font-semibold">
               Manutenções e Disponibilidade:
-            </span>{' '}
+            </span>{" "}
             A OrtoQBank envida seus melhores esforços para manter a plataforma
             em funcionamento e acessível 24 (vinte e quatro) horas por dia. No
             entanto, poderão ocorrer interrupções temporárias para manutenções,
@@ -248,7 +248,7 @@ export function TermsOfServiceModal({
             do CDC.
           </p>
           <p className="mb-4">
-            <span className="font-semibold">Procedimento para Reembolso:</span>{' '}
+            <span className="font-semibold">Procedimento para Reembolso:</span>{" "}
             Para exercer o direito de arrependimento, o Usuário deverá entrar em
             contato com o suporte da OrtoQBank dentro do prazo de 7 dias, por
             meio dos canais oficiais de atendimento, solicitando expressamente o
@@ -269,7 +269,7 @@ export function TermsOfServiceModal({
           <p className="mb-4">
             <span className="font-semibold">
               Expiração do Direito de Arrependimento:
-            </span>{' '}
+            </span>{" "}
             Decorrido o prazo de 7 dias sem que o Usuário tenha solicitado o
             cancelamento, a compra será considerada definitiva e não será
             possível a devolução dos valores pagos, salvo disposição em
@@ -292,7 +292,7 @@ export function TermsOfServiceModal({
           <p className="mb-4">
             <span className="font-semibold">
               Sem Garantia de Novos Conteúdos:
-            </span>{' '}
+            </span>{" "}
             A aquisição do acesso ao OrtoQBank não garante ao Usuário o direito
             a receber acréscimos ou novos conteúdos além daqueles já
             disponibilizados no momento da compra. O Usuário compreende que o
@@ -301,7 +301,7 @@ export function TermsOfServiceModal({
             conforme a estratégia de atualização da OrtoQBank.
           </p>
           <p className="mb-4">
-            <span className="font-semibold">Modificações na Plataforma:</span>{' '}
+            <span className="font-semibold">Modificações na Plataforma:</span>{" "}
             Além do conteúdo, a OrtoQBank poderá implementar melhorias ou
             alterações na plataforma (por exemplo, funcionalidades, interface,
             disposição das informações) visando aprimorar a experiência do
@@ -309,7 +309,7 @@ export function TermsOfServiceModal({
             obrigatórias.
           </p>
           <p className="mb-4">
-            <span className="font-semibold">Comunicação de Atualizações:</span>{' '}
+            <span className="font-semibold">Comunicação de Atualizações:</span>{" "}
             A OrtoQBank pode, a seu critério, informar os Usuários sobre
             atualizações relevantes no conteúdo ou na plataforma, seja por meio
             de avisos dentro do próprio sistema, seja via e-mail cadastrado. Por
@@ -323,7 +323,7 @@ export function TermsOfServiceModal({
           <p className="mb-4">
             <span className="font-semibold">
               Concordância com o Recebimento:
-            </span>{' '}
+            </span>{" "}
             Ao aceitar estes Termos de Uso, o Usuário autoriza a OrtoQBank a
             enviar comunicações de caráter informativo, promocional e de
             marketing referentes ao OrtoQBank ou a produtos e serviços
@@ -375,7 +375,7 @@ export function TermsOfServiceModal({
             contratadas.
           </p>
           <p className="mb-4">
-            <span className="font-semibold">Integralidade do Acordo:</span>{' '}
+            <span className="font-semibold">Integralidade do Acordo:</span>{" "}
             Estes Termos de Uso, juntamente com a Política de Privacidade do
             OrtoQBank (se aplicável) e demais regras ou termos específicos
             disponibilizados na plataforma, constituem o acordo integral entre a
@@ -419,7 +419,7 @@ export function TermsOfServiceModal({
             className="w-full sm:w-auto"
             disabled={isLoading}
           >
-            {isLoading ? 'Processando...' : 'Aceito os Termos de Serviço'}
+            {isLoading ? "Processando..." : "Aceito os Termos de Serviço"}
           </Button>
         </DialogFooter>
       </DialogContent>

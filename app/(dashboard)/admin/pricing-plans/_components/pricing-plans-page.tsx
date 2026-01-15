@@ -14,7 +14,6 @@ import { PricingPlanCard } from "./pricing-plan-card";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { PlusIcon } from "lucide-react";
 
-
 type PricingPlan = Doc<"pricingPlans">;
 
 const initialFormData: FormData = {
@@ -91,9 +90,9 @@ export function PricingPlansPage() {
       : undefined;
     const accessYears = formData.accessYears
       ? formData.accessYears
-        .split(",")
-        .map((y) => Number.parseInt(y.trim(), 10))
-        .filter((y) => !Number.isNaN(y))
+          .split(",")
+          .map((y) => Number.parseInt(y.trim(), 10))
+          .filter((y) => !Number.isNaN(y))
       : undefined;
     const displayOrder = formData.displayOrder
       ? Number.parseInt(formData.displayOrder, 10)
@@ -172,7 +171,9 @@ export function PricingPlansPage() {
       <div className="border-b ">
         <div className="p-4 pt-12 flex items-center justify-between pr-46 pl-14 gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Gerenciar Categorias</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Gerenciar Categorias
+            </h1>
           </div>
 
           <Button
@@ -184,7 +185,6 @@ export function PricingPlansPage() {
           </Button>
         </div>
       </div>
-
 
       <div className=" py-8 rounded-2xl">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-7xl mx-auto px-4">

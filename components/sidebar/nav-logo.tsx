@@ -1,13 +1,13 @@
-import Image from 'next/image';
-import Link from 'next/link';
+import Image from "next/image";
+import Link from "next/link";
 
-import { Separator } from '../ui/separator';
+import { Separator } from "../ui/separator";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from '../ui/sidebar';
+} from "../ui/sidebar";
 
 export default function NavLogo() {
   const { setOpenMobile } = useSidebar();
