@@ -90,9 +90,9 @@ export function PricingPlansPage() {
       : undefined;
     const accessYears = formData.accessYears
       ? formData.accessYears
-          .split(",")
-          .map((y) => Number.parseInt(y.trim(), 10))
-          .filter((y) => !Number.isNaN(y))
+        .split(",")
+        .map((y) => Number.parseInt(y.trim(), 10))
+        .filter((y) => !Number.isNaN(y))
       : undefined;
     const displayOrder = formData.displayOrder
       ? Number.parseInt(formData.displayOrder, 10)
@@ -172,7 +172,7 @@ export function PricingPlansPage() {
         <div className="p-4 pt-12 flex items-center justify-between pr-46 pl-14 gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              Gerenciar Categorias
+              Planos de preços
             </h1>
           </div>
 

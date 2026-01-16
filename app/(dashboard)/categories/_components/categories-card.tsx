@@ -15,12 +15,12 @@ export function CategoriesCard({
   imageUrl = "",
   title = "",
   description = "",
-  onClick = () => {},
+  onClick = () => { },
 }: CategoriesCardProps) {
   return (
     <Card
       onClick={onClick}
-      className="cursor-pointer hover:shadow-md transition-all duration-300 hover:border-primary group overflow-hidden p-0 relative h-65"
+      className="cursor-pointer hover:shadow-md transition-all duration-300 hover:border-primary group overflow-hidden p-0 relative h-64"
     >
       {/* Imagem de fundo ocupando todo o card */}
       <div className="">

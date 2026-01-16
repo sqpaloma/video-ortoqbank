@@ -54,11 +54,10 @@ export function UsersPage() {
   return (
     <div>
       <SidebarTrigger
-        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-brand-blue hover:text-brand-blue hover:bg-brand-blue transition-[left] duration-200 ease-linear z-10 ${
-          state === "collapsed"
-            ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
-            : "left-[calc(var(--sidebar-width)+0.25rem)]"
-        }`}
+        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-brand-blue hover:text-white hover:bg-brand-blue transition-[left] duration-200 ease-linear z-10 ${state === "collapsed"
+          ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
+          : "left-[calc(var(--sidebar-width)+0.25rem)]"
+          }`}
       />
 
       {/* Header */}
@@ -73,7 +72,7 @@ export function UsersPage() {
       <div className="p-4"></div>
       <SearchUsers />
 
-      <div className="mt-4 pl-26 px-1">
+      <div className="mt-4 pl-24 px-1">
         <p className="text-muted-foreground text-sm">
           Mostrando todos os {users?.length || 0} usuário
           {users?.length === 1 ? "" : "s"}

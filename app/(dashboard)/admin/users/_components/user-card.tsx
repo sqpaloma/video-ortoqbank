@@ -45,13 +45,12 @@ export function UserCard({
           Cargo Atual:
         </span>
         <span
-          className={`ml-2 inline-flex rounded-full px-2 py-1 text-xs font-medium ${
-            role === "admin"
-              ? "bg-brand-blue/10 text-brand-blue/90 dark:bg-brand-blue/30 dark:text-brand-blue/40"
-              : role === "user"
-                ? "bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-400"
-                : "bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-400"
-          }`}
+          className={`ml-2 inline-flex rounded-full px-2 py-1 text-xs font-medium ${role === "admin"
+            ? "bg-brand-blue/10 text-brand-blue/90 dark:bg-brand-blue/30 dark:text-brand-blue/40"
+            : role === "user"
+              ? "bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-400"
+              : "bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-400"
+            }`}
         >
           {role === "admin" ? "Administrador" : "Usuário"}
         </span>
@@ -61,7 +60,8 @@ export function UserCard({
         {role === "admin" ? (
           <Button
             onClick={() => onRemoveRole(user._id)}
-            className="inline-flex h-8 items-center rounded-md border px-3 text-xs font-medium text-white hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50 dark:border-red-900/30 dark:text-red-600 dark:hover:bg-red-900/20"
+            variant="destructive"
+            size="sm"
             disabled={isLoading}
           >
             {isLoading ? "Carregando..." : "Remover Cargo"}
@@ -70,7 +70,8 @@ export function UserCard({
           <>
             <Button
               onClick={() => onSetRole(user._id, "admin")}
-              className="inline-flex h-8 items-center rounded-md border border-transparent bg-brand-blue px-3 text-xs font-medium text-white hover:bg-brand-blue/90 focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 focus:outline-none disabled:opacity-50"
+              className="bg-brand-blue text-white hover:bg-brand-blue/90 focus:ring-brand-blue"
+              size="sm"
               disabled={isLoading}
             >
               {isLoading ? "Carregando..." : "Tornar Admin"}
@@ -78,7 +79,8 @@ export function UserCard({
 
             <Button
               onClick={() => onSetRole(user._id, "user")}
-              className="hover:bg-muted inline-flex h-8 items-center rounded-md border px-3 text-xs font-medium focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
+              variant="outline"
+              size="sm"
               disabled={role === "user" || isLoading}
             >
               {isLoading ? "Carregando..." : "Tornar Usuário"}

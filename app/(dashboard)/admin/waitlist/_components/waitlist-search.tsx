@@ -41,7 +41,7 @@ export function WaitlistSearch({
         disabled={isLoading || !hasResults}
         title="Exportar para Excel"
       >
-        <Download className="h-4 w-4 bg-white" />
+        <Download className="h-4 w-4" />
       </Button>
     </div>
   );

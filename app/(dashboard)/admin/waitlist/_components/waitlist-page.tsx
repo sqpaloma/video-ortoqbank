@@ -68,11 +68,10 @@ export function WaitlistPage() {
     <div className="min-h-screen relative">
       {/* Sidebar trigger - follows sidebar position */}
       <SidebarTrigger
-        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-brand-blue hover:text-brand-blue hover:bg-brand-blue transition-[left] duration-200 ease-linear z-10 ${
-          state === "collapsed"
-            ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
-            : "left-[calc(var(--sidebar-width)+0.25rem)]"
-        }`}
+        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-brand-blue hover:text-brand-blue hover:bg-brand-blue transition-[left] duration-200 ease-linear z-10 ${state === "collapsed"
+          ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
+          : "left-[calc(var(--sidebar-width)+0.25rem)]"
+          }`}
       />
 
       {/* Header */}
@@ -97,7 +96,7 @@ export function WaitlistPage() {
         />
       </div>
 
-      <p className="text-sm pl-26 pr-24 text-muted-foreground">
+      <p className="text-sm pl-24 pr-24 text-muted-foreground">
         {isLoading
           ? "Carregando..."
           : searchQuery.trim()
@@ -113,7 +112,7 @@ export function WaitlistPage() {
         />
       </div>
 
-      <div className="p-14 pl-26 pr-26">
+      <div className="p-14 pl-24 pr-24">
         {/* Botões de Paginação */}
         {!searchQuery.trim() && (
           <div className="flex items-center justify-between ">

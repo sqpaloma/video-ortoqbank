@@ -53,7 +53,7 @@ export function LessonList({
   };
 
   return (
-    <div className=" rounded-lg bg-white border">
+    <div className="rounded-lg bg-white border">
       {/* Unit Header */}
       <button
         onClick={onToggle}

@@ -29,10 +29,10 @@ function SearchUsersContent() {
   };
 
   return (
-    <div className="w-full pl-24 pr-24 space-y-2">
+    <div className="w-full px-4 sm:px-12 md:px-24 space-y-2">
       <form onSubmit={handleSubmit} className="flex items-center gap-4">
         <div className="relative flex-1">
-          <div className="text-muted-foreground absolute top-1/2 bg-white left-3 -translate-y-1/2">
+          <div className="text-muted-foreground absolute top-1/2 bg-background left-3 -translate-y-1/2">
             <Search size={18} />
           </div>
           <input
