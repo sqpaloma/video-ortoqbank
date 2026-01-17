@@ -14,10 +14,10 @@ export default function QuestionsPromo() {
   return (
     <>
       {/* Expanded version - full card */}
-      <div className="relative mb-3 rounded-xl bg-blue-brand border border-white/40 p-4 shadow-lg group-data-[collapsible=icon]:hidden">
+      <div className="relative rounded-xl bg-blue-brand border border-white/40 p-3 shadow-lg group-data-[collapsible=icon]:hidden">
         {/* Icon */}
-        <div className="mb-3">
-          <div className="flex size-12 items-center justify-center rounded-lg">
+        <div>
+          <div className="flex size-14 items-center justify-center rounded-lg">
             <Image
               src="/questoes-transparente.png"
               alt="OrtoQBank Logo"
@@ -49,7 +49,7 @@ export default function QuestionsPromo() {
 
       {/* Collapsed version - just image and separator */}
       <div className="mb-2 hidden group-data-[collapsible=icon]:block">
-        <div className="flex flex-col items-center gap-2 px-2">
+        <div className="flex flex-col items-center gap-2">
           <button
             onClick={handleVisitClick}
             className="cursor-pointer transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-white/50 rounded-sm"

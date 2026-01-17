@@ -7,9 +7,7 @@ import { api } from "@/convex/_generated/api";
 import { Doc, Id } from "@/convex/_generated/dataModel";
 import { SearchUsers } from "./search-users";
 import { UserCard } from "./user-card";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { ArrowLeftIcon } from "lucide-react";
+import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 
 export function UsersPage() {
   const setUserRole = useMutation(api.users.setRole);
@@ -17,6 +15,7 @@ export function UsersPage() {
 
   const usersFromAll = useQuery(api.users.getUsers, { limit: 20 });
   const users = usersFromAll;
+  const { state } = useSidebar();
 
   const handleSetRole = async (userId: Id<"users">, role: string) => {
     setLoadingUsers((prev) => new Set(prev).add(userId));
@@ -53,19 +52,28 @@ export function UsersPage() {
   }
 
   return (
-    <div className="rounded-lg space-y-6 p-12 md:p-12 md:pl-42 md:pr-42">
-      <div className="flex items-center gap-3">
-        <Link href="/admin">
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <ArrowLeftIcon className="h-4 w-4" />
-          </Button>
-        </Link>
-        <h1 className="text-2xl font-semibold">Permissões de Usuários</h1>
+    <div>
+      <SidebarTrigger
+        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-brand-blue hover:text-white hover:bg-brand-blue transition-[left] duration-200 ease-linear z-10 ${
+          state === "collapsed"
+            ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
+            : "left-[calc(var(--sidebar-width)+0.25rem)]"
+        }`}
+      />
+
+      {/* Header */}
+      <div className="border-b ">
+        <div className="p-4 pt-12 flex items-center pl-14 gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Usuários</h1>
+          </div>
+        </div>
       </div>
 
+      <div className="p-4"></div>
       <SearchUsers />
 
-      <div className="mt-4 px-1">
+      <div className="mt-4 pl-24 px-1">
         <p className="text-muted-foreground text-sm">
           Mostrando todos os {users?.length || 0} usuário
           {users?.length === 1 ? "" : "s"}
@@ -73,7 +81,7 @@ export function UsersPage() {
       </div>
 
       {users && users.length > 0 && (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 pl-24 lg:grid-cols-4">
           {users.map((user: Doc<"users">) => (
             <UserCard
               key={user.clerkUserId}

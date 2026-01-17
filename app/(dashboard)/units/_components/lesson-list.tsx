@@ -53,7 +53,7 @@ export function LessonList({
   };
 
   return (
-    <div className="bg-white rounded-lg border">
+    <div className="rounded-lg bg-white border">
       {/* Unit Header */}
       <button
         onClick={onToggle}
@@ -91,7 +91,7 @@ export function LessonList({
                   key={lesson._id}
                   onClick={() => onLessonClick(lesson._id)}
                   className={cn(
-                    "w-full p-3 flex items-start gap-3 hover:bg-blue-50 transition-colors border-b last:border-b-0",
+                    "w-full p-3 flex items-start gap-3 hover:bg-blue-50 transition-colors",
                     isActive && "bg-blue-50 border-l-4 border-l-primary",
                   )}
                 >

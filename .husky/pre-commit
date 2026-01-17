@@ -1,3 +1,9 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Adiciona o PATH do Homebrew (onde npm está instalado)
+export PATH="/opt/homebrew/bin:$PATH"
+
 echo "formatando"
 npm run format
 echo "lintando"

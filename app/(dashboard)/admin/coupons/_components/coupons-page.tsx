@@ -2,15 +2,12 @@
 
 import { useMutation, useQuery } from "convex/react";
 import { useMemo, useState } from "react";
-import Link from "next/link";
-import { ArrowLeftIcon } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 
 import { CouponForm, CouponFormData, CouponType } from "./coupon-form";
 import { CouponListItem } from "./coupon-list-item";
+import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 
 const toEpoch = (s: string | undefined) =>
   s ? new Date(s).getTime() : undefined;
@@ -30,6 +27,7 @@ export function CouponsPage() {
   const createCoupon = useMutation(api.promoCoupons.create);
   const updateCoupon = useMutation(api.promoCoupons.update);
   const removeCoupon = useMutation(api.promoCoupons.remove);
+  const { state } = useSidebar();
 
   const [form, setForm] = useState<CouponFormData>(initialFormData);
   const nowIso = useMemo(() => new Date().toISOString().slice(0, 16), []);
@@ -60,24 +58,35 @@ export function CouponsPage() {
   }
 
   return (
-    <div className="space-y-6 p-12 md:p-12 md:pl-42 md:pr-42">
-      <div className="flex items-center gap-3">
-        <Link href="/admin">
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <ArrowLeftIcon className="h-4 w-4" />
-          </Button>
-        </Link>
-        <h1 className="text-2xl font-semibold">Cupons</h1>
-      </div>
-
-      <CouponForm
-        form={form}
-        onChange={setForm}
-        onSubmit={handleCreate}
-        nowIso={nowIso}
+    <div className="min-h-screen relative">
+      {/* Sidebar trigger - follows sidebar position */}
+      <SidebarTrigger
+        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-brand-blue hover:text-brand-blue hover:bg-brand-blue transition-[left] duration-200 ease-linear z-10 ${
+          state === "collapsed"
+            ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
+            : "left-[calc(var(--sidebar-width)+0.25rem)]"
+        }`}
       />
 
-      <div className="grid gap-3">
+      {/* Header */}
+      <div className="border-b ">
+        <div className="p-4 pt-12 flex items-center pl-14 gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Cupons</h1>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-14 pl-24 pr-24">
+        <CouponForm
+          form={form}
+          onChange={setForm}
+          onSubmit={handleCreate}
+          nowIso={nowIso}
+        />
+      </div>
+
+      <div className="grid gap-3 pl-24 pr-24 grid-cols-3">
         {coupons.map((coupon) => (
           <CouponListItem
             key={coupon._id}

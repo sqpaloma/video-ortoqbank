@@ -28,7 +28,7 @@ export function WaitlistSearch({
         value={searchInput}
         onChange={(e) => onSearchInputChange(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && onSearch()}
-        className="max-w-md"
+        className="max-w-md bg-white"
       />
       <Button onClick={onSearch} size="default">
         <Search className="mr-2 h-4 w-4" />

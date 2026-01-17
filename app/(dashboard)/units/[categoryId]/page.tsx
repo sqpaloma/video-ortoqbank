@@ -53,7 +53,7 @@ export default async function Page({ params }: UnitsPageProps) {
     console.error("Error loading units:", error);
     // Fallback: return empty state
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-muted-foreground">Erro ao carregar unidades</p>
         </div>

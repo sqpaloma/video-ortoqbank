@@ -8,10 +8,12 @@ import { api } from "@/convex/_generated/api";
 import { WaitlistSearch } from "./waitlist-search";
 import { WaitlistTable } from "./waitlist-table";
 import { Button } from "@/components/ui/button";
-import { ArrowLeftIcon, ChevronRightIcon } from "lucide-react";
-import Link from "next/link";
+
+import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
+import { ChevronRightIcon } from "lucide-react";
 
 export function WaitlistPage() {
+  const { state } = useSidebar();
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -63,25 +65,39 @@ export function WaitlistPage() {
   }
 
   return (
-    <div className="space-y-6 md:p-36 md:pt-12">
-      <div className="flex items-center gap-3">
-        <Link href="/admin">
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <ArrowLeftIcon className="h-4 w-4" />
-          </Button>
-        </Link>
-        <h1 className="text-2xl font-semibold">Lista de Espera</h1>
-      </div>
-      <WaitlistSearch
-        searchInput={searchInput}
-        onSearchInputChange={setSearchInput}
-        onSearch={handleSearch}
-        onExport={handleExportToExcel}
-        isLoading={isLoading}
-        hasResults={filteredEntries.length > 0}
+    <div className="min-h-screen relative">
+      {/* Sidebar trigger - follows sidebar position */}
+      <SidebarTrigger
+        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-brand-blue hover:text-brand-blue hover:bg-brand-blue transition-[left] duration-200 ease-linear z-10 ${
+          state === "collapsed"
+            ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
+            : "left-[calc(var(--sidebar-width)+0.25rem)]"
+        }`}
       />
 
-      <p className="text-sm text-muted-foreground">
+      {/* Header */}
+      <div className="border-b ">
+        <div className="p-4 pt-12 flex items-center pl-14 gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Lista de Espera
+            </h1>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-8 pl-24 pr-24 pb-2">
+        <WaitlistSearch
+          searchInput={searchInput}
+          onSearchInputChange={setSearchInput}
+          onSearch={handleSearch}
+          onExport={handleExportToExcel}
+          isLoading={isLoading}
+          hasResults={filteredEntries.length > 0}
+        />
+      </div>
+
+      <p className="text-sm pl-24 pr-24 text-muted-foreground">
         {isLoading
           ? "Carregando..."
           : searchQuery.trim()
@@ -89,37 +105,41 @@ export function WaitlistPage() {
             : `Total de ${(entries ?? []).length} inscricao(oes) na lista de espera.`}
       </p>
 
-      <WaitlistTable
-        entries={filteredEntries}
-        isLoading={isLoading}
-        hasSearchQuery={!!searchQuery.trim()}
-      />
+      <div className="p-14 pl-24 pr-24">
+        <WaitlistTable
+          entries={filteredEntries}
+          isLoading={isLoading}
+          hasSearchQuery={!!searchQuery.trim()}
+        />
+      </div>
 
-      {/* Botões de Paginação */}
-      {!searchQuery.trim() && (
-        <div className="flex items-center justify-between border-t pt-4">
-          <p className="text-sm text-muted-foreground">
-            Mostrando {entries.length} registro(s)
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => loadMore(10)}
-              disabled={status !== "CanLoadMore"}
-            >
-              {status === "LoadingMore" ? (
-                "Carregando..."
-              ) : (
-                <>
-                  <ChevronRightIcon className="h-4 w-4 mr-1" />
-                  Carregar mais 10
-                </>
-              )}
-            </Button>
+      <div className="p-14 pl-24 pr-24">
+        {/* Botões de Paginação */}
+        {!searchQuery.trim() && (
+          <div className="flex items-center justify-between ">
+            <p className="text-sm text-muted-foreground">
+              Mostrando {entries.length} registro(s)
+            </p>
+            <div className="flex gap-2 bg-white rounded-lg">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => loadMore(10)}
+                disabled={status !== "CanLoadMore"}
+              >
+                {status === "LoadingMore" ? (
+                  "Carregando..."
+                ) : (
+                  <>
+                    <ChevronRightIcon className="h-4 w-4 mr-1" />
+                    Carregar mais 10
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

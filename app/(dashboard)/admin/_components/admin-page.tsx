@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import {
@@ -11,14 +10,11 @@ import {
   PercentIcon,
   UsersIcon,
   BookIcon,
-  ChevronLeftIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 export function AdminHub() {
   const { state } = useSidebar();
-  const router = useRouter();
 
   const adminPages = [
     {
@@ -66,10 +62,10 @@ export function AdminHub() {
   ];
 
   return (
-    <div className="min-h-screen bg-white relative">
+    <div className="min-h-screen relative">
       {/* Sidebar trigger - follows sidebar position */}
       <SidebarTrigger
-        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-blue-brand hover:text-blue-brand-dark hover:bg-blue-brand-light transition-[left] duration-200 ease-linear z-10 ${
+        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-brand-blue hover:text-brand-blue hover:bg-brand-blue transition-[left] duration-200 ease-linear z-10 ${
           state === "collapsed"
             ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
             : "left-[calc(var(--sidebar-width)+0.25rem)]"
@@ -78,15 +74,7 @@ export function AdminHub() {
 
       {/* Header */}
       <div className="border-b ">
-        <div className="p-4 flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => router.back()}
-            className="text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-          >
-            <ChevronLeftIcon size={24} />
-          </Button>
+        <div className="p-4 pt-12 flex items-center pl-14 gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Administração</h1>
           </div>

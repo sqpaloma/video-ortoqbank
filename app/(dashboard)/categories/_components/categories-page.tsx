@@ -51,10 +51,10 @@ export function CategoriesPage({ preloadedCategories }: CategoriesPageProps) {
     searchQuery && searchResults ? searchResults : categories;
 
   return (
-    <div className="min-h-screen bg-white relative">
+    <div className="min-h-screen relative">
       {/* Sidebar trigger - follows sidebar position */}
       <SidebarTrigger
-        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-blue-brand hover:text-blue-brand-dark hover:bg-blue-brand-light transition-[left] duration-200 ease-linear z-10 ${state === "collapsed" ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]" : "left-[calc(var(--sidebar-width)+0.25rem)]"}`}
+        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-blue-brand hover:text-blue-brand hover:bg-blue-brand transition-[left] duration-200 ease-linear z-10 ${state === "collapsed" ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]" : "left-[calc(var(--sidebar-width)+0.25rem)]"}`}
       />
 
       <div className="px-12 sm:px-16 md:px-24 lg:px-24 xl:px-42 pb-24 md:pb-3 pt-8 md:pt-8">
@@ -101,7 +101,7 @@ export function CategoriesPage({ preloadedCategories }: CategoriesPageProps) {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {filteredCategories.length > 0 ? (
               filteredCategories.map((category) => (
                 <CategoriesCard

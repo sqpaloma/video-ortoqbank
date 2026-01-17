@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { Doc, Id } from "@/convex/_generated/dataModel";
+import { Button } from "@/components/ui/button";
 
 interface UserCardProps {
   user: Doc<"users">;
@@ -20,7 +21,7 @@ export function UserCard({
   const role = user.role;
 
   return (
-    <div className="rounded-lg border p-4 shadow-sm transition-all hover:shadow-md">
+    <div className="rounded-lg border p-4 shadow-sm bg-white transition-all hover:shadow-md">
       <div className="mb-4 flex items-center gap-3">
         {user.imageUrl && (
           <Image
@@ -58,30 +59,33 @@ export function UserCard({
 
       <div className={`flex gap-2 ${role === "admin" ? "justify-end" : ""}`}>
         {role === "admin" ? (
-          <button
+          <Button
             onClick={() => onRemoveRole(user._id)}
-            className="inline-flex h-8 items-center rounded-md border border-red-200 px-3 text-xs font-medium text-red-900 hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50 dark:border-red-900/30 dark:text-red-600 dark:hover:bg-red-900/20"
+            variant="destructive"
+            size="sm"
             disabled={isLoading}
           >
             {isLoading ? "Carregando..." : "Remover Cargo"}
-          </button>
+          </Button>
         ) : (
           <>
-            <button
+            <Button
               onClick={() => onSetRole(user._id, "admin")}
-              className="inline-flex h-8 items-center rounded-md border border-transparent bg-brand-blue px-3 text-xs font-medium text-white hover:bg-brand-blue/90 focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 focus:outline-none disabled:opacity-50"
+              className="bg-brand-blue text-white hover:bg-brand-blue/90 focus:ring-brand-blue"
+              size="sm"
               disabled={isLoading}
             >
               {isLoading ? "Carregando..." : "Tornar Admin"}
-            </button>
+            </Button>
 
-            <button
+            <Button
               onClick={() => onSetRole(user._id, "user")}
-              className="hover:bg-muted inline-flex h-8 items-center rounded-md border px-3 text-xs font-medium focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
+              variant="outline"
+              size="sm"
               disabled={role === "user" || isLoading}
             >
               {isLoading ? "Carregando..." : "Tornar Usuário"}
-            </button>
+            </Button>
           </>
         )}
       </div>
