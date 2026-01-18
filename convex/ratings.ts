@@ -91,3 +91,60 @@ export const getLessonAverageRating = query({
     };
   },
 });
+
+/**
+ * Get all ratings with user and lesson information (admin only)
+ */
+export const getAllRatingsWithDetails = query({
+  args: {},
+  returns: v.array(
+    v.object({
+      _id: v.id("lessonRatings"),
+      _creationTime: v.number(),
+      userId: v.string(),
+      lessonId: v.id("lessons"),
+      unitId: v.id("units"),
+      rating: v.number(),
+      createdAt: v.number(),
+      userName: v.string(),
+      userEmail: v.string(),
+      lessonTitle: v.string(),
+      unitTitle: v.string(),
+    }),
+  ),
+  handler: async (ctx) => {
+    const ratings = await ctx.db.query("lessonRatings").order("desc").collect();
+
+    const ratingsWithDetails = await Promise.all(
+      ratings.map(async (rating) => {
+        const user = await ctx.db
+          .query("users")
+          .withIndex("by_clerkUserId", (q) =>
+            q.eq("clerkUserId", rating.userId),
+          )
+          .first();
+
+        const lesson = await ctx.db.get(rating.lessonId);
+        const unit = await ctx.db.get(rating.unitId);
+
+        return {
+          _id: rating._id,
+          _creationTime: rating._creationTime,
+          userId: rating.userId,
+          lessonId: rating.lessonId,
+          unitId: rating.unitId,
+          rating: rating.rating,
+          createdAt: rating.createdAt,
+          userName: user
+            ? `${user.firstName} ${user.lastName}`
+            : "Usuário desconhecido",
+          userEmail: user?.email || "N/A",
+          lessonTitle: lesson?.title || "Aula não encontrada",
+          unitTitle: unit?.title || "Unidade não encontrada",
+        };
+      }),
+    );
+
+    return ratingsWithDetails;
+  },
+});

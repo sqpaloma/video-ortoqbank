@@ -65,3 +65,63 @@ export const getUserFeedback = query({
     return feedback || null;
   },
 });
+
+/**
+ * Get all feedback with user and lesson information (admin only)
+ */
+export const getAllFeedbackWithDetails = query({
+  args: {},
+  returns: v.array(
+    v.object({
+      _id: v.id("lessonFeedback"),
+      _creationTime: v.number(),
+      userId: v.string(),
+      lessonId: v.id("lessons"),
+      unitId: v.id("units"),
+      feedback: v.string(),
+      createdAt: v.number(),
+      userName: v.string(),
+      userEmail: v.string(),
+      lessonTitle: v.string(),
+      unitTitle: v.string(),
+    }),
+  ),
+  handler: async (ctx) => {
+    const feedbacks = await ctx.db
+      .query("lessonFeedback")
+      .order("desc")
+      .collect();
+
+    const feedbackWithDetails = await Promise.all(
+      feedbacks.map(async (feedback) => {
+        const user = await ctx.db
+          .query("users")
+          .withIndex("by_clerkUserId", (q) =>
+            q.eq("clerkUserId", feedback.userId),
+          )
+          .first();
+
+        const lesson = await ctx.db.get(feedback.lessonId);
+        const unit = await ctx.db.get(feedback.unitId);
+
+        return {
+          _id: feedback._id,
+          _creationTime: feedback._creationTime,
+          userId: feedback.userId,
+          lessonId: feedback.lessonId,
+          unitId: feedback.unitId,
+          feedback: feedback.feedback,
+          createdAt: feedback.createdAt,
+          userName: user
+            ? `${user.firstName} ${user.lastName}`
+            : "Usuário desconhecido",
+          userEmail: user?.email || "N/A",
+          lessonTitle: lesson?.title || "Aula não encontrada",
+          unitTitle: unit?.title || "Unidade não encontrada",
+        };
+      }),
+    );
+
+    return feedbackWithDetails;
+  },
+});

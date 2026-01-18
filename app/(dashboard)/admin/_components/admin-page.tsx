@@ -10,6 +10,7 @@ import {
   PercentIcon,
   UsersIcon,
   BookIcon,
+  MessageSquareIcon,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -58,6 +59,13 @@ export function AdminHub() {
       href: "/admin/waitlist",
       color: "text-blue-600",
       bgColor: "bg-blue-50",
+    },
+    {
+      title: "Feedbacks e Avaliações",
+      icon: MessageSquareIcon,
+      href: "/admin/feedback",
+      color: "text-orange-600",
+      bgColor: "bg-orange-50",
     },
   ];
 
