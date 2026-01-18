@@ -12,6 +12,8 @@ describe("UnitTreeItem", () => {
     const onEditLesson = () => {};
     const onTogglePublishUnit = () => {};
     const onTogglePublishLesson = () => {};
+    const onDeleteUnit = () => {};
+    const onDeleteLesson = () => {};
     const onDragEndLessons = () => async () => {};
     const onDragStartLesson = () => {};
 
@@ -24,6 +26,8 @@ describe("UnitTreeItem", () => {
       onEditLesson,
       onTogglePublishUnit,
       onTogglePublishLesson,
+      onDeleteUnit,
+      onDeleteLesson,
       isDraggingUnit: false,
       isDraggingLesson: false,
       sensors: [],

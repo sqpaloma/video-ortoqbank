@@ -8,6 +8,7 @@ import {
   PencilIcon,
   EyeIcon,
   EyeOffIcon,
+  Trash2Icon,
 } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -29,6 +30,8 @@ export function UnitTreeItem({
   onEditLesson,
   onTogglePublishUnit,
   onTogglePublishLesson,
+  onDeleteUnit,
+  onDeleteLesson,
   isDraggingUnit,
   isDraggingLesson,
   sensors,
@@ -111,6 +114,16 @@ export function UnitTreeItem({
         >
           <PencilIcon className="h-4 w-4" />
         </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          className="h-8 w-8 shrink-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+          onClick={() => onDeleteUnit(unit._id)}
+          title="Excluir unidade"
+          disabled={isDraggingUnit}
+        >
+          <Trash2Icon className="h-4 w-4" />
+        </Button>
       </div>
 
       {/* Lessons List */}
@@ -132,6 +145,7 @@ export function UnitTreeItem({
                   lesson={lesson}
                   onEdit={onEditLesson}
                   onTogglePublish={onTogglePublishLesson}
+                  onDelete={onDeleteLesson}
                   isDragging={isDraggingLesson}
                 />
               ))}

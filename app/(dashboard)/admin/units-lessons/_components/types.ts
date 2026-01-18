@@ -11,6 +11,7 @@ export interface LessonTreeItemProps {
   lesson: Doc<"lessons">;
   onEdit: (lesson: Doc<"lessons">) => void;
   onTogglePublish: (lessonId: Id<"lessons">) => void;
+  onDelete: (lessonId: Id<"lessons">) => void;
   isDragging: boolean;
 }
 
@@ -23,6 +24,8 @@ export interface UnitTreeItemProps {
   onEditLesson: (lesson: Doc<"lessons">) => void;
   onTogglePublishUnit: (unitId: Id<"units">) => void;
   onTogglePublishLesson: (lessonId: Id<"lessons">) => void;
+  onDeleteUnit: (unitId: Id<"units">) => void;
+  onDeleteLesson: (lessonId: Id<"lessons">) => void;
   isDraggingUnit: boolean;
   isDraggingLesson: boolean;
   sensors: SensorDescriptor<SensorOptions>[];
@@ -42,6 +45,8 @@ export interface UnitsTreeSidebarProps {
   onEditLesson: (lesson: Doc<"lessons">) => void;
   onTogglePublishUnit: (unitId: Id<"units">) => void;
   onTogglePublishLesson: (lessonId: Id<"lessons">) => void;
+  onDeleteUnit: (unitId: Id<"units">) => void;
+  onDeleteLesson: (lessonId: Id<"lessons">) => void;
   onDragEndUnits: (event: DragEndEvent) => Promise<void>;
   onDragEndLessons: (unitId: string) => (event: DragEndEvent) => Promise<void>;
   onDragStartUnit: () => void;

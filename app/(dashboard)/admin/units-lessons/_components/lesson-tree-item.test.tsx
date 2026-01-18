@@ -24,6 +24,7 @@ describe("LessonTreeItem", () => {
         }
         onEdit={() => {}}
         onTogglePublish={() => {}}
+        onDelete={() => {}}
         isDragging={false}
       />,
     );

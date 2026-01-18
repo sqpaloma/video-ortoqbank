@@ -17,6 +17,8 @@ describe("UnitsTreeSidebar", () => {
         onEditLesson={() => {}}
         onTogglePublishUnit={() => {}}
         onTogglePublishLesson={() => {}}
+        onDeleteUnit={() => {}}
+        onDeleteLesson={() => {}}
         onDragEndUnits={async () => {}}
         onDragEndLessons={() => async () => {}}
         onDragStartUnit={() => {}}

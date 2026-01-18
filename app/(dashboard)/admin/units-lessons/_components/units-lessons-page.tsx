@@ -29,6 +29,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useErrorModal } from "@/hooks/use-error-modal";
 import { ErrorModal } from "@/components/ui/error-modal";
+import { useConfirmModal } from "@/hooks/use-confirm-modal";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import {
   KeyboardSensor,
   PointerSensor,
@@ -57,6 +59,7 @@ export function UnitsLessonsPage({
   const { state } = useSidebar();
   const { toast } = useToast();
   const { error, showError, hideError } = useErrorModal();
+  const { confirm, showConfirm, hideConfirm } = useConfirmModal();
 
   // State for selected category - starts as null
   const [selectedCategoryId, setSelectedCategoryId] =
@@ -107,6 +110,8 @@ export function UnitsLessonsPage({
   const reorderUnits = useMutation(api.units.reorder);
   const togglePublishUnit = useMutation(api.units.togglePublish);
   const togglePublishLesson = useMutation(api.lessons.togglePublish);
+  const removeUnit = useMutation(api.units.remove);
+  const removeLesson = useMutation(api.lessons.remove);
 
   // Compute sorted units and lessons from server data
   const localUnits = useMemo(() => {
@@ -344,6 +349,57 @@ export function UnitsLessonsPage({
     }
   };
 
+  const handleDeleteUnit = (unitId: Id<"units">) => {
+    const unit = localUnits.find((u) => u._id === unitId);
+    const unitLessons = localLessons[unitId] || [];
+    const lessonCount = unitLessons.length;
+
+    const message = lessonCount > 0
+      ? `Tem certeza que deseja excluir a unidade "${unit?.title}"? Isso também excluirá ${lessonCount} ${lessonCount === 1 ? "aula" : "aulas"} associadas.`
+      : `Tem certeza que deseja excluir a unidade "${unit?.title}"?`;
+
+    showConfirm(
+      message,
+      async () => {
+        await removeUnit({ id: unitId });
+        toast({
+          title: "Sucesso",
+          description: "Unidade excluída com sucesso!",
+        });
+        // Clear edit mode if we were editing this unit
+        if (editMode.type === "unit" && editMode.unit._id === unitId) {
+          setEditMode({ type: "none" });
+        }
+      },
+      "Excluir Unidade",
+    );
+  };
+
+  const handleDeleteLesson = (lessonId: Id<"lessons">) => {
+    // Find the lesson across all units
+    let lessonToDelete: Doc<"lessons"> | undefined;
+    for (const unitLessons of Object.values(localLessons)) {
+      lessonToDelete = unitLessons.find((l) => l._id === lessonId);
+      if (lessonToDelete) break;
+    }
+
+    showConfirm(
+      `Tem certeza que deseja excluir a aula "${lessonToDelete?.title}"?`,
+      async () => {
+        await removeLesson({ id: lessonId });
+        toast({
+          title: "Sucesso",
+          description: "Aula excluída com sucesso!",
+        });
+        // Clear edit mode if we were editing this lesson
+        if (editMode.type === "lesson" && editMode.lesson._id === lessonId) {
+          setEditMode({ type: "none" });
+        }
+      },
+      "Excluir Aula",
+    );
+  };
+
   return (
     <div className=" relative">
       {/* Sidebar trigger - follows sidebar position */}
@@ -432,6 +488,8 @@ export function UnitsLessonsPage({
             onEditLesson={handleEditLesson}
             onTogglePublishUnit={handleTogglePublishUnit}
             onTogglePublishLesson={handleTogglePublishLesson}
+            onDeleteUnit={handleDeleteUnit}
+            onDeleteLesson={handleDeleteLesson}
             onDragEndUnits={handleDragEndUnits}
             onDragEndLessons={handleDragEndLessons}
             onDragStartUnit={() => setIsDraggingUnit(true)}
@@ -523,6 +581,17 @@ export function UnitsLessonsPage({
         onOpenChange={hideError}
         title={error.title}
         message={error.message}
+      />
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        open={confirm.isOpen}
+        onOpenChange={hideConfirm}
+        title={confirm.title}
+        message={confirm.message}
+        onConfirm={confirm.onConfirm}
+        confirmText="Excluir"
+        cancelText="Cancelar"
       />
     </div>
   );

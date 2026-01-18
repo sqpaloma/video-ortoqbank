@@ -6,6 +6,7 @@ import {
   PencilIcon,
   EyeIcon,
   EyeOffIcon,
+  Trash2Icon,
 } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -16,6 +17,7 @@ export function LessonTreeItem({
   lesson,
   onEdit,
   onTogglePublish,
+  onDelete,
   isDragging,
 }: LessonTreeItemProps) {
   const {
@@ -81,6 +83,16 @@ export function LessonTreeItem({
         disabled={isDragging}
       >
         <PencilIcon className="h-3 w-3" />
+      </Button>
+      <Button
+        size="icon"
+        variant="ghost"
+        className="h-6 w-6 shrink-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+        onClick={() => onDelete(lesson._id)}
+        title="Excluir aula"
+        disabled={isDragging}
+      >
+        <Trash2Icon className="h-3 w-3" />
       </Button>
     </div>
   );

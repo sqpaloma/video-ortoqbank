@@ -21,6 +21,8 @@ export function UnitsTreeSidebar({
   onEditLesson,
   onTogglePublishUnit,
   onTogglePublishLesson,
+  onDeleteUnit,
+  onDeleteLesson,
   onDragEndUnits,
   onDragEndLessons,
   onDragStartUnit,
@@ -60,6 +62,8 @@ export function UnitsTreeSidebar({
                     onEditLesson={onEditLesson}
                     onTogglePublishUnit={onTogglePublishUnit}
                     onTogglePublishLesson={onTogglePublishLesson}
+                    onDeleteUnit={onDeleteUnit}
+                    onDeleteLesson={onDeleteLesson}
                     isDraggingUnit={isDraggingUnit}
                     isDraggingLesson={isDraggingLesson}
                     sensors={sensors}
