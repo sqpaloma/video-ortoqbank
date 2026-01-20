@@ -26,7 +26,10 @@ export const getByVideoId = query({
  * Get video by ID
  */
 export const getById = query({
-  args: { id: v.id("videos") },
+  args: {
+    id: v.id("videos"),
+    tenantId: v.optional(v.id("tenants")),
+  },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.id);
   },

@@ -129,7 +129,10 @@ export const listPublishedByCategory = query({
  * Get a unit by ID
  */
 export const getById = query({
-  args: { id: v.id("units") },
+  args: {
+    id: v.id("units"),
+    tenantId: v.optional(v.id("tenants")),
+  },
   handler: async (ctx, args) => {
     const unit = await ctx.db.get(args.id);
     return unit;

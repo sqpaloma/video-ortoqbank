@@ -49,9 +49,14 @@ export const listPublished = query({
 
 /**
  * Get a category by ID
+ * Note: tenantId is optional because useTenantQuery auto-injects it,
+ * but we don't use it here since we're fetching by ID directly.
  */
 export const getById = query({
-  args: { id: v.id("categories") },
+  args: {
+    id: v.id("categories"),
+    tenantId: v.optional(v.id("tenants")),
+  },
   handler: async (ctx, args) => {
     const category = await ctx.db.get(args.id);
     return category;

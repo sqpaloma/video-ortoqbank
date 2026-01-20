@@ -156,7 +156,10 @@ export const listPublishedByUnit = query({
  * Get a lesson by ID
  */
 export const getById = query({
-  args: { id: v.id("lessons") },
+  args: {
+    id: v.id("lessons"),
+    tenantId: v.optional(v.id("tenants")),
+  },
   handler: async (ctx, args) => {
     const lesson = await ctx.db.get(args.id);
     return lesson;
