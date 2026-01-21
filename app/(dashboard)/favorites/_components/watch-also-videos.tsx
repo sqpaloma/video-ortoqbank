@@ -68,7 +68,7 @@ export function WatchAlsoVideos({ watchAlsoVideos }: WatchAlsoVideosProps) {
               onClick={() => handleVideoClick(video)}
               className="cursor-pointer hover:shadow-md transition-all duration-300 hover:border-primary group relative overflow-hidden p-0"
             >
-              <div className="w-full h-48 bg-linear-to-br from-blue-500/20 via-blue-400/10 to-blue-300/5 flex items-center justify-center relative rounded-t-lg overflow-hidden">
+              <div className="w-full h-48 bg-gradient-to-br from-blue-brand/20 via-blue-brand/10 to-blue-brand/5 flex items-center justify-center relative rounded-t-lg overflow-hidden">
                 {video.thumbnailUrl ? (
                   <Image
                     src={video.thumbnailUrl}
@@ -78,7 +78,7 @@ export function WatchAlsoVideos({ watchAlsoVideos }: WatchAlsoVideosProps) {
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                 ) : (
-                  <PlayCircleIcon size={40} className="text-blue-500/30" />
+                  <PlayCircleIcon size={40} className="text-blue-brand/30" />
                 )}
                 {/* Favorite Button */}
                 <Button
@@ -96,7 +96,7 @@ export function WatchAlsoVideos({ watchAlsoVideos }: WatchAlsoVideosProps) {
 
               <div className="px-3 pt-2 pb-3">
                 <div className="flex items-center gap-2 mb-1.5">
-                  <Badge className="text-xs py-0 bg-blue-100 text-blue-700 hover:bg-blue-100">
+                  <Badge className="text-xs py-0 bg-blue-brand/10 text-blue-brand hover:bg-blue-brand/10">
                     Novo curso
                   </Badge>
                 </div>
@@ -117,7 +117,7 @@ export function WatchAlsoVideos({ watchAlsoVideos }: WatchAlsoVideosProps) {
                   <div className="text-xs text-gray-500 mb-3"></div>
 
                   <Button
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    className="w-full bg-blue-brand hover:bg-blue-brand/80 text-white"
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation();

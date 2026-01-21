@@ -179,6 +179,38 @@ export async function POST(request: Request) {
         });
 
         console.log(`[Clerk Webhook] Successfully synced user to Convex`);
+
+        // Claim any pending paid orders for this user's email
+        // This links the order to the user and triggers access provisioning
+        const primaryEmailAddress = event.data.email_addresses?.find(
+          (addr) => addr.id === event.data.primary_email_address_id,
+        );
+        const primaryEmail = primaryEmailAddress?.email_address;
+        if (primaryEmail) {
+          // Mask email for logging to protect PII (e.g., "jo***@example.com")
+          const maskedEmail = primaryEmail.replace(
+            /^(.{2})(.*)(@.*)$/,
+            (_, start, middle, domain) => `${start}${"*".repeat(Math.min(middle.length, 3))}${domain}`,
+          );
+          console.log(
+            `[Clerk Webhook] Attempting to claim orders for user ${event.data.id} (email: ${maskedEmail})`,
+          );
+          try {
+            await callConvexMutation("payments:claimOrderByEmail", {
+              email: primaryEmail,
+              clerkUserId: event.data.id,
+            });
+            console.log(
+              `[Clerk Webhook] Successfully processed order claim for user ${event.data.id}`,
+            );
+          } catch (claimError) {
+            // Log but don't fail the webhook - order claiming is not critical for user creation
+            console.warn(
+              `[Clerk Webhook] Error claiming orders for user ${event.data.id}:`,
+              claimError,
+            );
+          }
+        }
       } catch (error) {
         console.error("[Clerk Webhook] Error syncing user to Convex:", error);
 

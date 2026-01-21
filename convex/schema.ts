@@ -14,8 +14,9 @@ export default defineSchema({
   tenants: defineTable({
     name: v.string(),
     slug: v.string(), // subdomain identifier (e.g., "acme" for acme.ortoqbank.com)
+    displayName: v.optional(v.string()), // Name displayed next to logo (can differ from name)
     logoUrl: v.optional(v.string()),
-    primaryColor: v.optional(v.string()),
+    primaryColor: v.optional(v.string()), // Primary brand color (replaces --blue-brand CSS variable)
     status: v.union(v.literal("active"), v.literal("suspended")),
     createdAt: v.number(),
   })

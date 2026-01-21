@@ -11,6 +11,7 @@ import {
   UsersIcon,
   BookIcon,
   MessageSquareIcon,
+  PaletteIcon,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -66,6 +67,13 @@ export function AdminHub() {
       href: "/admin/feedback",
       color: "text-orange-600",
       bgColor: "bg-orange-50",
+    },
+    {
+      title: "Customização",
+      icon: PaletteIcon,
+      href: "/admin/customization",
+      color: "text-pink-600",
+      bgColor: "bg-pink-50",
     },
   ];
 

@@ -4,7 +4,7 @@ import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { usePaginatedQuery } from "convex/react";
+import { useTenantPaginatedQuery } from "@/hooks/use-tenant-convex";
 import { api } from "@/convex/_generated/api";
 import { MessageSquare, Star } from "lucide-react";
 import { FeedbackList } from "./feedback-list";
@@ -16,7 +16,7 @@ export function FeedbackPage() {
     results: feedbacks,
     status: feedbackStatus,
     loadMore: loadMoreFeedbacks,
-  } = usePaginatedQuery(
+  } = useTenantPaginatedQuery(
     api.feedback.getAllFeedbackWithDetails,
     {},
     { initialNumItems: 10 },
@@ -26,7 +26,7 @@ export function FeedbackPage() {
     results: ratings,
     status: ratingsStatus,
     loadMore: loadMoreRatings,
-  } = usePaginatedQuery(
+  } = useTenantPaginatedQuery(
     api.ratings.getAllRatingsWithDetails,
     {},
     { initialNumItems: 10 },

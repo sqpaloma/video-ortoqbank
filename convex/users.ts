@@ -268,7 +268,7 @@ export async function requireAdmin(
 // ============================================================================
 
 /**
- * Get all users (admin only)
+ * Get all users (admin only) - DEPRECATED: Use getTenantUsers for tenant-scoped queries
  */
 export const getUsers = query({
   args: { limit: v.optional(v.number()) },
@@ -281,6 +281,75 @@ export const getUsers = query({
       .take(args.limit || 100);
 
     return users;
+  },
+});
+
+/**
+ * Get users that belong to a specific tenant (admin only)
+ * Filters users by their membership in the tenant
+ */
+export const getTenantUsers = query({
+  args: {
+    tenantId: v.id("tenants"),
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    // Check if user is authenticated and has admin access to this tenant
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Unauthorized: Authentication required");
+    }
+
+    const currentUser = await userByClerkUserId(ctx, identity.subject);
+    if (!currentUser) {
+      throw new Error("Unauthorized: User not found");
+    }
+
+    // Check if user is superadmin or admin of this tenant
+    const isSuperAdmin = currentUser.role === "superadmin";
+
+    if (!isSuperAdmin) {
+      // Check tenant membership
+      const membership = await ctx.db
+        .query("tenantMemberships")
+        .withIndex("by_userId_and_tenantId", (q) =>
+          q.eq("userId", currentUser._id).eq("tenantId", args.tenantId)
+        )
+        .unique();
+
+      if (!membership || membership.role !== "admin") {
+        throw new Error("Unauthorized: Admin access required for this tenant");
+      }
+    }
+
+    // Get all memberships for this tenant
+    const memberships = await ctx.db
+      .query("tenantMemberships")
+      .withIndex("by_tenantId", (q) => q.eq("tenantId", args.tenantId))
+      .collect();
+
+    // Get the users from the memberships
+    const users = await Promise.all(
+      memberships.map(async (membership) => {
+        const user = await ctx.db.get(membership.userId);
+        if (!user) return null;
+        return {
+          ...user,
+          membershipId: membership._id,
+          tenantRole: membership.role,
+          hasActiveAccess: membership.hasActiveAccess,
+          accessExpiresAt: membership.accessExpiresAt,
+        };
+      })
+    );
+
+    // Filter out null values and apply limit
+    const validUsers = users.filter((u) => u !== null);
+
+    // Sort by creation time descending
+    validUsers.sort((a, b) => b._creationTime - a._creationTime);
+
+    return validUsers.slice(0, args.limit || 100);
   },
 });
 

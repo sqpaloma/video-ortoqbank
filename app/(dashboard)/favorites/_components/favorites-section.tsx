@@ -145,7 +145,7 @@ export function FavoritesSection({
                                     </div>
 
                                     <Button
-                                        className="w-full bg-blue-brand hover:bg-blue-brand-dark text-white"
+                                        className="w-full bg-blue-brand hover:bg-blue-brand/80 text-white"
                                         size="sm"
                                         onClick={(e) => {
                                             e.stopPropagation();

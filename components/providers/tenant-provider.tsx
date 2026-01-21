@@ -3,6 +3,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   type ReactNode,
 } from "react";
@@ -38,6 +39,7 @@ interface TenantContextType {
   tenantId: Id<"tenants"> | null;
   tenantSlug: string | null;
   tenantName: string | null;
+  tenantDisplayName: string | null; // Display name shown next to logo
   tenantLogoUrl: string | null;
   tenantPrimaryColor: string | null;
 
@@ -154,14 +156,38 @@ export function TenantProvider({
   // Get static config for this tenant
   const staticConfig = slug ? getTenantConfig(slug) : null;
 
+  // Resolve primary color from Convex or static config
+  const resolvedPrimaryColor =
+    tenant?.primaryColor || staticConfig?.branding.primaryColor || null;
+
+  // Inject primary color as CSS variable when it changes
+  useEffect(() => {
+    if (resolvedPrimaryColor) {
+      document.documentElement.style.setProperty(
+        "--blue-brand",
+        resolvedPrimaryColor,
+      );
+    }
+
+    // Cleanup: reset to default when component unmounts or color is removed
+    return () => {
+      // Only reset if we had set a custom color
+      if (resolvedPrimaryColor) {
+        // Reset to the default blue-brand color
+        document.documentElement.style.removeProperty("--blue-brand");
+      }
+    };
+  }, [resolvedPrimaryColor]);
+
   const contextValue: TenantContextType = {
     // Dynamic data from Convex
     tenantId: tenant?._id || null,
     tenantSlug: slug,
     tenantName: tenant?.name || staticConfig?.branding.name || null,
+    tenantDisplayName:
+      tenant?.displayName || staticConfig?.branding.name || null,
     tenantLogoUrl: tenant?.logoUrl || staticConfig?.branding.logo || null,
-    tenantPrimaryColor:
-      tenant?.primaryColor || staticConfig?.branding.primaryColor || null,
+    tenantPrimaryColor: resolvedPrimaryColor,
 
     // Static config
     config: staticConfig,

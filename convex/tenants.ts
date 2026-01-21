@@ -27,6 +27,7 @@ export const getBySlug = query({
       _id: v.id("tenants"),
       name: v.string(),
       slug: v.string(),
+      displayName: v.optional(v.string()),
       logoUrl: v.optional(v.string()),
       primaryColor: v.optional(v.string()),
       status: v.union(v.literal("active"), v.literal("suspended")),
@@ -42,6 +43,7 @@ export const getBySlug = query({
       _id: tenant._id,
       name: tenant.name,
       slug: tenant.slug,
+      displayName: tenant.displayName,
       logoUrl: tenant.logoUrl,
       primaryColor: tenant.primaryColor,
       status: tenant.status,
@@ -59,6 +61,7 @@ export const getById = query({
       _id: v.id("tenants"),
       name: v.string(),
       slug: v.string(),
+      displayName: v.optional(v.string()),
       logoUrl: v.optional(v.string()),
       primaryColor: v.optional(v.string()),
       status: v.union(v.literal("active"), v.literal("suspended")),
@@ -75,6 +78,7 @@ export const getById = query({
       _id: tenant._id,
       name: tenant.name,
       slug: tenant.slug,
+      displayName: tenant.displayName,
       logoUrl: tenant.logoUrl,
       primaryColor: tenant.primaryColor,
       status: tenant.status,
@@ -93,6 +97,7 @@ export const list = query({
       _id: v.id("tenants"),
       name: v.string(),
       slug: v.string(),
+      displayName: v.optional(v.string()),
       logoUrl: v.optional(v.string()),
       primaryColor: v.optional(v.string()),
       status: v.union(v.literal("active"), v.literal("suspended")),
@@ -109,6 +114,7 @@ export const list = query({
       _id: t._id,
       name: t.name,
       slug: t.slug,
+      displayName: t.displayName,
       logoUrl: t.logoUrl,
       primaryColor: t.primaryColor,
       status: t.status,
@@ -511,6 +517,56 @@ export const updateMemberAccess = mutation({
       hasActiveAccess: args.hasActiveAccess,
       accessExpiresAt: args.accessExpiresAt,
     });
+
+    return null;
+  },
+});
+
+// ============================================================================
+// BRANDING MANAGEMENT (tenant admin)
+// ============================================================================
+
+/**
+ * Update tenant branding (display name, logo, primary color)
+ * Only tenant admins can update their own tenant's branding
+ */
+export const updateBranding = mutation({
+  args: {
+    tenantId: v.id("tenants"),
+    displayName: v.optional(v.string()),
+    logoUrl: v.optional(v.string()),
+    primaryColor: v.optional(v.string()),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    // Require that the user is an admin of this specific tenant
+    await requireTenantAdmin(ctx, args.tenantId);
+
+    const tenant = await ctx.db.get(args.tenantId);
+    if (!tenant) {
+      throw new Error("Tenant not found");
+    }
+
+    // Build update object with only provided fields
+    const updates: Partial<{
+      displayName: string;
+      logoUrl: string;
+      primaryColor: string;
+    }> = {};
+
+    if (args.displayName !== undefined) {
+      updates.displayName = args.displayName;
+    }
+    if (args.logoUrl !== undefined) {
+      updates.logoUrl = args.logoUrl;
+    }
+    if (args.primaryColor !== undefined) {
+      updates.primaryColor = args.primaryColor;
+    }
+
+    if (Object.keys(updates).length > 0) {
+      await ctx.db.patch(args.tenantId, updates);
+    }
 
     return null;
   },

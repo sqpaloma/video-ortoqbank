@@ -107,6 +107,31 @@ export const tenantsConfig = {
       },
     },
   },
+
+  // Test tenant for development
+  test: {
+    branding: {
+      name: "Test Academy",
+      shortName: "TEST",
+      primaryColor: "#8b5cf6", // Violet
+      secondaryColor: "#7c3aed",
+      accentColor: "#a78bfa",
+      sidebarBackground: "263 70% 50%", // Violet background
+      sidebarForeground: "0 0% 100%", // White text
+      logo: "/logo.webp",
+      logoDark: "/logo.webp",
+      favicon: "/favicon.ico",
+    },
+    content: {
+      tagline: "Plataforma de testes e desenvolvimento",
+      metaDescription: "Tenant usado para testes de desenvolvimento.",
+      labels: {
+        categories: "Categorias",
+        units: "Unidades",
+        lessons: "Aulas",
+      },
+    },
+  },
 } as const satisfies Record<string, TenantConfig>;
 
 /** Type for valid tenant slugs */

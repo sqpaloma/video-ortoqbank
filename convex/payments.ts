@@ -650,20 +650,60 @@ export const maybeProvisionAccess = internalMutation({
     try {
       console.log(`🚀 Provisioning access for order ${args.orderId}`);
 
-      // TODO: Add actual access provisioning logic here
-      // - Create user in users table if needed
-      // - Grant product access
-      // - Send welcome email
-      // - etc.
+      // 1. Get user from users table by clerkUserId
+      const user = await ctx.db
+        .query("users")
+        .withIndex("by_clerkUserId", (q) => q.eq("clerkUserId", order.userId!))
+        .unique();
 
-      // Mark as completed after successful provisioning
+      if (!user) {
+        console.log(
+          `⏸️ User not yet in users table for clerkUserId ${order.userId}, will retry later`,
+        );
+        return null; // User webhook hasn't created the user yet
+      }
+
+      // 2. Get pricing plan to calculate access expiration from accessYears
+      const pricingPlan = await ctx.db
+        .query("pricingPlans")
+        .withIndex("by_tenantId_and_productId", (q) =>
+          q.eq("tenantId", order.tenantId).eq("productId", order.productId),
+        )
+        .unique();
+
+      // 3. Calculate access expiration date
+      let accessExpiresAt: number | undefined;
+      if (pricingPlan?.accessYears && pricingPlan.accessYears.length > 0) {
+        // Access expires at end of the latest year (Dec 31, 23:59:59.999)
+        const latestYear = Math.max(...pricingPlan.accessYears);
+        accessExpiresAt = new Date(latestYear, 11, 31, 23, 59, 59, 999).getTime();
+        console.log(
+          `📅 Access expiration calculated: ${new Date(accessExpiresAt).toISOString()} (year ${latestYear})`,
+        );
+      } else {
+        console.log(`📅 No accessYears defined, access will not expire`);
+      }
+
+      // 4. Create or update tenant membership
+      console.log(
+        `👤 Creating tenant membership for user ${user._id} in tenant ${order.tenantId}`,
+      );
+      await ctx.runMutation(internal.tenants.addMemberInternal, {
+        tenantId: order.tenantId,
+        userId: user._id,
+        role: "member",
+        hasActiveAccess: true,
+        accessExpiresAt,
+      });
+
+      // 5. Mark order as completed
       await ctx.db.patch(args.orderId, {
         status: "completed",
         provisionedAt: Date.now(),
       });
 
       console.log(
-        `✅ Successfully provisioned access for order ${args.orderId}`,
+        `✅ Successfully provisioned access for order ${args.orderId} - User ${user._id} now has access to tenant ${order.tenantId}`,
       );
     } catch (error) {
       console.error(
@@ -899,6 +939,7 @@ export const getPendingOrderById = query({
     return {
       _id: order._id,
       _creationTime: order._creationTime,
+      tenantId: order.tenantId,
       email: order.email,
       cpf: order.cpf,
       name: order.name,
