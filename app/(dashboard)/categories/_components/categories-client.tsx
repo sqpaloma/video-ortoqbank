@@ -11,6 +11,40 @@ import { ProgressBar } from "./progress-bar";
 import { CategoriesGrid } from "./categories-grid";
 import { Button } from "@/components/ui/button";
 
+// Helper component that uses preloaded content stats
+function PreloadedContentStatsProvider({
+  preloaded,
+  children,
+}: {
+  preloaded: Preloaded<typeof api.aggregate.getByTenant>;
+  children: (data: { totalLessons: number; totalUnits: number; totalCategories: number; updatedAt: number }) => React.ReactNode;
+}) {
+  const data = usePreloadedQuery(preloaded);
+  return <>{children(data)}</>;
+}
+
+// Helper component that uses preloaded completed count
+function PreloadedCompletedCountProvider({
+  preloaded,
+  children,
+}: {
+  preloaded: Preloaded<typeof api.progress.queries.getCompletedPublishedLessonsCount>;
+  children: (count: number) => React.ReactNode;
+}) {
+  const count = usePreloadedQuery(preloaded);
+  return <>{children(count)}</>;
+}
+
+// Component for fetching content stats client-side
+function FetchedContentStatsProvider({
+  children,
+}: {
+  children: (data: { totalLessons: number; totalUnits: number; totalCategories: number; updatedAt: number } | undefined) => React.ReactNode;
+}) {
+  const data = useTenantQuery(api.aggregate.getByTenant, {});
+  return <>{children(data)}</>;
+}
+
 export function CategoriesClientPage({
   preloadedCategories,
   preloadedContentStats,
@@ -24,16 +58,6 @@ export function CategoriesClientPage({
 }) {
   // Use preloaded queries for reactivity
   const categories = usePreloadedQuery(preloadedCategories);
-
-  // Use regular queries for optional preloaded data to avoid conditional hook calls
-  const contentStats = useTenantQuery(
-    api.aggregate.getByTenant,
-    preloadedContentStats ? "skip" : {}
-  );
-  const completedCount = useTenantQuery(
-    api.progress.queries.getCompletedPublishedLessonsCount,
-    preloadedCompletedCount ? "skip" : {}
-  );
 
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
@@ -81,10 +105,37 @@ export function CategoriesClientPage({
           </div>
           <div className="hidden lg:block"></div>
           <div className="col-span-1">
-            <ProgressBar
-              totalLessons={contentStats?.totalLessons ?? 0}
-              completedLessons={completedCount ?? 0}
-            />
+            {/* Render progress bar with preloaded or fetched data */}
+            {preloadedContentStats ? (
+              <PreloadedContentStatsProvider preloaded={preloadedContentStats}>
+                {(contentStats) => (
+                  preloadedCompletedCount ? (
+                    <PreloadedCompletedCountProvider preloaded={preloadedCompletedCount}>
+                      {(completedCount) => (
+                        <ProgressBar
+                          totalLessons={contentStats.totalLessons}
+                          completedLessons={completedCount}
+                        />
+                      )}
+                    </PreloadedCompletedCountProvider>
+                  ) : (
+                    <ProgressBar
+                      totalLessons={contentStats.totalLessons}
+                      completedLessons={0}
+                    />
+                  )
+                )}
+              </PreloadedContentStatsProvider>
+            ) : (
+              <FetchedContentStatsProvider>
+                {(contentStats) => (
+                  <ProgressBar
+                    totalLessons={contentStats?.totalLessons ?? 0}
+                    completedLessons={0}
+                  />
+                )}
+              </FetchedContentStatsProvider>
+            )}
           </div>
         </div>
 
