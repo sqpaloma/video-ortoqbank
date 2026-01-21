@@ -29,7 +29,7 @@ export default function QuestionsPromo() {
         </div>
 
         {/* Title */}
-        <h3 className="mb-1 text-base font-semibold text-white">Questões?</h3>
+        <h3 className="mb-1 text-base font-semibold text-white">Qbank</h3>
 
         {/* Description */}
         <p className="mb-4 text-sm leading-relaxed text-white">
