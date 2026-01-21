@@ -2,10 +2,11 @@ import { v } from "convex/values";
 import { paginationOptsValidator } from "convex/server";
 
 import { mutation, query } from "./_generated/server";
-import { requireAdmin } from "./users";
+import { requireTenantAdmin } from "./lib/tenantContext";
 
 export const createWaitlistEntry = mutation({
   args: {
+    tenantId: v.id("tenants"),
     name: v.string(),
     email: v.string(),
     whatsapp: v.string(),
@@ -28,18 +29,33 @@ export const createWaitlistEntry = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    // Check if email already exists
-    const existingEntry = await ctx.db
-      .query("waitlist")
-      .withIndex("by_email", (q) => q.eq("email", args.email))
-      .first();
+    // Check if email already exists for this tenant
+    if (args.tenantId) {
+      const existingEntry = await ctx.db
+        .query("waitlist")
+        .withIndex("by_tenantId_and_email", (q) =>
+          q.eq("tenantId", args.tenantId).eq("email", args.email)
+        )
+        .first();
 
-    if (existingEntry) {
-      return "email_already_exists";
+      if (existingEntry) {
+        return "email_already_exists";
+      }
+    } else {
+      // Fallback for entries without tenantId (legacy)
+      const existingEntry = await ctx.db
+        .query("waitlist")
+        .withIndex("by_email", (q) => q.eq("email", args.email))
+        .first();
+
+      if (existingEntry) {
+        return "email_already_exists";
+      }
     }
 
     // Create the waitlist entry
     const entryId = await ctx.db.insert("waitlist", {
+      tenantId: args.tenantId,
       name: args.name,
       email: args.email,
       whatsapp: args.whatsapp,
@@ -54,12 +70,23 @@ export const createWaitlistEntry = mutation({
 
 export const list = query({
   args: {
+    tenantId: v.id("tenants"),
     paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, args) => {
-    // Require admin access to list waitlist entries
-    await requireAdmin(ctx);
+    // Require tenant admin access to list waitlist entries
+    if (args.tenantId) {
+      await requireTenantAdmin(ctx, args.tenantId);
 
+      return await ctx.db
+        .query("waitlist")
+        .withIndex("by_tenantId", (q) => q.eq("tenantId", args.tenantId))
+        .order("desc")
+        .paginate(args.paginationOpts);
+    }
+
+    // If no tenantId, return all (for backward compatibility, requires superadmin)
+    // This branch should not be reached in normal usage
     return await ctx.db
       .query("waitlist")
       .order("desc")

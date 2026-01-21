@@ -91,9 +91,9 @@ export function PricingPlansPage() {
       : undefined;
     const accessYears = formData.accessYears
       ? formData.accessYears
-          .split(",")
-          .map((y) => Number.parseInt(y.trim(), 10))
-          .filter((y) => !Number.isNaN(y))
+        .split(",")
+        .map((y) => Number.parseInt(y.trim(), 10))
+        .filter((y) => !Number.isNaN(y))
       : undefined;
     const displayOrder = formData.displayOrder
       ? Number.parseInt(formData.displayOrder, 10)
@@ -168,11 +168,11 @@ export function PricingPlansPage() {
     <div className="min-h-screen relative">
       {/* Sidebar trigger - follows sidebar position */}
       <SidebarTrigger
-        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-brand-blue hover:text-brand-blue hover:bg-brand-blue transition-[left] duration-200 ease-linear z-10 ${state === "collapsed" ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]" : "left-[calc(var(--sidebar-width)+0.25rem)]"}`}
+        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-black hover:text-black hover:bg-gray-100 transition-[left] duration-200 ease-linear z-10 ${state === "collapsed" ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]" : "left-[calc(var(--sidebar-width)+0.25rem)]"}`}
       />
 
-      <div className="border-b ">
-        <div className="p-4 pt-12 flex items-center justify-between pr-46 pl-14 gap-4">
+      <div className="border-b">
+        <div className="p-4 pt-12 flex items-center justify-between pr-12 pl-14 gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
               Planos de preços
@@ -189,41 +189,43 @@ export function PricingPlansPage() {
         </div>
       </div>
 
-      <div className=" py-8 rounded-2xl">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-7xl mx-auto px-4">
-          {isCreating && (
-            <CreatePlanCard
-              form={createForm}
-              onChange={(form: Partial<FormData>) =>
-                setCreateForm(form as FormData)
-              }
-              onSave={() => handleSavePlan(false)}
-              onCancel={() => setIsCreating(false)}
-            />
-          )}
+      <div className="p-6 pb-24 md:p-12">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {isCreating && (
+              <CreatePlanCard
+                form={createForm}
+                onChange={(form: Partial<FormData>) =>
+                  setCreateForm(form as FormData)
+                }
+                onSave={() => handleSavePlan(false)}
+                onCancel={() => setIsCreating(false)}
+              />
+            )}
 
-          {plans?.map((plan) => (
-            <div
-              key={plan._id}
-              className="relative rounded-2xl bg-white border pb-6 overflow-hidden w-full flex flex-col"
-            >
-              {editingId === plan._id ? (
-                <EditPlanCard
-                  planId={plan._id}
-                  form={editForm}
-                  onChange={setEditForm}
-                  onSave={() => handleSavePlan(true)}
-                  onCancel={cancelEdit}
-                />
-              ) : (
-                <PricingPlanCard
-                  plan={plan}
-                  onEdit={startEdit}
-                  onDelete={handleDelete}
-                />
-              )}
-            </div>
-          ))}
+            {plans?.map((plan) => (
+              <div
+                key={plan._id}
+                className="relative rounded-2xl bg-white border pb-6 overflow-hidden w-full flex flex-col"
+              >
+                {editingId === plan._id ? (
+                  <EditPlanCard
+                    planId={plan._id}
+                    form={editForm}
+                    onChange={setEditForm}
+                    onSave={() => handleSavePlan(true)}
+                    onCancel={cancelEdit}
+                  />
+                ) : (
+                  <PricingPlanCard
+                    plan={plan}
+                    onEdit={startEdit}
+                    onDelete={handleDelete}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

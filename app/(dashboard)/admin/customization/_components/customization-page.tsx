@@ -1,33 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useTenant } from "@/components/providers/tenant-provider";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ImageUpload } from "@/components/ui/image-upload";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Check, Loader2, Palette } from "lucide-react";
-import Link from "next/link";
-import Image from "next/image";
+import { Check, Loader2, X } from "lucide-react";
 
-// Predefined color palette
-const PRESET_COLORS = [
-  { name: "Azul", value: "oklch(0.6167 0.1623 250.58)" }, // Current default
-  { name: "Azul Escuro", value: "oklch(0.45 0.15 250)" },
-  { name: "Verde", value: "oklch(0.65 0.18 145)" },
-  { name: "Verde Escuro", value: "oklch(0.50 0.15 150)" },
-  { name: "Roxo", value: "oklch(0.55 0.20 300)" },
-  { name: "Vermelho", value: "oklch(0.55 0.22 25)" },
-  { name: "Laranja", value: "oklch(0.70 0.18 50)" },
-  { name: "Rosa", value: "oklch(0.65 0.20 350)" },
-  { name: "Ciano", value: "oklch(0.65 0.15 200)" },
-  { name: "Amarelo", value: "oklch(0.80 0.15 85)" },
-];
+import { PreviewCard } from "./preview-card";
+import { DisplayNameCard } from "./display-name-card";
+import { LogoCard } from "./logo-card";
+import { PrimaryColorCard, PRESET_COLORS } from "./primary-color-card";
+
+// Interface for tracking original state
+interface OriginalState {
+  displayName: string;
+  logoUrl: string;
+  primaryColor: string;
+  customColor: string;
+  useCustomColor: boolean;
+}
 
 // Default blue-brand color for reference
 const DEFAULT_PRIMARY_COLOR = "oklch(0.6167 0.1623 250.58)";
@@ -42,31 +36,89 @@ export function CustomizationPage() {
   const [displayName, setDisplayName] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [primaryColor, setPrimaryColor] = useState("");
-  const [customColor, setCustomColor] = useState("#3b82f6"); // Hex for custom picker
+  const [customColor, setCustomColor] = useState("#3b82f6");
   const [useCustomColor, setUseCustomColor] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Track original state for change detection
+  const originalStateRef = useRef<OriginalState | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Mutation
   const updateBranding = useMutation(api.tenants.updateBranding);
 
   // Initialize form with current tenant values
   useEffect(() => {
-    if (tenantDisplayName) {
-      setDisplayName(tenantDisplayName);
-    } else if (tenantName) {
-      setDisplayName(tenantName);
-    }
-    if (tenantLogoUrl) {
-      setLogoUrl(tenantLogoUrl);
-    }
-    if (tenantPrimaryColor) {
-      setPrimaryColor(tenantPrimaryColor);
-      // Check if current color is a preset
-      const isPreset = PRESET_COLORS.some((c) => c.value === tenantPrimaryColor);
-      setUseCustomColor(!isPreset);
-    }
+    const initialDisplayName = tenantDisplayName || tenantName || "";
+    const initialLogoUrl = tenantLogoUrl || "";
+    const initialPrimaryColor = tenantPrimaryColor || "";
+    const isPreset = tenantPrimaryColor
+      ? PRESET_COLORS.some((c) => c.value === tenantPrimaryColor)
+      : true;
+    const initialUseCustomColor = tenantPrimaryColor ? !isPreset : false;
+
+    // If using custom color, preserve the actual custom color value
+    const initialCustomColor = initialUseCustomColor && tenantPrimaryColor
+      ? tenantPrimaryColor
+      : "#3b82f6";
+
+    setDisplayName(initialDisplayName);
+    setLogoUrl(initialLogoUrl);
+    setPrimaryColor(initialPrimaryColor);
+    setUseCustomColor(initialUseCustomColor);
+    setCustomColor(initialCustomColor);
+
+    // Store original state for change detection
+    originalStateRef.current = {
+      displayName: initialDisplayName,
+      logoUrl: initialLogoUrl,
+      primaryColor: initialPrimaryColor,
+      customColor: initialCustomColor,
+      useCustomColor: initialUseCustomColor,
+    };
+    setIsInitialized(true);
   }, [tenantDisplayName, tenantName, tenantLogoUrl, tenantPrimaryColor]);
+
+  // Compute whether there are unsaved changes
+  const hasChanges = useMemo(() => {
+    if (!isInitialized || !originalStateRef.current) return false;
+
+    const original = originalStateRef.current;
+    return (
+      displayName !== original.displayName ||
+      logoUrl !== original.logoUrl ||
+      primaryColor !== original.primaryColor ||
+      useCustomColor !== original.useCustomColor ||
+      (useCustomColor && customColor !== original.customColor)
+    );
+  }, [displayName, logoUrl, primaryColor, useCustomColor, customColor, isInitialized]);
+
+  // Warn user when leaving page with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasChanges) {
+        e.preventDefault();
+        e.returnValue = "";
+        return "";
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasChanges]);
+
+  // Cancel handler - reset to original state
+  const handleCancel = useCallback(() => {
+    if (!originalStateRef.current) return;
+
+    const original = originalStateRef.current;
+    setDisplayName(original.displayName);
+    setLogoUrl(original.logoUrl);
+    setPrimaryColor(original.primaryColor);
+    setCustomColor(original.customColor);
+    setUseCustomColor(original.useCustomColor);
+  }, []);
 
   // Apply preview color to CSS variable in real-time
   useEffect(() => {
@@ -78,12 +130,9 @@ export function CustomizationPage() {
 
   // Convert hex to oklch (simplified approximation)
   function hexToOklch(hex: string): string {
-    // Remove # if present and trim whitespace
     const cleanHex = hex.replace(/^#/, "").trim();
 
-    // Validate hex string format (must be exactly 6 hex digits)
     if (!/^[0-9A-Fa-f]{6}$/.test(cleanHex)) {
-      // Return a safe fallback for invalid input
       return hex;
     }
 
@@ -91,7 +140,6 @@ export function CustomizationPage() {
     const gInt = parseInt(cleanHex.substring(2, 4), 16);
     const bInt = parseInt(cleanHex.substring(4, 6), 16);
 
-    // Guard against NaN from parseInt (should not happen after regex validation, but extra safety)
     if (!Number.isFinite(rInt) || !Number.isFinite(gInt) || !Number.isFinite(bInt)) {
       return hex;
     }
@@ -100,8 +148,6 @@ export function CustomizationPage() {
     const g = gInt / 255;
     const b = bInt / 255;
 
-    // Simple RGB to approximate Oklch conversion
-    // This is a simplified conversion - for production, use a proper color library
     const l = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b;
     const m = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b;
     const s = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b;
@@ -118,7 +164,6 @@ export function CustomizationPage() {
     let h = (Math.atan2(bVal, a) * 180) / Math.PI;
     if (h < 0) h += 360;
 
-    // Final NaN guard before formatting
     if (!Number.isFinite(L) || !Number.isFinite(C) || !Number.isFinite(h)) {
       return hex;
     }
@@ -150,6 +195,15 @@ export function CustomizationPage() {
         primaryColor: colorToSave,
       });
 
+      // Update original state after successful save
+      originalStateRef.current = {
+        displayName,
+        logoUrl,
+        primaryColor,
+        customColor,
+        useCustomColor,
+      };
+
       toast({
         title: "Sucesso!",
         description: "Configurações de branding salvas com sucesso.",
@@ -180,7 +234,7 @@ export function CustomizationPage() {
     <div className="min-h-screen relative">
       {/* Sidebar trigger */}
       <SidebarTrigger
-        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-blue-brand hover:text-blue-brand hover:bg-blue-brand/10 transition-[left] duration-200 ease-linear z-10 ${state === "collapsed"
+        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-black hover:text-black hover:bg-gray-100 transition-[left] duration-200 ease-linear z-10 ${state === "collapsed"
           ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
           : "left-[calc(var(--sidebar-width)+0.25rem)]"
           }`}
@@ -189,16 +243,8 @@ export function CustomizationPage() {
       {/* Header */}
       <div className="border-b">
         <div className="p-4 pt-12 flex items-center pl-14 gap-4">
-          <Link href="/admin">
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Customização</h1>
-            <p className="text-sm text-muted-foreground">
-              Personalize a aparência do seu aplicativo
-            </p>
           </div>
         </div>
       </div>
@@ -206,159 +252,45 @@ export function CustomizationPage() {
       {/* Content */}
       <div className="p-6 pb-24 md:p-12">
         <div className="max-w-4xl mx-auto space-y-8">
-          {/* Preview Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Palette className="h-5 w-5" />
-                Preview
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-4 p-4 bg-blue-brand rounded-lg">
-                {logoUrl ? (
-                  <div className="relative h-12 w-12 rounded-lg overflow-hidden bg-white/20">
-                    <Image
-                      src={logoUrl}
-                      alt="Logo"
-                      fill
-                      className="object-contain"
-                    />
-                  </div>
-                ) : (
-                  <div className="h-12 w-12 rounded-lg bg-white/20 flex items-center justify-center">
-                    <span className="text-white text-xl font-bold">
-                      {(displayName || tenantName || "T")[0]?.toUpperCase()}
-                    </span>
-                  </div>
-                )}
-                <span className="text-white text-xl font-semibold">
-                  {displayName || tenantName || "Nome do App"}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
+          <PreviewCard
+            logoUrl={logoUrl}
+            displayName={displayName}
+            tenantName={tenantName || ""}
+          />
 
-          {/* Display Name */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Nome de Exibição</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <Label htmlFor="displayName">
-                  Nome exibido ao lado do logo
-                </Label>
-                <Input
-                  id="displayName"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Ex: OrtoQBank, MeuApp..."
-                  className="max-w-md"
-                />
-                <p className="text-sm text-muted-foreground">
-                  Este nome será exibido na sidebar e em outras áreas do app.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <DisplayNameCard
+            displayName={displayName}
+            onDisplayNameChange={setDisplayName}
+          />
 
-          {/* Logo Upload */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Logo</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="max-w-md">
-                  <ImageUpload
-                    value={logoUrl}
-                    onChange={setLogoUrl}
-                    folder="/tenants"
-                    id="tenant-logo-upload"
-                    onUploadStateChange={setIsUploading}
-                  />
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Recomendado: imagem quadrada PNG ou SVG com fundo transparente.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <LogoCard
+            logoUrl={logoUrl}
+            onLogoUrlChange={setLogoUrl}
+            onUploadStateChange={setIsUploading}
+          />
 
-          {/* Primary Color */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Cor Primária</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Preset Colors */}
-              <div className="space-y-3">
-                <Label>Cores predefinidas</Label>
-                <div className="grid grid-cols-5 gap-3">
-                  {PRESET_COLORS.map((color) => (
-                    <button
-                      key={color.name}
-                      type="button"
-                      onClick={() => handlePresetColorSelect(color.value)}
-                      className={`
-                        relative h-12 rounded-lg transition-all
-                        hover:scale-105 hover:shadow-md
-                        ${!useCustomColor && primaryColor === color.value
-                          ? "ring-2 ring-offset-2 ring-gray-900"
-                          : ""
-                        }
-                      `}
-                      style={{ backgroundColor: color.value }}
-                      title={color.name}
-                    >
-                      {!useCustomColor && primaryColor === color.value && (
-                        <Check className="absolute inset-0 m-auto h-5 w-5 text-white drop-shadow-md" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
+          <PrimaryColorCard
+            primaryColor={primaryColor}
+            customColor={customColor}
+            useCustomColor={useCustomColor}
+            onPresetColorSelect={handlePresetColorSelect}
+            onCustomColorChange={handleCustomColorChange}
+          />
 
-              {/* Custom Color */}
-              <div className="space-y-3">
-                <Label>Cor personalizada</Label>
-                <div className="flex items-center gap-4">
-                  <input
-                    type="color"
-                    value={customColor}
-                    onChange={(e) => handleCustomColorChange(e.target.value)}
-                    className={`
-                      h-12 w-20 rounded-lg cursor-pointer border-2
-                      ${useCustomColor ? "border-gray-900" : "border-gray-300"}
-                    `}
-                  />
-                  <Input
-                    value={customColor}
-                    onChange={(e) => handleCustomColorChange(e.target.value)}
-                    placeholder="#3b82f6"
-                    className="w-32 font-mono"
-                  />
-                  {useCustomColor && (
-                    <span className="text-sm text-muted-foreground flex items-center gap-1">
-                      <Check className="h-4 w-4 text-green-600" />
-                      Cor personalizada selecionada
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Esta cor será aplicada em botões, links, sidebar e outros
-                  elementos de destaque.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Save Button */}
-          <div className="flex justify-end">
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-3">
+            <Button
+              onClick={handleCancel}
+              disabled={isSaving || !hasChanges}
+              variant="outline"
+              size="lg"
+            >
+              <X className="mr-2 h-4 w-4" />
+              Cancelar
+            </Button>
             <Button
               onClick={handleSave}
-              disabled={isSaving || isUploading}
+              disabled={isSaving || isUploading || !hasChanges}
               size="lg"
               className="min-w-[200px]"
             >
@@ -380,4 +312,3 @@ export function CustomizationPage() {
     </div>
   );
 }
-

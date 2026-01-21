@@ -404,6 +404,7 @@ export default defineSchema({
     .index("by_tenantId_and_productId", ["tenantId", "productId"]),
   // Waitlist - tracks users interested in OrtoClub TEOT
   waitlist: defineTable({
+    tenantId: v.optional(v.id("tenants")), // Tenant ownership (optional for backward compatibility)
     name: v.string(),
     email: v.string(),
     whatsapp: v.string(),
@@ -424,7 +425,10 @@ export default defineSchema({
       v.literal("Coluna"),
       v.literal("Pé e Tornozelo"),
     ),
-  }).index("by_email", ["email"]),
+  })
+    .index("by_email", ["email"])
+    .index("by_tenantId", ["tenantId"])
+    .index("by_tenantId_and_email", ["tenantId", "email"]),
 
   // ============================================================================
   // ORDER AND PAYMENT TABLES (tenant-scoped)

@@ -1,4 +1,5 @@
 import { v } from "convex/values";
+import { paginationOptsValidator } from "convex/server";
 import {
   internalMutation,
   internalQuery,
@@ -350,6 +351,159 @@ export const getTenantUsers = query({
     validUsers.sort((a, b) => b._creationTime - a._creationTime);
 
     return validUsers.slice(0, args.limit || 100);
+  },
+});
+
+/**
+ * Maximum number of tenant members to scan when search is applied.
+ * This defensive limit prevents O(n) reads on very large tenants.
+ * For tenants exceeding this limit, search results will be based on
+ * the most recent members only.
+ */
+const TENANT_MEMBER_SEARCH_LIMIT = 1000;
+
+/**
+ * Get users that belong to a specific tenant with pagination (admin only)
+ * Supports search by name or email
+ *
+ * PERFORMANCE NOTES:
+ * - When no search is applied: Uses database-level pagination for O(pageSize) reads
+ * - When search is applied: Loads up to TENANT_MEMBER_SEARCH_LIMIT members for in-memory filtering
+ *   (search on joined user data requires in-memory filtering since we're searching across tables)
+ */
+export const getTenantUsersPaginated = query({
+  args: {
+    tenantId: v.id("tenants"),
+    paginationOpts: paginationOptsValidator,
+    search: v.optional(v.string()),
+  },
+  returns: v.object({
+    page: v.array(v.any()),
+    isDone: v.boolean(),
+    continueCursor: v.optional(v.string()),
+  }),
+  handler: async (ctx, args) => {
+    // Check if user is authenticated and has admin access to this tenant
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Unauthorized: Authentication required");
+    }
+
+    const currentUser = await userByClerkUserId(ctx, identity.subject);
+    if (!currentUser) {
+      throw new Error("Unauthorized: User not found");
+    }
+
+    // Check if user is superadmin or admin of this tenant
+    const isSuperAdmin = currentUser.role === "superadmin";
+
+    if (!isSuperAdmin) {
+      // Check tenant membership
+      const membership = await ctx.db
+        .query("tenantMemberships")
+        .withIndex("by_userId_and_tenantId", (q) =>
+          q.eq("userId", currentUser._id).eq("tenantId", args.tenantId)
+        )
+        .unique();
+
+      if (!membership || membership.role !== "admin") {
+        throw new Error("Unauthorized: Admin access required for this tenant");
+      }
+    }
+
+    const hasSearch = args.search && args.search.trim().length > 0;
+
+    // =========================================================================
+    // NON-SEARCH CASE: Use database-level pagination for efficiency
+    // =========================================================================
+    if (!hasSearch) {
+      // Use proper database pagination on tenantMemberships
+      const membershipsResult = await ctx.db
+        .query("tenantMemberships")
+        .withIndex("by_tenantId", (q) => q.eq("tenantId", args.tenantId))
+        .order("desc")
+        .paginate(args.paginationOpts);
+
+      // Fetch users for this page only (O(pageSize) reads)
+      const usersWithMembership = await Promise.all(
+        membershipsResult.page.map(async (membership) => {
+          const user = await ctx.db.get(membership.userId);
+          if (!user) return null;
+          return {
+            ...user,
+            membershipId: membership._id,
+            tenantRole: membership.role,
+            hasActiveAccess: membership.hasActiveAccess,
+            accessExpiresAt: membership.accessExpiresAt,
+          };
+        })
+      );
+
+      // Filter out null values (users that may have been deleted)
+      const validUsers = usersWithMembership.filter((u) => u !== null);
+
+      return {
+        page: validUsers,
+        isDone: membershipsResult.isDone,
+        continueCursor: membershipsResult.continueCursor,
+      };
+    }
+
+    // =========================================================================
+    // SEARCH CASE: Use defensive limit to prevent O(n) reads on large tenants
+    // =========================================================================
+    // Since search requires filtering by user fields (name, email) which are in
+    // a different table, we must load memberships and join with users in memory.
+    // We use a size cap to prevent unbounded reads.
+
+    const allMemberships = await ctx.db
+      .query("tenantMemberships")
+      .withIndex("by_tenantId", (q) => q.eq("tenantId", args.tenantId))
+      .order("desc")
+      .take(TENANT_MEMBER_SEARCH_LIMIT);
+
+    // Get the users from the memberships
+    const usersWithMembership = await Promise.all(
+      allMemberships.map(async (membership) => {
+        const user = await ctx.db.get(membership.userId);
+        if (!user) return null;
+        return {
+          ...user,
+          membershipId: membership._id,
+          tenantRole: membership.role,
+          hasActiveAccess: membership.hasActiveAccess,
+          accessExpiresAt: membership.accessExpiresAt,
+        };
+      })
+    );
+
+    // Filter out null values
+    let validUsers = usersWithMembership.filter((u) => u !== null);
+
+    // Apply search filter
+    const searchLower = args.search!.toLowerCase().trim();
+    validUsers = validUsers.filter((user) => {
+      const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+      const email = (user.email || "").toLowerCase();
+      return fullName.includes(searchLower) || email.includes(searchLower);
+    });
+
+    // Implement manual pagination on the filtered results
+    // (offset-based since we're doing in-memory filtering)
+    const numItems = args.paginationOpts.numItems;
+    const cursor = args.paginationOpts.cursor;
+    const startIndex = cursor ? parseInt(cursor) : 0;
+    const endIndex = startIndex + numItems;
+
+    const page = validUsers.slice(startIndex, endIndex);
+    const isDone = endIndex >= validUsers.length;
+    const continueCursor = isDone ? undefined : endIndex.toString();
+
+    return {
+      page,
+      isDone,
+      continueCursor,
+    };
   },
 });
 

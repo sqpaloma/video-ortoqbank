@@ -1,6 +1,5 @@
 "use client";
 
-import { usePaginatedQuery } from "convex/react";
 import { useState } from "react";
 import * as XLSX from "xlsx";
 
@@ -10,15 +9,16 @@ import { WaitlistTable } from "./waitlist-table";
 import { Button } from "@/components/ui/button";
 
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import { ChevronRightIcon } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { useTenantPaginatedQuery } from "@/hooks/use-tenant-convex";
 
 export function WaitlistPage() {
   const { state } = useSidebar();
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Use paginatedQuery com 10 itens por página
-  const { results, status, loadMore } = usePaginatedQuery(
+  // Use tenant-scoped paginated query com 10 itens por página
+  const { results, status, loadMore } = useTenantPaginatedQuery(
     api.waitlist.list,
     {},
     { initialNumItems: 10 },
@@ -68,15 +68,14 @@ export function WaitlistPage() {
     <div className="min-h-screen relative">
       {/* Sidebar trigger - follows sidebar position */}
       <SidebarTrigger
-        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-brand-blue hover:text-brand-blue hover:bg-brand-blue transition-[left] duration-200 ease-linear z-10 ${
-          state === "collapsed"
-            ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
-            : "left-[calc(var(--sidebar-width)+0.25rem)]"
-        }`}
+        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-black hover:text-black hover:bg-gray-100 transition-[left] duration-200 ease-linear z-10 ${state === "collapsed"
+          ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
+          : "left-[calc(var(--sidebar-width)+0.25rem)]"
+          }`}
       />
 
       {/* Header */}
-      <div className="border-b ">
+      <div className="border-b">
         <div className="p-4 pt-12 flex items-center pl-14 gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
@@ -86,59 +85,59 @@ export function WaitlistPage() {
         </div>
       </div>
 
-      <div className="p-8 pl-24 pr-24 pb-2">
-        <WaitlistSearch
-          searchInput={searchInput}
-          onSearchInputChange={setSearchInput}
-          onSearch={handleSearch}
-          onExport={handleExportToExcel}
-          isLoading={isLoading}
-          hasResults={filteredEntries.length > 0}
-        />
-      </div>
+      {/* Content with standardized padding */}
+      <div className="p-6 pb-12 md:p-12">
+        <div className="max-w-5xl mx-auto">
+          {/* Search */}
+          <div className="mb-6">
+            <WaitlistSearch
+              searchInput={searchInput}
+              onSearchInputChange={setSearchInput}
+              onSearch={handleSearch}
+              onExport={handleExportToExcel}
+              isLoading={isLoading}
+              hasResults={filteredEntries.length > 0}
+            />
+          </div>
 
-      <p className="text-sm pl-24 pr-24 text-muted-foreground">
-        {isLoading
-          ? "Carregando..."
-          : searchQuery.trim()
-            ? `Mostrando ${filteredEntries.length} resultado(s) da busca.`
-            : `Total de ${(entries ?? []).length} inscricao(oes) na lista de espera.`}
-      </p>
+          {/* Results count */}
+          <p className="text-sm text-muted-foreground mb-4">
+            {isLoading
+              ? "Carregando..."
+              : searchQuery.trim()
+                ? `Mostrando ${filteredEntries.length} resultado(s) da busca.`
+                : `Mostrando ${(entries ?? []).length} inscricao(oes) carregado(s)${status === "CanLoadMore" ? " — mais disponíveis" : ""}.`}
+          </p>
 
-      <div className="p-14 pl-24 pr-24">
-        <WaitlistTable
-          entries={filteredEntries}
-          isLoading={isLoading}
-          hasSearchQuery={!!searchQuery.trim()}
-        />
-      </div>
+          {/* Table */}
+          <div className="mb-8">
+            <WaitlistTable
+              entries={filteredEntries}
+              isLoading={isLoading}
+              hasSearchQuery={!!searchQuery.trim()}
+            />
+          </div>
 
-      <div className="p-14 pl-24 pr-24">
-        {/* Botões de Paginação */}
-        {!searchQuery.trim() && (
-          <div className="flex items-center justify-between ">
-            <p className="text-sm text-muted-foreground">
-              Mostrando {entries.length} registro(s)
-            </p>
-            <div className="flex gap-2 bg-white rounded-lg">
+          {/* Pagination */}
+          {!searchQuery.trim() && status === "CanLoadMore" && (
+            <div className="flex justify-center">
               <Button
                 variant="outline"
-                size="sm"
+                size="lg"
                 onClick={() => loadMore(10)}
-                disabled={status !== "CanLoadMore"}
               >
-                {status === "LoadingMore" ? (
-                  "Carregando..."
-                ) : (
-                  <>
-                    <ChevronRightIcon className="h-4 w-4 mr-1" />
-                    Carregar mais 10
-                  </>
-                )}
+                Ver mais
               </Button>
             </div>
-          </div>
-        )}
+          )}
+
+          {/* Loading more indicator */}
+          {status === "LoadingMore" && (
+            <div className="flex justify-center">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

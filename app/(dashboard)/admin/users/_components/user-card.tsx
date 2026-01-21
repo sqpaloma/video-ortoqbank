@@ -17,6 +17,7 @@ interface UserCardProps {
   onSetRole: (membershipId: Id<"tenantMemberships">, role: "member" | "admin") => void;
   onRemoveRole: (membershipId: Id<"tenantMemberships">) => void;
   isLoading: boolean;
+  isCurrentUser?: boolean;
 }
 
 export function UserCard({
@@ -24,13 +25,14 @@ export function UserCard({
   onSetRole,
   onRemoveRole,
   isLoading,
+  isCurrentUser = false,
 }: UserCardProps) {
   const email = user.email;
   // Use tenant-specific role for display
   const tenantRole = user.tenantRole;
 
   return (
-    <div className="rounded-lg border p-4 shadow-sm bg-white transition-all hover:shadow-md">
+    <div className="rounded-lg border p-6 shadow-sm bg-white transition-all hover:shadow-md">
       <div className="mb-4 flex items-center gap-3">
         {user.imageUrl && (
           <Image
@@ -61,18 +63,26 @@ export function UserCard({
         >
           {tenantRole === "admin" ? "Administrador" : "Usuário"}
         </span>
+        {isCurrentUser && (
+          <span className="ml-2 inline-flex rounded-full px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600">
+            (Você)
+          </span>
+        )}
       </div>
 
       <div className={`flex gap-2 ${tenantRole === "admin" ? "justify-end" : ""}`}>
         {tenantRole === "admin" ? (
-          <Button
-            onClick={() => onRemoveRole(user.membershipId)}
-            variant="destructive"
-            size="sm"
-            disabled={isLoading}
-          >
-            {isLoading ? "Carregando..." : "Remover Cargo"}
-          </Button>
+          // Only show remove button if not current user
+          !isCurrentUser && (
+            <Button
+              onClick={() => onRemoveRole(user.membershipId)}
+              variant="destructive"
+              size="sm"
+              disabled={isLoading}
+            >
+              {isLoading ? "Carregando..." : "Remover Cargo"}
+            </Button>
+          )
         ) : (
           <Button
             onClick={() => onSetRole(user.membershipId, "admin")}

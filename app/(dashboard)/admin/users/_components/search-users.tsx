@@ -1,35 +1,27 @@
 "use client";
 
 import { Search, X } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { useState } from "react";
 
-function SearchUsersContent() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const currentSearch = searchParams.get("search") || "";
-  const [searchTerm, setSearchTerm] = useState(currentSearch);
+interface SearchUsersProps {
+  onSearch: (term: string) => void;
+}
 
-  // Update local state when URL parameters change
-  useEffect(() => {
-    setSearchTerm(currentSearch);
-  }, [currentSearch]);
+export function SearchUsers({ onSearch }: SearchUsersProps) {
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (searchTerm.trim()) {
-      router.push(
-        `${pathname}?search=${encodeURIComponent(searchTerm.trim())}`,
-      );
-    } else {
-      // If search is empty, just go to the base page without parameters
-      router.push(pathname);
-    }
+    onSearch(searchTerm.trim());
+  };
+
+  const handleClear = () => {
+    setSearchTerm("");
+    onSearch("");
   };
 
   return (
-    <div className="w-full px-4 sm:px-12 md:px-24 space-y-2">
+    <div className="w-full space-y-2">
       <form onSubmit={handleSubmit} className="flex items-center gap-4">
         <div className="relative flex-1">
           <div className="text-muted-foreground absolute top-1/2 bg-background left-3 -translate-y-1/2">
@@ -47,7 +39,7 @@ function SearchUsersContent() {
           {searchTerm && (
             <button
               type="button"
-              onClick={() => setSearchTerm("")}
+              onClick={handleClear}
               className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
               aria-label="Limpar pesquisa"
             >
@@ -65,11 +57,3 @@ function SearchUsersContent() {
     </div>
   );
 }
-
-export const SearchUsers = () => {
-  return (
-    <Suspense fallback={<div>Loading search...</div>}>
-      <SearchUsersContent />
-    </Suspense>
-  );
-};

@@ -26,6 +26,7 @@ import {
 import { CheckCircle2Icon, FolderPlusIcon } from "lucide-react";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { useTenantMutation, useTenantReady } from "@/hooks/use-tenant-convex";
+import { useRef, useEffect } from "react";
 
 const formSchema = z.object({
   title: z.string().min(3, "Título deve ter pelo menos 3 caracteres"),
@@ -44,6 +45,14 @@ interface CategoryFormProps {
 }
 
 export function CategoryForm({ onSuccess }: CategoryFormProps) {
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   const isTenantReady = useTenantReady();
   const createCategory = useTenantMutation(api.categories.create);
   const { toast } = useToast();
@@ -92,7 +101,11 @@ export function CategoryForm({ onSuccess }: CategoryFormProps) {
       }
 
       // Reset success state after 3 seconds
-      setTimeout(() => setCreatedCategory(false), 3000);
+      setTimeout(() => {
+        if (isMountedRef.current) {
+          setCreatedCategory(false);
+        }
+      }, 3000);
     } catch (error) {
       showError(
         error instanceof Error ? error.message : "Erro desconhecido",
