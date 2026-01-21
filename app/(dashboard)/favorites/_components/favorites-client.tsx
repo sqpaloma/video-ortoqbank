@@ -103,8 +103,9 @@ export function FavoritesClientPage({
   // Combine server-fetched data with client data
   // After hydration, the client query takes over with real-time updates
   const favoritesData = useMemo(() => {
-    // If we have client results, use those (they're reactive)
-    if (results && results.length > 0) {
+    // If client query has returned results, use those (they're reactive)
+    // Check for undefined/null to distinguish "not yet loaded" from "empty"
+    if (results !== undefined) {
       return results as FavoriteLessonData[];
     }
     // Otherwise, use initial server data

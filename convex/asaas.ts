@@ -318,8 +318,9 @@ export const createPixPayment = action({
       throw new Error("Invalid product price");
     }
 
-    // Get pricing plan for description
+    // Get pricing plan for description (use tenantId from pending order)
     const pricingPlan = await ctx.runQuery(api.pricingPlans.getByProductId, {
+      tenantId: pendingOrder.tenantId,
       productId: args.productId,
     });
 
@@ -432,8 +433,9 @@ export const createCreditCardPayment = action({
       throw new Error("Invalid product price");
     }
 
-    // Get pricing plan for description
+    // Get pricing plan for description (use tenantId from pending order)
     const pricingPlan = await ctx.runQuery(api.pricingPlans.getByProductId, {
+      tenantId: pendingOrder.tenantId,
       productId: args.productId,
     });
 

@@ -1,10 +1,31 @@
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
+import { headers } from "next/headers";
 import { fetchQuery } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
+import { getTenantSlugFromHostname } from "./tenant";
+import { Id } from "@/convex/_generated/dataModel";
+
+/**
+ * Get the current tenant ID from hostname (server-side)
+ */
+async function getTenantId(token: string | null): Promise<Id<"tenants"> | null> {
+  const headersList = await headers();
+  const host = headersList.get("host") || "localhost";
+  const tenantSlug = getTenantSlugFromHostname(host);
+
+  const tenant = await fetchQuery(
+    api.tenants.getBySlug,
+    { slug: tenantSlug },
+    token ? { token } : undefined,
+  ).catch(() => null);
+
+  return tenant?._id || null;
+}
 
 /**
  * Verifica se o usuário atual tem acesso pago ao conteúdo de vídeo.
+ * Agora usa verificação tenant-scoped.
  *
  * @param redirectTo - URL para redirecionar se não tiver acesso (default: /purchase)
  * @returns true se tem acesso, ou redireciona automaticamente
@@ -29,10 +50,18 @@ export async function requireVideoAccess(
   // Obtém token do Convex para autenticação
   const token = await getToken({ template: "convex" }).catch(() => null);
 
-  // Verifica acesso no Convex (fonte de verdade)
+  // Get tenant ID from hostname
+  const tenantId = await getTenantId(token);
+  
+  if (!tenantId) {
+    console.error("[requireVideoAccess] Tenant not found");
+    redirect(redirectTo);
+  }
+
+  // Verifica acesso no Convex (fonte de verdade) - tenant-scoped
   const hasAccess = await fetchQuery(
-    api.userAccess.checkUserHasVideoAccessByClerkId,
-    { clerkUserId: userId },
+    api.userAccess.checkUserHasTenantAccessByClerkId,
+    { tenantId, clerkUserId: userId },
     token ? { token } : {},
   );
 
@@ -46,6 +75,7 @@ export async function requireVideoAccess(
 /**
  * Verifica acesso sem redirecionar automaticamente.
  * Útil quando você precisa fazer lógica condicional.
+ * Agora usa verificação tenant-scoped.
  *
  * @returns { hasAccess: boolean, userId: string | null }
  *
@@ -67,9 +97,18 @@ export async function checkVideoAccess(): Promise<{
 
   const token = await getToken({ template: "convex" }).catch(() => null);
 
+  // Get tenant ID from hostname
+  const tenantId = await getTenantId(token);
+  
+  if (!tenantId) {
+    console.error("[checkVideoAccess] Tenant not found");
+    return { hasAccess: false, userId };
+  }
+
+  // Tenant-scoped access check
   const hasAccess = await fetchQuery(
-    api.userAccess.checkUserHasVideoAccessByClerkId,
-    { clerkUserId: userId },
+    api.userAccess.checkUserHasTenantAccessByClerkId,
+    { tenantId, clerkUserId: userId },
     token ? { token } : {},
   );
 

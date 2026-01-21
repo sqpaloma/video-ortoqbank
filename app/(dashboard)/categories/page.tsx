@@ -55,8 +55,8 @@ export default async function CategoriesPage() {
   // Preload aggregate stats (only if user is authenticated)
   const preloadedContentStats = userId
     ? await preloadQuery(
-      api.aggregate.get,
-      {},
+      api.aggregate.getByTenant,
+      { tenantId: tenant._id },
       token ? { token } : undefined,
     ).catch(() => null)
     : null;

@@ -7,6 +7,11 @@ vi.mock("convex/react", () => ({
   useQuery: vi.fn(() => null), // Returns null by default (no role)
 }));
 
+// Mock tenant provider
+vi.mock("./tenant-provider", () => ({
+  useTenant: vi.fn(() => ({ tenantId: null })),
+}));
+
 describe("SessionProvider", () => {
   it("should render", () => {
     render(

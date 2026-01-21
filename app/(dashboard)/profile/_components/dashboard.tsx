@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircle2, PlayCircle, TrendingUp } from "lucide-react";
-import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useTenantQuery, useTenantReady } from "@/hooks/use-tenant-convex";
@@ -15,8 +14,8 @@ export default function Dashboard() {
   const userId = user?.clerkUserId;
   const isTenantReady = useTenantReady();
 
-  // Use regular query for non-tenant-scoped data
-  const contentStats = useQuery(api.aggregate.get, {});
+  // Use tenant query for tenant-scoped content stats
+  const contentStats = useTenantQuery(api.aggregate.getByTenant, {});
 
   // Use tenant queries for tenant-scoped data
   const completedCountResult = useTenantQuery(

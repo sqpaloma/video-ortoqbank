@@ -17,7 +17,7 @@ export function CategoriesClientPage({
   preloadedCompletedCount,
 }: {
   preloadedCategories: Preloaded<typeof api.categories.listPublished>;
-  preloadedContentStats: Preloaded<typeof api.aggregate.get> | null;
+  preloadedContentStats: Preloaded<typeof api.aggregate.getByTenant> | null;
   preloadedCompletedCount: Preloaded<
     typeof api.progress.queries.getCompletedPublishedLessonsCount
   > | null;
@@ -27,7 +27,7 @@ export function CategoriesClientPage({
 
   // Use regular queries for optional preloaded data to avoid conditional hook calls
   const contentStats = useTenantQuery(
-    api.aggregate.get,
+    api.aggregate.getByTenant,
     preloadedContentStats ? "skip" : {}
   );
   const completedCount = useTenantQuery(

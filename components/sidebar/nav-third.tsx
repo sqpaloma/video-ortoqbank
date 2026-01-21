@@ -13,13 +13,11 @@ import {
 } from "../ui/sidebar";
 import { useSession } from "../providers/session-provider";
 
-type UserRole = "admin" | "moderator" | "user";
-
 interface MenuItem {
   title: string;
   url: string;
   icon: LucideIcon;
-  requiredRoles?: UserRole[];
+  requiresAdmin?: boolean;
 }
 
 const items: MenuItem[] = [
@@ -29,31 +27,21 @@ const items: MenuItem[] = [
     title: "Admin",
     url: "/admin",
     icon: UserCircleIcon,
-    requiredRoles: ["admin"],
+    requiresAdmin: true,
   },
-  // Example of a future item that could be available to both admins and moderators
-  // {
-  //   title: 'Moderação',
-  //   url: '/moderacao',
-  //   icon: ShieldIcon,
-  //   requiredRoles: ['admin', 'moderator']
-  // },
 ];
 
 export default function NavThird() {
   const { setOpenMobile } = useSidebar();
-  const { userRole } = useSession();
+  const { isAdmin } = useSession();
 
-  // Filter menu items based on user role
+  // Filter menu items based on tenant-specific admin status
   const visibleItems = items.filter((item) => {
-    // If item has no role requirements, show it to everyone
-    if (!item.requiredRoles) return true;
+    // If item doesn't require admin, show it to everyone
+    if (!item.requiresAdmin) return true;
 
-    // If user has no role, don't show items with role requirements
-    if (!userRole) return false;
-
-    // Check if user's role is in the required roles
-    return item.requiredRoles.includes(userRole as UserRole);
+    // Only show admin items if user is admin of this tenant (or superadmin)
+    return isAdmin;
   });
 
   return (

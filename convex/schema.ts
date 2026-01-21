@@ -146,7 +146,8 @@ export default defineSchema({
       "order_index",
     ])
     .index("by_tenantId", ["tenantId"])
-    .index("by_tenantId_and_unitId", ["tenantId", "unitId"]),
+    .index("by_tenantId_and_unitId", ["tenantId", "unitId"])
+    .index("by_tenantId_isPublished", ["tenantId", "isPublished"]),
 
   // Videos table (Bunny Stream videos)
   videos: defineTable({

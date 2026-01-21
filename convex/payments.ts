@@ -180,6 +180,7 @@ export const createPendingOrder = mutation({
     }
     // Get pricing plan to determine correct price
     const pricingPlan = await ctx.runQuery(api.pricingPlans.getByProductId, {
+      tenantId: args.tenantId,
       productId: args.productId,
     });
 

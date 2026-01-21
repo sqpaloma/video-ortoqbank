@@ -36,8 +36,9 @@ export async function getTotalLessonsCount(
 }
 
 /**
- * Get content statistics using aggregates
+ * Get content statistics using aggregates (GLOBAL - includes all tenants)
  * This is O(log n) instead of O(n) - much more efficient!
+ * NOTE: Use getByTenant for tenant-scoped statistics
  */
 export const get = query({
   args: {},
@@ -46,6 +47,53 @@ export const get = query({
     const totalLessons = await getTotalLessonsCount(ctx);
     const totalUnits = await unitsAggregate.count(ctx);
     const totalCategories = await categoriesAggregate.count(ctx);
+
+    return {
+      totalLessons,
+      totalUnits,
+      totalCategories,
+      updatedAt: Date.now(),
+    };
+  },
+});
+
+/**
+ * Get content statistics for a specific tenant
+ * This queries the actual tables filtered by tenantId
+ */
+export const getByTenant = query({
+  args: {
+    tenantId: v.id("tenants"),
+  },
+  returns: v.object({
+    totalLessons: v.number(),
+    totalUnits: v.number(),
+    totalCategories: v.number(),
+    updatedAt: v.number(),
+  }),
+  handler: async (ctx, args) => {
+    // Count published lessons for this tenant
+    const lessons = await ctx.db
+      .query("lessons")
+      .withIndex("by_tenantId_isPublished", (q) =>
+        q.eq("tenantId", args.tenantId).eq("isPublished", true)
+      )
+      .collect();
+    const totalLessons = lessons.length;
+
+    // Count units for this tenant
+    const units = await ctx.db
+      .query("units")
+      .withIndex("by_tenantId", (q) => q.eq("tenantId", args.tenantId))
+      .collect();
+    const totalUnits = units.length;
+
+    // Count categories for this tenant
+    const categories = await ctx.db
+      .query("categories")
+      .withIndex("by_tenantId", (q) => q.eq("tenantId", args.tenantId))
+      .collect();
+    const totalCategories = categories.length;
 
     return {
       totalLessons,

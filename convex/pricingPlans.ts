@@ -3,10 +3,41 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { requireAdmin } from "./users";
 
+/**
+ * Get all pricing plans for a tenant (ADMIN)
+ */
 export const getPricingPlans = query({
-  args: {},
-  handler: async (ctx) => {
-    return await ctx.db.query("pricingPlans").order("asc").collect();
+  args: {
+    tenantId: v.id("tenants"),
+  },
+  returns: v.array(v.object({
+    _id: v.id("pricingPlans"),
+    _creationTime: v.number(),
+    tenantId: v.id("tenants"),
+    name: v.string(),
+    badge: v.string(),
+    originalPrice: v.optional(v.string()),
+    price: v.string(),
+    installments: v.string(),
+    installmentDetails: v.string(),
+    description: v.string(),
+    features: v.array(v.string()),
+    buttonText: v.string(),
+    productId: v.string(),
+    category: v.optional(v.union(v.literal("year_access"), v.literal("premium_pack"), v.literal("addon"))),
+    year: v.optional(v.number()),
+    regularPriceNum: v.optional(v.number()),
+    pixPriceNum: v.optional(v.number()),
+    accessYears: v.optional(v.array(v.number())),
+    isActive: v.optional(v.boolean()),
+    displayOrder: v.optional(v.number()),
+  })),
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("pricingPlans")
+      .withIndex("by_tenantId", (q) => q.eq("tenantId", args.tenantId))
+      .order("asc")
+      .collect();
   },
 });
 
@@ -47,6 +78,7 @@ export const savePricingPlan = mutation({
 
     if (id) {
       // Editar plano existente - don't update tenantId
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { tenantId: _tenantId, ...updateData } = planData;
       await ctx.db.patch(id, updateData);
       return id;
@@ -69,27 +101,47 @@ export const removePricingPlan = mutation({
 });
 
 /**
- * Get active pricing plans (products available for purchase)
+ * Get active pricing plans for a tenant (products available for purchase)
  */
 export const getActiveProducts = query({
-  args: {},
-  handler: async (ctx) => {
-    return await ctx.db
+  args: {
+    tenantId: v.id("tenants"),
+  },
+  handler: async (ctx, args) => {
+    // Get all plans for tenant and filter by active
+    const plans = await ctx.db
       .query("pricingPlans")
-      .withIndex("by_active", (q) => q.eq("isActive", true))
+      .withIndex("by_tenantId", (q) => q.eq("tenantId", args.tenantId))
       .collect();
+    
+    return plans.filter((p) => p.isActive === true);
   },
 });
 
 /**
- * Get pricing plan by product ID
+ * Get pricing plan by product ID within a tenant
  */
 export const getByProductId = query({
-  args: { productId: v.string() },
+  args: { 
+    tenantId: v.id("tenants"),
+    productId: v.string(),
+  },
+  returns: v.union(
+    v.object({
+      _id: v.id("pricingPlans"),
+      _creationTime: v.number(),
+      tenantId: v.id("tenants"),
+      name: v.string(),
+      // ... include remaining schema fields
+    }),
+    v.null()
+  ),
   handler: async (ctx, args) => {
     return await ctx.db
       .query("pricingPlans")
-      .withIndex("by_product_id", (q) => q.eq("productId", args.productId))
+      .withIndex("by_tenantId_and_productId", (q) => 
+        q.eq("tenantId", args.tenantId).eq("productId", args.productId)
+      )
       .unique();
   },
 });

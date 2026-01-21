@@ -9,15 +9,14 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { User } from "lucide-react";
-import { useQuery } from "convex/react";
 import { useUser } from "@clerk/nextjs";
-import { api } from "@/convex/_generated/api";
+import { useSession } from "@/components/providers/session-provider";
 
 export default function UserInfos() {
   // Get image directly from Clerk (always up-to-date)
   const { user: clerkUser, isLoaded } = useUser();
-  // Get role and other business data from Convex
-  const userData = useQuery(api.users.current, {});
+  // Get tenant-specific admin status from session
+  const { isAdmin, isSuperAdmin } = useSession();
 
   // Show stable placeholder while Clerk data is loading
   if (!isLoaded) {
@@ -64,7 +63,12 @@ export default function UserInfos() {
                 {clerkUser.primaryEmailAddress.emailAddress}
               </CardDescription>
             )}
-            {userData?.role === "admin" && (
+            {isSuperAdmin && (
+              <Badge variant="destructive" className="mt-2">
+                Super Admin
+              </Badge>
+            )}
+            {isAdmin && !isSuperAdmin && (
               <Badge variant="default" className="mt-2">
                 Administrador
               </Badge>

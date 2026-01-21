@@ -1,6 +1,5 @@
 "use client";
 
-import { useQuery } from "convex/react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,7 @@ import { EditPlanCard } from "./edit-plan-card";
 import { PricingPlanCard } from "./pricing-plan-card";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { PlusIcon } from "lucide-react";
-import { useTenantMutation, useTenantReady } from "@/hooks/use-tenant-convex";
+import { useTenantMutation, useTenantQuery, useTenantReady } from "@/hooks/use-tenant-convex";
 
 type PricingPlan = Doc<"pricingPlans">;
 
@@ -39,7 +38,7 @@ const initialFormData: FormData = {
 
 export function PricingPlansPage() {
   const isTenantReady = useTenantReady();
-  const plans = useQuery(api.pricingPlans.getPricingPlans) || [];
+  const plans = useTenantQuery(api.pricingPlans.getPricingPlans, {}) || [];
   const savePlan = useTenantMutation(api.pricingPlans.savePricingPlan);
   const removePlan = useTenantMutation(api.pricingPlans.removePricingPlan);
   const { state } = useSidebar();

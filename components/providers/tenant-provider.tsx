@@ -181,9 +181,9 @@ export function TenantProvider({
 /**
  * Hook to access full tenant context
  */
-export function useTenant() {
+export function useTenant(): TenantContextType {
   const context = useContext(TenantContext);
-  if (context === undefined) {
+  if (context === undefined || context === null) {
     throw new Error("useTenant must be used within a TenantProvider");
   }
   return context;

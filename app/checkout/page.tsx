@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import cardValidator from "card-validator";
-import { useAction, useMutation, useQuery } from "convex/react";
+import { useAction, useMutation } from "convex/react";
 import { Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { TenantProvider, useTenant } from "@/components/providers/tenant-provider";
+import { useTenantQuery, useTenantMutation } from "@/hooks/use-tenant-convex";
 
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -190,6 +192,7 @@ type CheckoutForm = z.infer<typeof checkoutSchema>;
 function CheckoutPageContent() {
   const router = useRouter();
   const planId = useSearchParams().get("plan"); // get planId from url
+  const { tenantId } = useTenant();
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -204,15 +207,15 @@ function CheckoutPageContent() {
   const [selectedInstallments, setSelectedInstallments] = useState<number>(1);
   const [isLoadingCep, setIsLoadingCep] = useState(false);
 
-  // Convex actions and mutations
-  const createPendingOrder = useMutation(api.payments.createPendingOrder);
+  // Convex actions and mutations (tenant-scoped)
+  const createPendingOrder = useTenantMutation(api.payments.createPendingOrder);
   const linkPaymentToOrder = useMutation(api.payments.linkPaymentToOrder);
   const createCustomer = useAction(api.asaas.createAsaasCustomer);
   const createPixPayment = useAction(api.asaas.createPixPayment);
   const createCreditCardPayment = useAction(api.asaas.createCreditCardPayment);
 
-  // Get pricing plan
-  const pricingPlan = useQuery(
+  // Get pricing plan (tenant-scoped)
+  const pricingPlan = useTenantQuery(
     api.pricingPlans.getByProductId,
     planId ? { productId: planId } : "skip",
   );
@@ -309,9 +312,17 @@ function CheckoutPageContent() {
       const { ConvexHttpClient } = await import("convex/browser");
       const client = new ConvexHttpClient(convexUrl);
 
+      // Ensure tenantId is available for coupon validation
+      if (!tenantId) {
+        setCouponError("Erro: contexto de tenant não disponível");
+        setIsValidatingCoupon(false);
+        return;
+      }
+
       const validateResult = (await client.mutation(
         api.promoCoupons.validateAndApplyCoupon,
         {
+          tenantId,
           code: couponCode,
           originalPrice,
           userCpf: cleanCpf, // Pass CPF for per-user limit checks
@@ -1138,14 +1149,16 @@ function CheckoutPageContent() {
 
 export default function CheckoutPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center bg-gray-50 py-8">
-          <Loader2 className="text-brand-blue h-8 w-8 animate-spin" />
-        </div>
-      }
-    >
-      <CheckoutPageContent />
-    </Suspense>
+    <TenantProvider>
+      <Suspense
+        fallback={
+          <div className="flex min-h-screen items-center justify-center bg-gray-50 py-8">
+            <Loader2 className="text-brand-blue h-8 w-8 animate-spin" />
+          </div>
+        }
+      >
+        <CheckoutPageContent />
+      </Suspense>
+    </TenantProvider>
   );
 }

@@ -3,10 +3,10 @@
 import { Check, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useQuery } from "convex/react";
 
 import { Button } from "@/components/ui/button";
 import { api } from "@/convex/_generated/api";
+import { useTenantQuery } from "@/hooks/use-tenant-convex";
 
 import { Doc } from "@/convex/_generated/dataModel";
 
@@ -127,7 +127,7 @@ function PricingPlanContent({ plans }: PricingPlanContentProps) {
 }
 
 export default function PricingPlan() {
-  const plans = useQuery(api.pricingPlans.getActiveProducts);
+  const plans = useTenantQuery(api.pricingPlans.getActiveProducts, {});
 
   // Se ainda estiver carregando, não renderiza nada (ou pode mostrar um loading)
   if (plans === undefined) {

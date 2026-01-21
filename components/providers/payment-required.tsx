@@ -1,10 +1,10 @@
 "use client";
 
-import { useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { api } from "../../convex/_generated/api";
+import { useTenantQuery } from "@/hooks/use-tenant-convex";
 
 interface PaymentRequiredProps {
   children: React.ReactNode;
@@ -22,7 +22,8 @@ export function PaymentRequired({
   redirectTo = "/purchase",
 }: PaymentRequiredProps) {
   const router = useRouter();
-  const hasAccess = useQuery(api.userAccess.checkUserHasVideoAccess);
+  // Use tenant-scoped access check instead of deprecated global check
+  const hasAccess = useTenantQuery(api.userAccess.checkUserHasTenantAccess, {});
 
   useEffect(() => {
     // Only redirect if we have a definitive result from the server

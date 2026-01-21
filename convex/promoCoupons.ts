@@ -4,20 +4,37 @@ import { mutation, query } from "./_generated/server";
 import { rateLimiter } from "./lib/rateLimits";
 import { requireAdmin } from "./users";
 
+/**
+ * List all coupons for a tenant (ADMIN)
+ */
 export const list = query({
-  args: {},
-  handler: async (ctx) => {
-    return await ctx.db.query("coupons").order("desc").collect();
+  args: {
+    tenantId: v.id("tenants"),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("coupons")
+      .withIndex("by_tenantId", (q) => q.eq("tenantId", args.tenantId))
+      .order("desc")
+      .collect();
   },
 });
 
+/**
+ * Get coupon by code within a tenant
+ */
 export const getByCode = query({
-  args: { code: v.string() },
+  args: { 
+    tenantId: v.id("tenants"),
+    code: v.string(),
+  },
   handler: async (ctx, args) => {
     const code = args.code.toUpperCase();
     const byCode = await ctx.db
       .query("coupons")
-      .withIndex("by_code", (q) => q.eq("code", code))
+      .withIndex("by_tenantId_and_code", (q) => 
+        q.eq("tenantId", args.tenantId).eq("code", code)
+      )
       .unique();
     return byCode ?? null;
   },
@@ -106,6 +123,7 @@ export const remove = mutation({
  */
 export const validateAndApplyCoupon = mutation({
   args: {
+    tenantId: v.id("tenants"),
     code: v.string(),
     originalPrice: v.number(),
     userCpf: v.optional(v.string()), // For checking per-user limits
@@ -138,10 +156,12 @@ export const validateAndApplyCoupon = mutation({
       };
     }
 
-    // Find the coupon
+    // Find the coupon within the tenant
     const coupon = await ctx.db
       .query("coupons")
-      .withIndex("by_code", (q) => q.eq("code", code))
+      .withIndex("by_tenantId_and_code", (q) => 
+        q.eq("tenantId", args.tenantId).eq("code", code)
+      )
       .unique();
 
     if (!coupon) {
