@@ -20,7 +20,11 @@ import { ErrorModal } from "@/components/ui/error-modal";
 import { Doc, Id } from "@/convex/_generated/dataModel";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { useUser } from "@clerk/nextjs";
-import { useTenantMutation, useTenantReady } from "@/hooks/use-tenant-convex";
+import {
+  useTenantMutation,
+  useTenantReady,
+  useTenantAction,
+} from "@/hooks/use-tenant-convex";
 import {
   SearchIcon,
   LoaderIcon,
@@ -51,7 +55,7 @@ export function LessonForm({ units, onSuccess }: LessonFormProps) {
   const { user } = useUser();
   const createLesson = useTenantMutation(api.lessons.create);
   const fetchVideoInfo = useAction(api.bunny.videos.fetchVideoInfo);
-  const registerExistingVideo = useAction(
+  const registerExistingVideo = useTenantAction(
     api.bunny.videos.registerExistingVideo,
   );
   const { toast } = useToast();

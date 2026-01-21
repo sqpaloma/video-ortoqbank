@@ -288,6 +288,7 @@ export function UnitsLessonsPage() {
     description: string;
     videoId?: string;
     thumbnailUrl?: string;
+    durationSeconds?: number;
   }) => {
     if (editMode.type !== "lesson") return;
 
@@ -300,7 +301,7 @@ export function UnitsLessonsPage() {
         unitId: data.unitId,
         title: data.title,
         description: data.description,
-        durationSeconds: editMode.lesson.durationSeconds,
+        durationSeconds: data.durationSeconds ?? editMode.lesson.durationSeconds,
         order_index: editMode.lesson.order_index,
         isPublished: editMode.lesson.isPublished,
         videoId: data.videoId ?? editMode.lesson.videoId,

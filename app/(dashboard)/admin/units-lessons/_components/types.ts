@@ -45,6 +45,7 @@ export interface LessonEditPanelProps {
     description: string;
     videoId?: string;
     thumbnailUrl?: string;
+    durationSeconds?: number;
   }) => void;
   onCancel: () => void;
 }
