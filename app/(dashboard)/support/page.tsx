@@ -1,12 +1,4 @@
-import {
-  FileText,
-  HelpCircle,
-  Instagram,
-  LayoutDashboard,
-  Mail,
-  Map,
-  User,
-} from "lucide-react";
+import { Instagram, Mail } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -15,23 +7,21 @@ export default function SupportPage() {
     <div className="mx-auto max-w-5xl p-6">
       <div className="mb-8">
         <h1 className="mb-2 text-2xl font-semibold">Suporte</h1>
-        <p className="text-muted-foreground">
-          Como usar o OrtoQBank da melhor forma para sua preparação
-        </p>
       </div>
 
       <div className="space-y-6">
         <div className="rounded-lg border bg-white p-6 shadow-sm">
           <div className="mb-4 flex items-start gap-3">
-            <HelpCircle className="mt-1 h-6 w-6 `flex-shrink-0` text-brand-blue" />
             <div>
               <h2 className="text-lg font-medium">
-                Como usar o OrtoQBank da melhor forma
+                Como usar o OrtoClub TEOT da melhor forma
               </h2>
               <p className="text-muted-foreground mt-1">
-                Bem-vindo ao OrtoQBank, seu parceiro estratégico na preparação
-                para a prova da SBOT! Para aproveitar ao máximo a plataforma, é
-                importante entender como cada área funciona:
+                Bem-vindo ao OrtoClub TEOT, sua plataforma de aulas em vídeo
+                pensada para uma preparação estruturada, contínua e estratégica
+                para o TEOT e para a formação em Ortopedia. Para aproveitar ao
+                máximo, é importante entender como cada área funciona e como ela
+                se integra ao OrtoQBank, potencializando seus resultados.
               </p>
             </div>
           </div>
@@ -39,72 +29,114 @@ export default function SupportPage() {
 
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
-            <CardHeader className="pb-2">
+            <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <Map className="h-5 w-5 text-brand-blue" />
-                <span>Trilhas de Estudo</span>
+                <span>🎯 Meu Perfil</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground text-sm">
-                Ideal para quem está começando ou quer revisar com profundidade.
-                Aqui, você encontrará questões inéditas, organizadas conforme os
-                principais temas cobrados na SBOT, com base nos livros de
-                referência. Cada questão vem com comentários detalhados e
-                ilustrados, guiando você passo a passo no caminho do
-                conhecimento.
+                A seção Meu Perfil é onde você acompanha sua jornada dentro do
+                OrtoClub TEOT. Aqui você pode: Visualizar seu progresso geral
+                nas aulas Acompanhar módulos concluídos e pendentes Monitorar
+                sua consistência de estudo Essas informações ajudam você a
+                manter regularidade e identificar rapidamente onde precisa
+                avançar ou reforçar o estudo.
+                <br />
+                <br />
+                <b>➡️ Integração com o OrtoQBank: </b>
+                Seu desempenho nas aulas pode ser usado como guia para
+                direcionar melhor a resolução de questões no OrtoQBank, focando
+                exatamente nos temas que você já estudou — ou que precisa
+                revisar.
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="pb-2">
+            <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <FileText className="h-5 w-5 text-green-500" />
-                <span>Simulados</span>
+                <span>🎥 Aulas</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground text-sm">
-                Treine em condições semelhantes às da prova! Nessa área, estão
-                disponíveis provas anteriores da SBOT (TARO e TEOT) e simulados
-                originais OrtoQBank. Todos com gabaritos comentados. É a
-                ferramenta perfeita para medir seu desempenho e se familiarizar
-                com o estilo da banca.
+                Na seção Aulas, você encontra todo o conteúdo teórico do
+                OrtoClub TEOT, organizado de forma lógica e progressiva. Você
+                terá acesso a: Aulas divididas por especialidades e temas
+                cobrados no TEOT Conteúdo direto ao ponto, com enfoque prático e
+                prova-orientado Organização que permite seguir uma trilha
+                completa ou estudar temas específicos conforme sua necessidade
+                Cada aula foi pensada para entregar o fundamento teórico
+                essencial, servindo como base para a resolução de questões e
+                para a consolidação do conhecimento. O único do mercado com
+                todos os professores especialistas pela Universidade de São
+                Paulo (USP)
+                <br />
+                <br />
+                <b>➡️ Integração com o OrtoQBank:</b>
+                Após assistir às aulas, você pode reforçar o aprendizado
+                resolvendo questões correspondentes no OrtoQBank, garantindo
+                fixação ativa do conteúdo e contato com o estilo real da prova.
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="pb-2">
+            <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <LayoutDashboard className="h-5 w-5 text-purple-500" />
-                <span>Testes Personalizados</span>
+                <span>⭐ Meus Favoritos</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground text-sm">
-                Quer focar em temas específicos? Aqui você pode criar seus
-                próprios testes, escolhendo temas, subtemas e grupos. Ideal para
-                revisar pontos fracos ou reforçar áreas-chave. Além disso, você
-                pode rever testes anteriores para acompanhar sua evolução.
+                A área Meus Favoritos funciona como seu espaço pessoal de
+                organização. Aqui você pode: Salvar aulas mais importantes
+                Marcar conteúdos que deseja rever antes da prova Criar uma lista
+                rápida para revisões estratégicas Organizar o estudo de acordo
+                com seu momento (R1, R2, R3 ou reta final) Essa funcionalidade
+                facilita revisões rápidas e estudos direcionados, especialmente
+                em fases mais avançadas da preparação.
+                <br />
+                <br />
+                <b>➡️ Integração com o OrtoQBank:</b>
+                Os temas favoritos podem ser usados como base para criar testes
+                personalizados no OrtoQBank, permitindo revisar teoria e prática
+                de forma totalmente alinhada.
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="pb-2">
+            <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
-                <User className="h-5 w-5 text-amber-500" />
-                <span>Meu Perfil</span>
+                <span>🔗 Estudo Integrado: OrtoClub TEOT + OrtoQBank</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground text-sm">
-                Acompanhe seu progresso! A aba &quot;Meu Perfil&quot; oferece
-                feedback detalhado, com estatísticas de desempenho e uso da
-                plataforma, ajudando você a definir metas e otimizar seus
-                estudos.
+                A grande força da sua preparação está na integração entre aulas
+                e questões:
+                <br />
+                OrtoClub TEOT → fornece o embasamento teórico estruturado
+                <br />
+                OrtoQBank → transforma esse conhecimento em treino ativo e
+                prova-orientado
+                <br />
+                Usando as duas plataformas em conjunto, você estuda:
+                <br />
+                <br />
+                <b>* A teoria certa</b>
+                <br />
+                <b>* No momento certo</b>
+                <br />
+                <b>* Com treino direcionado</b>
+                <br />
+                <b>* E análise real de desempenho</b>
+                <br />
+                <br />
+                Tudo isso para uma preparação mais eficiente, inteligente e com
+                foco em aprovação.
               </p>
             </CardContent>
           </Card>
@@ -128,13 +160,13 @@ export default function SupportPage() {
                 <span>ortoqbank@gmail.com</span>
               </a>
               <a
-                href="https://instagram.com/ortoqbank"
+                href="https://instagram.com/orto.club"
                 className="inline-flex items-center gap-2 rounded-md bg-slate-100 px-3 py-2 text-sm transition-colors hover:bg-slate-200"
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 <Instagram className="h-4 w-4" />
-                <span>@ortoqbank</span>
+                <span>@orto.club</span>
               </a>
             </div>
           </CardContent>
