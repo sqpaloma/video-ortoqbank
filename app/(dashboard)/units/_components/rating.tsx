@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { StarIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Id } from "@/convex/_generated/dataModel";
 import { api } from "@/convex/_generated/api";
@@ -19,8 +18,7 @@ interface RatingProps {
 }
 
 export function Rating({ userId, lessonId, unitId }: RatingProps) {
-  const [tempRating, setTempRating] = useState<number | null>(null);
-  const [showRatingConfirm, setShowRatingConfirm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const prevLessonIdRef = useRef(lessonId);
 
   const submitRating = useTenantMutation(api.ratings.submitRating);
@@ -30,46 +28,35 @@ export function Rating({ userId, lessonId, unitId }: RatingProps) {
     userId && lessonId ? { userId, lessonId } : "skip",
   );
 
-  // Derive the displayed rating: use temp rating if user is selecting, otherwise use saved rating
-  const displayedRating = tempRating ?? userRating?.rating ?? null;
+  // Derive the displayed rating from saved rating
+  const displayedRating = userRating?.rating ?? null;
 
-  // Reset temporary state when lesson changes
-  // This is a legitimate use case: resetting component state when the lesson prop changes
-  // We only update state when lessonId actually changes (not on every render)
+  // Reset state when lesson changes
   useEffect(() => {
     if (prevLessonIdRef.current !== lessonId) {
       prevLessonIdRef.current = lessonId;
-      // Batch state updates together
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setTempRating(null);
-      setShowRatingConfirm(false);
+      setIsSubmitting(false);
     }
   }, [lessonId]);
 
-  const handleRatingClick = (rating: number) => {
-    setTempRating(rating);
-    // Show confirm button if rating changed or if no rating exists
-    if (!userRating || userRating.rating !== rating) {
-      setShowRatingConfirm(true);
-    } else {
-      setShowRatingConfirm(false);
-    }
-  };
+  const handleRatingClick = async (rating: number) => {
+    // Don't submit if already submitting or if same rating
+    if (isSubmitting || !isTenantReady || !userId || !lessonId || !unitId) return;
+    if (userRating?.rating === rating) return;
 
-  const handleConfirmRating = async () => {
-    if (!userId || !lessonId || !unitId || !displayedRating || !isTenantReady)
-      return;
+    setIsSubmitting(true);
     try {
       await submitRating({
         userId,
         lessonId,
         unitId,
-        rating: displayedRating,
+        rating,
       });
-      setTempRating(null);
-      setShowRatingConfirm(false);
     } catch (error) {
       console.error("Error submitting rating:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -84,7 +71,11 @@ export function Rating({ userId, lessonId, unitId }: RatingProps) {
             key={star}
             type="button"
             onClick={() => handleRatingClick(star)}
-            className="focus:outline-none"
+            disabled={isSubmitting}
+            className={cn(
+              "focus:outline-none transition-opacity",
+              isSubmitting && "opacity-50 cursor-not-allowed"
+            )}
             aria-label={`Avaliar com ${star} estrela${star > 1 ? "s" : ""}`}
           >
             <StarIcon
@@ -99,15 +90,6 @@ export function Rating({ userId, lessonId, unitId }: RatingProps) {
           </button>
         ))}
       </div>
-      {showRatingConfirm && displayedRating && (
-        <Button
-          onClick={handleConfirmRating}
-          className="w-full lg:w-auto"
-          variant="default"
-        >
-          Confirmar avaliação
-        </Button>
-      )}
     </>
   );
 }
