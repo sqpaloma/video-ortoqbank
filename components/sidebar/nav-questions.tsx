@@ -29,11 +29,13 @@ export default function QuestionsPromo() {
         </div>
 
         {/* Title */}
-        <h3 className="mb-1 text-base font-semibold text-white">Qbank</h3>
+        <h3 className="mb-1 text-base font-semibold text-white">Qbank?</h3>
 
         {/* Description */}
         <p className="mb-4 text-sm leading-relaxed text-white">
-          Acesse as questões, e se você não as tem, venha ver os planos.
+          Fixe o conteúdo com questões direcionadas.
+          <br />
+          Treine no OrtoQBank exatamente os temas que você acabou de estudar.
         </p>
 
         {/* CTA Button */}

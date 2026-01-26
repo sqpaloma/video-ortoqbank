@@ -64,25 +64,13 @@ export default async function FavoritesPage() {
     return { page: [], isDone: true, continueCursor: undefined };
   });
 
-  // Fetch watch also lessons
-  const initialWatchAlso = await fetchQuery(
-    api.favorites.getWatchAlsoLessons,
-    {
-      tenantId: tenant._id,
-      userId,
-      limit: 6,
-    },
-    token ? { token } : undefined,
-  ).catch((error) => {
-    console.error("[Favorites Page] Failed to fetch watch also:", error);
-    return [];
-  });
+
 
   return (
     <FavoritesClientPage
       initialFavorites={initialFavoritesResult.page}
-      initialWatchAlso={initialWatchAlso}
       userId={userId}
+      tenantId={tenant._id}
     />
   );
 }

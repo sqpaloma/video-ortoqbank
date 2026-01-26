@@ -1,5 +1,5 @@
 import {
-  BookOpenIcon,
+  PlayCircleIcon,
   StarIcon,
   type LucideIcon,
   UserCircleIcon,
@@ -28,7 +28,7 @@ const items: MenuItem[] = [
     icon: UserCircleIcon,
     prefetch: true,
   },
-  { title: "Cursos", url: "/categories", icon: BookOpenIcon, prefetch: true },
+  { title: "Aulas", url: "/categories", icon: PlayCircleIcon, prefetch: true },
   { title: "Favoritos", url: "/favorites", icon: StarIcon, prefetch: true },
 ];
 

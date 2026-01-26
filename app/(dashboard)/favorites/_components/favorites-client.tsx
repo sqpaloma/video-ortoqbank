@@ -3,9 +3,10 @@
 import { useMemo } from "react";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { api } from "@/convex/_generated/api";
-import { WatchAlsoVideos } from "./watch-also-videos";
-import { FavoritesSection, Video } from "./favorites-section";
+import { FavoritesSection } from "./favorites-section";
 import { useTenantPaginatedQuery } from "@/hooks/use-tenant-convex";
+import { Video } from "./favorites-section";
+import { Id } from "@/convex/_generated/dataModel";
 
 // Generic types to handle Convex response flexibility
 interface FavoriteLessonData {
@@ -26,70 +27,41 @@ interface FavoriteLessonData {
   };
 }
 
-interface WatchAlsoLessonData {
-  lesson: {
-    _id: string;
-    title: string;
-    description: string;
-    durationSeconds: number;
-    thumbnailUrl?: string | null;
-  };
-  unit: {
-    title: string;
-  };
-  category: {
-    _id: string;
-    title: string;
-  };
-}
-
 interface FavoritesClientPageProps {
   initialFavorites: FavoriteLessonData[];
-  initialWatchAlso: WatchAlsoLessonData[];
   userId: string;
+  tenantId: Id<"tenants">;
 }
 
-// Helper function to format duration
-function formatDuration(seconds: number): string {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
-}
+
 
 // Transform favorite data to Video interface
 function transformFavoriteToVideo(fav: FavoriteLessonData): Video {
   return {
-    _id: fav.lesson._id,
+    _id: fav._id, // favorite ID (for key)
+    lessonId: fav.lesson._id, // lesson ID (for navigation and mutations)
     title: fav.lesson.title,
     description: fav.lesson.description,
     duration: formatDuration(fav.lesson.durationSeconds),
-    level: "Básico" as const,
+    level: "Básico" as const, // Default, can be updated if data exists
     categoryName: fav.category.title,
     subthemeName: fav.unit.title,
     categoryId: fav.category._id,
-    thumbnailUrl: fav.lesson.thumbnailUrl ?? undefined,
+    thumbnailUrl: fav.lesson.thumbnailUrl || undefined,
   };
 }
 
-// Transform watch also data to Video interface
-function transformWatchAlsoToVideo(item: WatchAlsoLessonData): Video {
-  return {
-    _id: item.lesson._id,
-    title: item.lesson.title,
-    description: item.lesson.description,
-    duration: formatDuration(item.lesson.durationSeconds),
-    level: "Básico" as const,
-    categoryName: item.category.title,
-    subthemeName: item.unit.title,
-    categoryId: item.category._id,
-    thumbnailUrl: item.lesson.thumbnailUrl ?? undefined,
-  };
+// Helper to format duration from seconds
+function formatDuration(seconds: number): string {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 
 export function FavoritesClientPage({
   initialFavorites,
-  initialWatchAlso,
   userId,
+  tenantId,
 }: FavoritesClientPageProps) {
   const { state } = useSidebar();
 
@@ -118,11 +90,6 @@ export function FavoritesClientPage({
     [favoritesData],
   );
 
-  const watchAlso = useMemo(
-    () => initialWatchAlso.map(transformWatchAlsoToVideo),
-    [initialWatchAlso],
-  );
-
   return (
     <div className="min-h-screen relative">
       {/* Sidebar trigger - follows sidebar position */}
@@ -139,15 +106,14 @@ export function FavoritesClientPage({
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-8 pb-24 md:pb-6">
+      <div className="max-w-7xl mx-auto p-6 pb-24 md:pb-6">
         <FavoritesSection
           favorites={favorites}
           userId={userId}
+          tenantId={tenantId}
           status={status}
           onLoadMore={() => loadMore(10)}
         />
-
-        <WatchAlsoVideos watchAlsoVideos={watchAlso} />
       </div>
     </div>
   );
