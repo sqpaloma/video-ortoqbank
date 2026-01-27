@@ -317,8 +317,8 @@ export default defineSchema({
     userId: v.string(), // clerkUserId
     lessonId: v.id("lessons"),
     unitId: v.id("units"),
-    rating: v.number(), // 1-5 stars
-    createdAt: v.number(), // timestamp
+    rating: v.union(v.literal(1), v.literal(2), v.literal(3), v.literal(4), v.literal(5)), // 1-5 stars
+    
   })
     .index("by_userId", ["userId"])
     .index("by_lessonId", ["lessonId"])

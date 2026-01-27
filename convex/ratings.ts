@@ -11,13 +11,9 @@ export const submitRating = mutation({
     userId: v.string(), // clerkUserId
     lessonId: v.id("lessons"),
     unitId: v.id("units"),
-    rating: v.number(), // 1-5
+    rating: v.union(v.literal(1), v.literal(2), v.literal(3), v.literal(4), v.literal(5)), // 1-5
   },
   handler: async (ctx, args) => {
-    if (args.rating < 1 || args.rating > 5) {
-      throw new Error("Rating deve ser entre 1 e 5");
-    }
-
     // Verify lesson belongs to tenant
     const lesson = await ctx.db.get(args.lessonId);
     if (!lesson || lesson.tenantId !== args.tenantId) {
@@ -30,19 +26,15 @@ export const submitRating = mutation({
       .withIndex("by_tenantId_and_lessonId", (q) =>
         q.eq("tenantId", args.tenantId).eq("lessonId", args.lessonId),
       )
-      .collect();
+      .unique();
 
-    const existingRating = existingRatings.find(
-      (r) => r.userId === args.userId,
-    );
-
-    if (existingRating) {
+    if (existingRatings) {
       // Update existing rating
-      await ctx.db.patch(existingRating._id, {
+      await ctx.db.patch(existingRatings._id, {
         rating: args.rating,
-        createdAt: Date.now(),
+        
       });
-      return existingRating._id;
+      return existingRatings._id;
     } else {
       // Create new rating
       const ratingId = await ctx.db.insert("lessonRatings", {
@@ -51,45 +43,29 @@ export const submitRating = mutation({
         lessonId: args.lessonId,
         unitId: args.unitId,
         rating: args.rating,
-        createdAt: Date.now(),
       });
       return ratingId;
     }
   },
 });
 
-/**
- * Get user's rating for a lesson
- */
 export const getUserRating = query({
   args: {
     tenantId: v.id("tenants"),
-    userId: v.string(),
+    userId: v.string(), // clerkUserId
     lessonId: v.id("lessons"),
   },
-  returns: v.union(
-    v.object({
-      _id: v.id("lessonRatings"),
-      _creationTime: v.number(),
-      createdAt: v.number(),
-      userId: v.string(),
-      tenantId: v.id("tenants"),
-      unitId: v.id("units"),
-      lessonId: v.id("lessons"),
-      rating: v.number(),
-    }),
-    v.null(),
-  ),
+  returns: v.union(v.literal(1), v.literal(2), v.literal(3), v.literal(4), v.literal(5), v.null()),
   handler: async (ctx, args) => {
-    const ratings = await ctx.db
+    const rating = await ctx.db
       .query("lessonRatings")
       .withIndex("by_tenantId_and_lessonId", (q) =>
         q.eq("tenantId", args.tenantId).eq("lessonId", args.lessonId),
       )
-      .collect();
+      .filter((q) => q.eq(q.field("userId"), args.userId))
+      .unique();
 
-    const rating = ratings.find((r) => r.userId === args.userId);
-    return rating || null;
+    return rating?.rating ?? null;
   },
 });
 
@@ -348,8 +324,7 @@ export const getAllRatingsWithDetails = query({
         userId: v.string(),
         lessonId: v.id("lessons"),
         unitId: v.id("units"),
-        rating: v.number(),
-        createdAt: v.number(),
+        rating: v.union(v.literal(1), v.literal(2), v.literal(3), v.literal(4), v.literal(5)),
         userName: v.string(),
         userEmail: v.string(),
         lessonTitle: v.string(),
@@ -389,7 +364,6 @@ export const getAllRatingsWithDetails = query({
           lessonId: rating.lessonId,
           unitId: rating.unitId,
           rating: rating.rating,
-          createdAt: rating.createdAt,
           userName: user
             ? `${user.firstName} ${user.lastName}`
             : "Usuário desconhecido",
