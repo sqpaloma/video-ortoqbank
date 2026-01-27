@@ -74,9 +74,7 @@ export function UserCard({
         )}
       </div>
 
-      <div
-        className={`flex gap-2 ${tenantRole === "admin" ? "justify-end" : ""}`}
-      >
+      <div className="flex gap-2 justify-end">
         {tenantRole === "admin" ? (
           // Only show remove button if not current user
           !isCurrentUser && (
@@ -92,7 +90,7 @@ export function UserCard({
         ) : (
           <Button
             onClick={() => onSetRole(user.membershipId, "admin")}
-            className="bg-brand-blue text-white hover:bg-brand-blue/90 focus:ring-brand-blue"
+            variant="default"
             size="sm"
             disabled={isLoading}
           >
