@@ -131,9 +131,11 @@ export const searchCategories = query({
       _creationTime: v.number(),
       tenantId: v.id("tenants"),
       title: v.string(),
+      slug: v.string(),
       description: v.string(),
+      position: v.number(),
+      iconUrl: v.optional(v.string()),
       isPublished: v.boolean(),
-      // Include other fields from your categories schema
     }),
   ),
   handler: async (ctx, args) => {
