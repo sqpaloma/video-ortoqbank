@@ -128,6 +128,210 @@ export const getLessonAverageRating = query({
 });
 
 /**
+ * Get all categories with their average ratings (tenant admin)
+ * Returns: categoryId, title, average, ratingCount
+ */
+export const getCategoriesWithAverageRatings = query({
+  args: {
+    tenantId: v.id("tenants"),
+  },
+  returns: v.array(
+    v.object({
+      categoryId: v.id("categories"),
+      title: v.string(),
+      average: v.number(),
+      ratingCount: v.number(),
+    }),
+  ),
+  handler: async (ctx, args) => {
+    // Get all categories for tenant
+    const categories = await ctx.db
+      .query("categories")
+      .withIndex("by_tenantId", (q) => q.eq("tenantId", args.tenantId))
+      .collect();
+
+    // For each category, calculate average rating across all its lessons
+    const categoriesWithRatings = await Promise.all(
+      categories.map(async (category) => {
+        // Get all lessons for this category
+        const lessons = await ctx.db
+          .query("lessons")
+          .withIndex("by_categoryId", (q) => q.eq("categoryId", category._id))
+          .collect();
+
+        // Get all ratings for these lessons
+        let totalRating = 0;
+        let ratingCount = 0;
+
+        for (const lesson of lessons) {
+          const ratings = await ctx.db
+            .query("lessonRatings")
+            .withIndex("by_tenantId_and_lessonId", (q) =>
+              q.eq("tenantId", args.tenantId).eq("lessonId", lesson._id),
+            )
+            .collect();
+
+          for (const rating of ratings) {
+            totalRating += rating.rating;
+            ratingCount++;
+          }
+        }
+
+        const average =
+          ratingCount > 0
+            ? Math.round((totalRating / ratingCount) * 10) / 10
+            : 0;
+
+        return {
+          categoryId: category._id,
+          title: category.title,
+          average,
+          ratingCount,
+        };
+      }),
+    );
+
+    // Sort by title
+    return categoriesWithRatings.sort((a, b) => a.title.localeCompare(b.title));
+  },
+});
+
+/**
+ * Get all units for a category with their average ratings (tenant admin)
+ * Returns: unitId, title, average, ratingCount
+ */
+export const getUnitsWithAverageRatings = query({
+  args: {
+    tenantId: v.id("tenants"),
+    categoryId: v.id("categories"),
+  },
+  returns: v.array(
+    v.object({
+      unitId: v.id("units"),
+      title: v.string(),
+      average: v.number(),
+      ratingCount: v.number(),
+    }),
+  ),
+  handler: async (ctx, args) => {
+    // Get all units for this category
+    const units = await ctx.db
+      .query("units")
+      .withIndex("by_tenantId_and_categoryId", (q) =>
+        q.eq("tenantId", args.tenantId).eq("categoryId", args.categoryId),
+      )
+      .collect();
+
+    // For each unit, calculate average rating across all its lessons
+    const unitsWithRatings = await Promise.all(
+      units.map(async (unit) => {
+        // Get all lessons for this unit
+        const lessons = await ctx.db
+          .query("lessons")
+          .withIndex("by_tenantId_and_unitId", (q) =>
+            q.eq("tenantId", args.tenantId).eq("unitId", unit._id),
+          )
+          .collect();
+
+        // Get all ratings for these lessons
+        let totalRating = 0;
+        let ratingCount = 0;
+
+        for (const lesson of lessons) {
+          const ratings = await ctx.db
+            .query("lessonRatings")
+            .withIndex("by_tenantId_and_lessonId", (q) =>
+              q.eq("tenantId", args.tenantId).eq("lessonId", lesson._id),
+            )
+            .collect();
+
+          for (const rating of ratings) {
+            totalRating += rating.rating;
+            ratingCount++;
+          }
+        }
+
+        const average =
+          ratingCount > 0
+            ? Math.round((totalRating / ratingCount) * 10) / 10
+            : 0;
+
+        return {
+          unitId: unit._id,
+          title: unit.title,
+          average,
+          ratingCount,
+        };
+      }),
+    );
+
+    // Sort by order_index
+    return unitsWithRatings;
+  },
+});
+
+/**
+ * Get all lessons for a unit with their average ratings (tenant admin)
+ * Returns: lessonId, title, average, ratingCount
+ */
+export const getLessonsWithAverageRatings = query({
+  args: {
+    tenantId: v.id("tenants"),
+    unitId: v.id("units"),
+  },
+  returns: v.array(
+    v.object({
+      lessonId: v.id("lessons"),
+      title: v.string(),
+      average: v.number(),
+      ratingCount: v.number(),
+    }),
+  ),
+  handler: async (ctx, args) => {
+    // Get all lessons for this unit
+    const lessons = await ctx.db
+      .query("lessons")
+      .withIndex("by_tenantId_and_unitId", (q) =>
+        q.eq("tenantId", args.tenantId).eq("unitId", args.unitId),
+      )
+      .collect();
+
+    // For each lesson, calculate average rating
+    const lessonsWithRatings = await Promise.all(
+      lessons.map(async (lesson) => {
+        const ratings = await ctx.db
+          .query("lessonRatings")
+          .withIndex("by_tenantId_and_lessonId", (q) =>
+            q.eq("tenantId", args.tenantId).eq("lessonId", lesson._id),
+          )
+          .collect();
+
+        let totalRating = 0;
+        const ratingCount = ratings.length;
+
+        for (const rating of ratings) {
+          totalRating += rating.rating;
+        }
+
+        const average =
+          ratingCount > 0
+            ? Math.round((totalRating / ratingCount) * 10) / 10
+            : 0;
+
+        return {
+          lessonId: lesson._id,
+          title: lesson.title,
+          average,
+          ratingCount,
+        };
+      }),
+    );
+
+    return lessonsWithRatings;
+  },
+});
+
+/**
  * Get all ratings with user and lesson information (tenant admin only) - Paginated
  */
 export const getAllRatingsWithDetails = query({
@@ -200,6 +404,158 @@ export const getAllRatingsWithDetails = query({
       page: ratingsWithDetails,
       isDone: paginatedRatings.isDone,
       continueCursor: paginatedRatings.continueCursor,
+    };
+  },
+});
+
+/**
+ * Search units and lessons by name with their average ratings (tenant admin)
+ * Returns units and lessons that match the search query
+ */
+export const searchUnitsAndLessonsWithRatings = query({
+  args: {
+    tenantId: v.id("tenants"),
+    searchQuery: v.string(),
+  },
+  returns: v.object({
+    units: v.array(
+      v.object({
+        unitId: v.id("units"),
+        title: v.string(),
+        categoryId: v.id("categories"),
+        categoryTitle: v.string(),
+        average: v.number(),
+        ratingCount: v.number(),
+      }),
+    ),
+    lessons: v.array(
+      v.object({
+        lessonId: v.id("lessons"),
+        title: v.string(),
+        unitId: v.id("units"),
+        unitTitle: v.string(),
+        categoryId: v.id("categories"),
+        categoryTitle: v.string(),
+        average: v.number(),
+        ratingCount: v.number(),
+      }),
+    ),
+  }),
+  handler: async (ctx, args) => {
+    const searchLower = args.searchQuery.toLowerCase().trim();
+
+    if (!searchLower) {
+      return { units: [], lessons: [] };
+    }
+
+    // Get all units for tenant and filter by search
+    const allUnits = await ctx.db
+      .query("units")
+      .withIndex("by_tenantId", (q) => q.eq("tenantId", args.tenantId))
+      .collect();
+
+    const matchingUnits = allUnits.filter((unit) =>
+      unit.title.toLowerCase().includes(searchLower),
+    );
+
+    // Get all lessons for tenant and filter by search
+    const allLessons = await ctx.db
+      .query("lessons")
+      .withIndex("by_tenantId", (q) => q.eq("tenantId", args.tenantId))
+      .collect();
+
+    const matchingLessons = allLessons.filter((lesson) =>
+      lesson.title.toLowerCase().includes(searchLower),
+    );
+
+    // Process matching units with ratings
+    const unitsWithRatings = await Promise.all(
+      matchingUnits.slice(0, 10).map(async (unit) => {
+        const category = await ctx.db.get(unit.categoryId);
+
+        // Get all lessons for this unit
+        const lessons = await ctx.db
+          .query("lessons")
+          .withIndex("by_tenantId_and_unitId", (q) =>
+            q.eq("tenantId", args.tenantId).eq("unitId", unit._id),
+          )
+          .collect();
+
+        // Get all ratings for these lessons
+        let totalRating = 0;
+        let ratingCount = 0;
+
+        for (const lesson of lessons) {
+          const ratings = await ctx.db
+            .query("lessonRatings")
+            .withIndex("by_tenantId_and_lessonId", (q) =>
+              q.eq("tenantId", args.tenantId).eq("lessonId", lesson._id),
+            )
+            .collect();
+
+          for (const rating of ratings) {
+            totalRating += rating.rating;
+            ratingCount++;
+          }
+        }
+
+        const average =
+          ratingCount > 0
+            ? Math.round((totalRating / ratingCount) * 10) / 10
+            : 0;
+
+        return {
+          unitId: unit._id,
+          title: unit.title,
+          categoryId: unit.categoryId,
+          categoryTitle: category?.title || "Categoria não encontrada",
+          average,
+          ratingCount,
+        };
+      }),
+    );
+
+    // Process matching lessons with ratings
+    const lessonsWithRatings = await Promise.all(
+      matchingLessons.slice(0, 10).map(async (lesson) => {
+        const unit = await ctx.db.get(lesson.unitId);
+        const category = await ctx.db.get(lesson.categoryId);
+
+        const ratings = await ctx.db
+          .query("lessonRatings")
+          .withIndex("by_tenantId_and_lessonId", (q) =>
+            q.eq("tenantId", args.tenantId).eq("lessonId", lesson._id),
+          )
+          .collect();
+
+        let totalRating = 0;
+        const ratingCount = ratings.length;
+
+        for (const rating of ratings) {
+          totalRating += rating.rating;
+        }
+
+        const average =
+          ratingCount > 0
+            ? Math.round((totalRating / ratingCount) * 10) / 10
+            : 0;
+
+        return {
+          lessonId: lesson._id,
+          title: lesson.title,
+          unitId: lesson.unitId,
+          unitTitle: unit?.title || "Unidade não encontrada",
+          categoryId: lesson.categoryId,
+          categoryTitle: category?.title || "Categoria não encontrada",
+          average,
+          ratingCount,
+        };
+      }),
+    );
+
+    return {
+      units: unitsWithRatings,
+      lessons: lessonsWithRatings,
     };
   },
 });

@@ -22,16 +22,6 @@ export function FeedbackPage() {
     { initialNumItems: 10 },
   );
 
-  const {
-    results: ratings,
-    status: ratingsStatus,
-    loadMore: loadMoreRatings,
-  } = useTenantPaginatedQuery(
-    api.ratings.getAllRatingsWithDetails,
-    {},
-    { initialNumItems: 10 },
-  );
-
   return (
     <div className="min-h-screen relative">
       {/* Sidebar trigger - follows sidebar position */}
@@ -112,41 +102,8 @@ export function FeedbackPage() {
 
             <TabsContent value="ratings" className="space-y-4">
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Star className="h-5 w-5" />
-                    Todas as Avaliações
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {ratingsStatus === "LoadingFirstPage" ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      Carregando avaliações...
-                    </div>
-                  ) : !ratings || ratings.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      Nenhuma avaliação encontrada
-                    </div>
-                  ) : (
-                    <>
-                      <RatingsList ratings={ratings} />
-                      {ratingsStatus === "CanLoadMore" && (
-                        <div className="flex justify-center mt-6">
-                          <Button
-                            onClick={() => loadMoreRatings(10)}
-                            variant="outline"
-                          >
-                            Ver mais
-                          </Button>
-                        </div>
-                      )}
-                      {ratingsStatus === "LoadingMore" && (
-                        <div className="text-center py-4 text-muted-foreground">
-                          Carregando mais...
-                        </div>
-                      )}
-                    </>
-                  )}
+                <CardContent className="pt-6">
+                  <RatingsList />
                 </CardContent>
               </Card>
             </TabsContent>

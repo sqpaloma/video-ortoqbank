@@ -91,15 +91,15 @@ function RecentViewsContent({
   return (
     <>
       {recentViews.length > 0 && (
-        <Card>
+        <Card className="h-full flex flex-col">
           <CardHeader>
             <CardTitle>Aulas Recentes</CardTitle>
             <CardDescription>
               Suas aulas visualizadas recentemente
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+          <CardContent className="flex-1 overflow-hidden">
+            <div className="space-y-4 max-h-[340px] overflow-y-auto pr-2">
               {recentViews.map((view) => {
                 const isCompleted = view.isCompleted;
                 const textColor = isCompleted
@@ -174,14 +174,14 @@ function RecentViewsContent({
       )}
 
       {recentViews.length === 0 && (
-        <Card>
+        <Card className="h-full flex flex-col">
           <CardHeader>
             <CardTitle>Aulas Recentes</CardTitle>
             <CardDescription>
               Suas aulas visualizadas recentemente
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-1 flex items-center justify-center">
             <div className="text-center py-12">
               <PlayCircle size={48} className="text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500">

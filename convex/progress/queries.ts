@@ -226,3 +226,86 @@ export const getCompletedLessonsByCategory = query({
     return allProgress.filter((p) => p.completed && lessonIds.has(p.lessonId));
   },
 });
+
+/**
+ * Get all published categories with user progress for each
+ * Returns category info along with progress percentage
+ */
+export const getCategoriesWithProgress = query({
+  args: {
+    tenantId: v.id("tenants"),
+    userId: v.string(),
+  },
+  returns: v.array(
+    v.object({
+      _id: v.id("categories"),
+      title: v.string(),
+      iconUrl: v.optional(v.string()),
+      progressPercent: v.number(),
+      completedLessons: v.number(),
+      totalLessons: v.number(),
+    }),
+  ),
+  handler: async (ctx, args) => {
+    // Get all published categories for the tenant
+    const categories = await ctx.db
+      .query("categories")
+      .withIndex("by_tenantId_and_isPublished", (q) =>
+        q.eq("tenantId", args.tenantId).eq("isPublished", true),
+      )
+      .collect();
+
+    // Sort by position
+    const sortedCategories = categories.sort((a, b) => a.position - b.position);
+
+    // Get all user progress for this tenant
+    const allUserProgress = await ctx.db
+      .query("userProgress")
+      .withIndex("by_tenantId_and_userId", (q) =>
+        q.eq("tenantId", args.tenantId).eq("userId", args.userId),
+      )
+      .collect();
+
+    // Create a set of completed lesson IDs
+    const completedLessonIds = new Set(
+      allUserProgress.filter((p) => p.completed).map((p) => p.lessonId),
+    );
+
+    // Calculate progress for each category
+    const categoriesWithProgress = await Promise.all(
+      sortedCategories.map(async (category) => {
+        // Get all published lessons for this category
+        const lessons = await ctx.db
+          .query("lessons")
+          .withIndex("by_categoryId", (q) => q.eq("categoryId", category._id))
+          .collect();
+
+        // Filter to only published lessons
+        const publishedLessons = lessons.filter((l) => l.isPublished);
+        const totalLessons = publishedLessons.length;
+
+        // Count completed lessons
+        const completedLessons = publishedLessons.filter((l) =>
+          completedLessonIds.has(l._id),
+        ).length;
+
+        // Calculate progress percentage
+        const progressPercent =
+          totalLessons > 0
+            ? Math.round((completedLessons / totalLessons) * 100)
+            : 0;
+
+        return {
+          _id: category._id,
+          title: category.title,
+          iconUrl: category.iconUrl,
+          progressPercent,
+          completedLessons,
+          totalLessons,
+        };
+      }),
+    );
+
+    return categoriesWithProgress;
+  },
+});
