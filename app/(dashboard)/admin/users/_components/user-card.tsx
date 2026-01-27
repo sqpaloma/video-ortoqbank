@@ -14,7 +14,10 @@ interface TenantUser extends Doc<"users"> {
 
 interface UserCardProps {
   user: TenantUser;
-  onSetRole: (membershipId: Id<"tenantMemberships">, role: "member" | "admin") => void;
+  onSetRole: (
+    membershipId: Id<"tenantMemberships">,
+    role: "member" | "admin",
+  ) => void;
   onRemoveRole: (membershipId: Id<"tenantMemberships">) => void;
   isLoading: boolean;
   isCurrentUser?: boolean;
@@ -56,10 +59,11 @@ export function UserCard({
           Cargo Atual:
         </span>
         <span
-          className={`ml-2 inline-flex rounded-full px-2 py-1 text-xs font-medium ${tenantRole === "admin"
-            ? "bg-brand-blue/10 text-brand-blue/90 dark:bg-brand-blue/30 dark:text-brand-blue/40"
-            : "bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-400"
-            }`}
+          className={`ml-2 inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+            tenantRole === "admin"
+              ? "bg-brand-blue/10 text-brand-blue/90 dark:bg-brand-blue/30 dark:text-brand-blue/40"
+              : "bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-400"
+          }`}
         >
           {tenantRole === "admin" ? "Administrador" : "Usuário"}
         </span>
@@ -70,7 +74,9 @@ export function UserCard({
         )}
       </div>
 
-      <div className={`flex gap-2 ${tenantRole === "admin" ? "justify-end" : ""}`}>
+      <div
+        className={`flex gap-2 ${tenantRole === "admin" ? "justify-end" : ""}`}
+      >
         {tenantRole === "admin" ? (
           // Only show remove button if not current user
           !isCurrentUser && (

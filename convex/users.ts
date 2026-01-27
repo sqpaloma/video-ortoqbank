@@ -314,7 +314,7 @@ export const getTenantUsers = query({
       const membership = await ctx.db
         .query("tenantMemberships")
         .withIndex("by_userId_and_tenantId", (q) =>
-          q.eq("userId", currentUser._id).eq("tenantId", args.tenantId)
+          q.eq("userId", currentUser._id).eq("tenantId", args.tenantId),
         )
         .unique();
 
@@ -341,7 +341,7 @@ export const getTenantUsers = query({
           hasActiveAccess: membership.hasActiveAccess,
           accessExpiresAt: membership.accessExpiresAt,
         };
-      })
+      }),
     );
 
     // Filter out null values and apply limit
@@ -402,7 +402,7 @@ export const getTenantUsersPaginated = query({
       const membership = await ctx.db
         .query("tenantMemberships")
         .withIndex("by_userId_and_tenantId", (q) =>
-          q.eq("userId", currentUser._id).eq("tenantId", args.tenantId)
+          q.eq("userId", currentUser._id).eq("tenantId", args.tenantId),
         )
         .unique();
 
@@ -436,7 +436,7 @@ export const getTenantUsersPaginated = query({
             hasActiveAccess: membership.hasActiveAccess,
             accessExpiresAt: membership.accessExpiresAt,
           };
-        })
+        }),
       );
 
       // Filter out null values (users that may have been deleted)
@@ -474,7 +474,7 @@ export const getTenantUsersPaginated = query({
           hasActiveAccess: membership.hasActiveAccess,
           accessExpiresAt: membership.accessExpiresAt,
         };
-      })
+      }),
     );
 
     // Filter out null values

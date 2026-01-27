@@ -2,9 +2,7 @@ import { v } from "convex/values";
 import { mutation, query, type MutationCtx } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
-import {
-  requireTenantAdmin,
-} from "./lib/tenantContext";
+import { requireTenantAdmin } from "./lib/tenantContext";
 
 // ============================================================================
 // QUERIES
@@ -57,7 +55,7 @@ export const getById = query({
     tenantId: v.optional(v.id("tenants")),
   },
   returns: v.union(
-      v.object({
+    v.object({
       _id: v.id("categories"),
       _creationTime: v.number(),
       tenantId: v.id("tenants"),
@@ -68,11 +66,11 @@ export const getById = query({
       iconUrl: v.optional(v.string()),
       isPublished: v.boolean(),
     }),
-    v.null()
+    v.null(),
   ),
   handler: async (ctx, args) => {
     const category = await ctx.db.get(args.id);
- // Verify tenant ownership if tenantId provided
+    // Verify tenant ownership if tenantId provided
     if (category && args.tenantId && category.tenantId !== args.tenantId) {
       return null;
     }
@@ -104,7 +102,7 @@ export const getBySlug = query({
  * Get cascade delete info for a category
  */
 export const getCascadeDeleteInfo = query({
-  args: { 
+  args: {
     id: v.id("categories"),
     tenantId: v.id("tenants"),
   },

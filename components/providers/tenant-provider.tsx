@@ -18,7 +18,6 @@ import {
   type TenantConfig,
 } from "@/lib/tenant";
 
-
 /**
  * ============================================================================
  * TENANT CONTEXT PROVIDER
@@ -52,8 +51,6 @@ interface TenantContextType {
 }
 
 const TenantContext = createContext<TenantContextType | null>(null);
-
-
 
 interface TenantProviderProps {
   children: ReactNode;
@@ -239,7 +236,7 @@ export function useTenantIdSafe(): Id<"tenants"> | null {
   return tenant.tenantId;
 }
 
-/** 
+/**
  * Hook to get tenant branding
  */
 export function useTenantBranding() {

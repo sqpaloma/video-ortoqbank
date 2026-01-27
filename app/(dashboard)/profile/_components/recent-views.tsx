@@ -49,7 +49,9 @@ function RecentViewsWithoutPreload() {
   const tenant = useTenant();
   const recentViews = useQuery(
     api.recentViews.getRecentViewsWithDetails,
-    user && tenant?.tenantId ? { userId: user._id, tenantId: tenant.tenantId, limit: 5 } : "skip",
+    user && tenant?.tenantId
+      ? { userId: user._id, tenantId: tenant.tenantId, limit: 5 }
+      : "skip",
   );
 
   // Handle loading state

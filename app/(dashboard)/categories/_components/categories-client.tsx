@@ -17,7 +17,12 @@ function PreloadedContentStatsProvider({
   children,
 }: {
   preloaded: Preloaded<typeof api.aggregate.getByTenant>;
-  children: (data: { totalLessons: number; totalUnits: number; totalCategories: number; updatedAt: number }) => React.ReactNode;
+  children: (data: {
+    totalLessons: number;
+    totalUnits: number;
+    totalCategories: number;
+    updatedAt: number;
+  }) => React.ReactNode;
 }) {
   const data = usePreloadedQuery(preloaded);
   return <>{children(data)}</>;
@@ -28,7 +33,9 @@ function PreloadedCompletedCountProvider({
   preloaded,
   children,
 }: {
-  preloaded: Preloaded<typeof api.progress.queries.getCompletedPublishedLessonsCount>;
+  preloaded: Preloaded<
+    typeof api.progress.queries.getCompletedPublishedLessonsCount
+  >;
   children: (count: number) => React.ReactNode;
 }) {
   const count = usePreloadedQuery(preloaded);
@@ -39,7 +46,16 @@ function PreloadedCompletedCountProvider({
 function FetchedContentStatsProvider({
   children,
 }: {
-  children: (data: { totalLessons: number; totalUnits: number; totalCategories: number; updatedAt: number } | undefined) => React.ReactNode;
+  children: (
+    data:
+      | {
+          totalLessons: number;
+          totalUnits: number;
+          totalCategories: number;
+          updatedAt: number;
+        }
+      | undefined,
+  ) => React.ReactNode;
 }) {
   const data = useTenantQuery(api.aggregate.getByTenant, {});
   return <>{children(data)}</>;
@@ -82,10 +98,11 @@ export function CategoriesClientPage({
     <div className="min-h-screen relative">
       {/* Sidebar trigger - follows sidebar position */}
       <SidebarTrigger
-        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-blue-brand hover:text-blue-brand hover:bg-blue-brand transition-[left] duration-200 ease-linear z-10 ${state === "collapsed"
-          ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
-          : "left-[calc(var(--sidebar-width)+0.25rem)]"
-          }`}
+        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-blue-brand hover:text-blue-brand hover:bg-blue-brand transition-[left] duration-200 ease-linear z-10 ${
+          state === "collapsed"
+            ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
+            : "left-[calc(var(--sidebar-width)+0.25rem)]"
+        }`}
       />
 
       <div className="px-12 sm:px-16 md:px-24 lg:px-24 xl:px-42 pb-24 md:pb-3 pt-8 md:pt-8">
@@ -108,9 +125,11 @@ export function CategoriesClientPage({
             {/* Render progress bar with preloaded or fetched data */}
             {preloadedContentStats ? (
               <PreloadedContentStatsProvider preloaded={preloadedContentStats}>
-                {(contentStats) => (
+                {(contentStats) =>
                   preloadedCompletedCount ? (
-                    <PreloadedCompletedCountProvider preloaded={preloadedCompletedCount}>
+                    <PreloadedCompletedCountProvider
+                      preloaded={preloadedCompletedCount}
+                    >
                       {(completedCount) => (
                         <ProgressBar
                           totalLessons={contentStats.totalLessons}
@@ -124,7 +143,7 @@ export function CategoriesClientPage({
                       completedLessons={0}
                     />
                   )
-                )}
+                }
               </PreloadedContentStatsProvider>
             ) : (
               <FetchedContentStatsProvider>
@@ -150,4 +169,3 @@ export function CategoriesClientPage({
     </div>
   );
 }
-

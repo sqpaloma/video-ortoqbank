@@ -411,7 +411,7 @@ export const removeMember = mutation({
     if (membership.userId === user._id && user.role !== "superadmin") {
       throw new Error("Cannot remove yourself from the tenant");
     }
- // Prevent removing the last admin
+    // Prevent removing the last admin
     if (membership.role === "admin") {
       const adminMemberships = await ctx.db
         .query("tenantMemberships")
@@ -423,8 +423,8 @@ export const removeMember = mutation({
       }
     }
 
-     // Prevent removing the last admin
-     if (membership.role === "admin") {
+    // Prevent removing the last admin
+    if (membership.role === "admin") {
       const adminMemberships = await ctx.db
         .query("tenantMemberships")
         .withIndex("by_tenantId", (q) => q.eq("tenantId", args.tenantId))
@@ -434,7 +434,6 @@ export const removeMember = mutation({
         throw new Error("Cannot remove the last admin from the tenant");
       }
     }
-
 
     await ctx.db.delete(args.membershipId);
 
@@ -472,7 +471,7 @@ export const updateMemberRole = mutation({
     ) {
       throw new Error("Cannot demote yourself");
     }
-// Prevent demoting the last admin
+    // Prevent demoting the last admin
     if (membership.role === "admin" && args.role === "member") {
       const adminCount = await ctx.db
         .query("tenantMemberships")

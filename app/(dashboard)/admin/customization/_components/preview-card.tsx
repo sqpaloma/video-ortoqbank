@@ -10,7 +10,11 @@ interface PreviewCardProps {
   tenantName: string;
 }
 
-export function PreviewCard({ logoUrl, displayName, tenantName }: PreviewCardProps) {
+export function PreviewCard({
+  logoUrl,
+  displayName,
+  tenantName,
+}: PreviewCardProps) {
   return (
     <Card>
       <CardHeader>
@@ -23,12 +27,7 @@ export function PreviewCard({ logoUrl, displayName, tenantName }: PreviewCardPro
         <div className="flex items-center gap-4 p-4 bg-blue-brand rounded-lg">
           {logoUrl ? (
             <div className="relative h-12 w-12 rounded-lg overflow-hidden bg-white/20">
-              <Image
-                src={logoUrl}
-                alt="Logo"
-                fill
-                className="object-contain"
-              />
+              <Image src={logoUrl} alt="Logo" fill className="object-contain" />
             </div>
           ) : (
             <div className="h-12 w-12 rounded-lg bg-white/20 flex items-center justify-center">
@@ -45,4 +44,3 @@ export function PreviewCard({ logoUrl, displayName, tenantName }: PreviewCardPro
     </Card>
   );
 }
-

@@ -73,7 +73,9 @@ export const mockUseTenantQuery = vi.fn(() => null);
  * Default mock for useTenantMutation - returns a mock function
  * Override in tests: mockUseTenantMutation.mockReturnValue(yourMockFn)
  */
-export const mockUseTenantMutation = vi.fn(() => vi.fn(() => Promise.resolve()));
+export const mockUseTenantMutation = vi.fn(() =>
+  vi.fn(() => Promise.resolve()),
+);
 
 /**
  * Default mock for useTenantAction - returns a mock function

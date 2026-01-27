@@ -190,7 +190,8 @@ export async function POST(request: Request) {
           // Mask email for logging to protect PII (e.g., "jo***@example.com")
           const maskedEmail = primaryEmail.replace(
             /^(.{2})(.*)(@.*)$/,
-            (_, start, middle, domain) => `${start}${"*".repeat(Math.min(middle.length, 3))}${domain}`,
+            (_, start, middle, domain) =>
+              `${start}${"*".repeat(Math.min(middle.length, 3))}${domain}`,
           );
           console.log(
             `[Clerk Webhook] Attempting to claim orders for user ${event.data.id} (email: ${maskedEmail})`,

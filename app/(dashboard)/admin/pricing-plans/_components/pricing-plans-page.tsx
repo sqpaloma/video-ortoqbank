@@ -12,7 +12,11 @@ import { EditPlanCard } from "./edit-plan-card";
 import { PricingPlanCard } from "./pricing-plan-card";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { PlusIcon } from "lucide-react";
-import { useTenantMutation, useTenantQuery, useTenantReady } from "@/hooks/use-tenant-convex";
+import {
+  useTenantMutation,
+  useTenantQuery,
+  useTenantReady,
+} from "@/hooks/use-tenant-convex";
 
 type PricingPlan = Doc<"pricingPlans">;
 
@@ -91,9 +95,9 @@ export function PricingPlansPage() {
       : undefined;
     const accessYears = formData.accessYears
       ? formData.accessYears
-        .split(",")
-        .map((y) => Number.parseInt(y.trim(), 10))
-        .filter((y) => !Number.isNaN(y))
+          .split(",")
+          .map((y) => Number.parseInt(y.trim(), 10))
+          .filter((y) => !Number.isNaN(y))
       : undefined;
     const displayOrder = formData.displayOrder
       ? Number.parseInt(formData.displayOrder, 10)

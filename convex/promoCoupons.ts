@@ -24,7 +24,7 @@ export const list = query({
  * Get coupon by code within a tenant
  */
 export const getByCode = query({
-  args: { 
+  args: {
     tenantId: v.id("tenants"),
     code: v.string(),
   },
@@ -32,8 +32,8 @@ export const getByCode = query({
     const code = args.code.toUpperCase();
     const byCode = await ctx.db
       .query("coupons")
-      .withIndex("by_tenantId_and_code", (q) => 
-        q.eq("tenantId", args.tenantId).eq("code", code)
+      .withIndex("by_tenantId_and_code", (q) =>
+        q.eq("tenantId", args.tenantId).eq("code", code),
       )
       .unique();
     return byCode ?? null;
@@ -159,8 +159,8 @@ export const validateAndApplyCoupon = mutation({
     // Find the coupon within the tenant
     const coupon = await ctx.db
       .query("coupons")
-      .withIndex("by_tenantId_and_code", (q) => 
-        q.eq("tenantId", args.tenantId).eq("code", code)
+      .withIndex("by_tenantId_and_code", (q) =>
+        q.eq("tenantId", args.tenantId).eq("code", code),
       )
       .unique();
 

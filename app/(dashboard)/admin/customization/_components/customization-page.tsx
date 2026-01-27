@@ -28,8 +28,13 @@ const DEFAULT_PRIMARY_COLOR = "oklch(0.6167 0.1623 250.58)";
 
 export function CustomizationPage() {
   const { state } = useSidebar();
-  const { tenantId, tenantDisplayName, tenantLogoUrl, tenantPrimaryColor, tenantName } =
-    useTenant();
+  const {
+    tenantId,
+    tenantDisplayName,
+    tenantLogoUrl,
+    tenantPrimaryColor,
+    tenantName,
+  } = useTenant();
   const { toast } = useToast();
 
   // Form state
@@ -59,9 +64,10 @@ export function CustomizationPage() {
     const initialUseCustomColor = tenantPrimaryColor ? !isPreset : false;
 
     // If using custom color, preserve the actual custom color value
-    const initialCustomColor = initialUseCustomColor && tenantPrimaryColor
-      ? tenantPrimaryColor
-      : "#3b82f6";
+    const initialCustomColor =
+      initialUseCustomColor && tenantPrimaryColor
+        ? tenantPrimaryColor
+        : "#3b82f6";
 
     setDisplayName(initialDisplayName);
     setLogoUrl(initialLogoUrl);
@@ -92,7 +98,14 @@ export function CustomizationPage() {
       useCustomColor !== original.useCustomColor ||
       (useCustomColor && customColor !== original.customColor)
     );
-  }, [displayName, logoUrl, primaryColor, useCustomColor, customColor, isInitialized]);
+  }, [
+    displayName,
+    logoUrl,
+    primaryColor,
+    useCustomColor,
+    customColor,
+    isInitialized,
+  ]);
 
   // Warn user when leaving page with unsaved changes
   useEffect(() => {
@@ -140,7 +153,11 @@ export function CustomizationPage() {
     const gInt = parseInt(cleanHex.substring(2, 4), 16);
     const bInt = parseInt(cleanHex.substring(4, 6), 16);
 
-    if (!Number.isFinite(rInt) || !Number.isFinite(gInt) || !Number.isFinite(bInt)) {
+    if (
+      !Number.isFinite(rInt) ||
+      !Number.isFinite(gInt) ||
+      !Number.isFinite(bInt)
+    ) {
       return hex;
     }
 
@@ -234,10 +251,11 @@ export function CustomizationPage() {
     <div className="min-h-screen relative">
       {/* Sidebar trigger */}
       <SidebarTrigger
-        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-black hover:text-black hover:bg-gray-100 transition-[left] duration-200 ease-linear z-10 ${state === "collapsed"
-          ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
-          : "left-[calc(var(--sidebar-width)+0.25rem)]"
-          }`}
+        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-black hover:text-black hover:bg-gray-100 transition-[left] duration-200 ease-linear z-10 ${
+          state === "collapsed"
+            ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
+            : "left-[calc(var(--sidebar-width)+0.25rem)]"
+        }`}
       />
 
       {/* Header */}

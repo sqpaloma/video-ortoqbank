@@ -41,7 +41,7 @@ export function SessionProvider({ children }: SessionProviderProps) {
   // Check user's access and role in this specific tenant
   const accessCheck = useQuery(
     api.tenants.checkUserAccess,
-    tenantId ? { tenantId } : "skip"
+    tenantId ? { tenantId } : "skip",
   );
 
   // Calculate derived values
@@ -53,7 +53,8 @@ export function SessionProvider({ children }: SessionProviderProps) {
   // User is admin if they're a superadmin OR have admin role in this tenant
   const isAdmin = isSuperAdmin || tenantRole === "admin";
 
-  const isLoading = user === undefined || (tenantId !== null && accessCheck === undefined);
+  const isLoading =
+    user === undefined || (tenantId !== null && accessCheck === undefined);
 
   const sessionValue: SessionContextType = {
     isAdmin,

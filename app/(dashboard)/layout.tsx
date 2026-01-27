@@ -17,12 +17,16 @@ import { api } from "@/convex/_generated/api";
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { isLoading: isUserLoading, isAuthenticated } = useCurrentUser();
-  const { isLoading: isTenantLoading, error: tenantError, tenantId } = useTenant();
+  const {
+    isLoading: isTenantLoading,
+    error: tenantError,
+    tenantId,
+  } = useTenant();
 
   // Check user's access to this specific tenant
   const accessCheck = useQuery(
     api.tenants.checkUserAccess,
-    tenantId ? { tenantId } : "skip"
+    tenantId ? { tenantId } : "skip",
   );
 
   const isAccessLoading = accessCheck === undefined && tenantId !== null;
@@ -42,11 +46,18 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
     // If tenant is loaded and user doesn't have access, redirect to purchase
     if (tenantId && accessCheck && !accessCheck.hasAccess) {
-
       router.push("/purchase");
       return;
     }
-  }, [isUserLoading, isTenantLoading, isAccessLoading, isAuthenticated, tenantId, accessCheck, router]);
+  }, [
+    isUserLoading,
+    isTenantLoading,
+    isAccessLoading,
+    isAuthenticated,
+    tenantId,
+    accessCheck,
+    router,
+  ]);
 
   // Show loading while user, tenant, or access is being loaded
   if (isUserLoading || isTenantLoading || isAccessLoading) {

@@ -89,7 +89,7 @@ export function UnitTreeItem({
       className={cn(
         "space-y-1",
         isItemDragging &&
-        "opacity-50 ring-2 ring-primary rounded-lg shadow-lg z-50",
+          "opacity-50 ring-2 ring-primary rounded-lg shadow-lg z-50",
       )}
     >
       {/* Unit Header */}

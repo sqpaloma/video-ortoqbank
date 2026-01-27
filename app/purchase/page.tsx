@@ -17,8 +17,8 @@ export default function PurchasePage() {
         </CardHeader>
         <CardContent className="space-y-6">
           <p className="text-center text-gray-600">
-            Esta área é exclusiva para assinantes do Ortoclub Video. Adquira
-            seu acesso e tenha disponível:
+            Esta área é exclusiva para assinantes do Ortoclub Video. Adquira seu
+            acesso e tenha disponível:
           </p>
 
           <ul className="space-y-3">

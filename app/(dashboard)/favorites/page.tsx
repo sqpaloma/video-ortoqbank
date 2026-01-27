@@ -66,8 +66,6 @@ export default async function FavoritesPage() {
     return { page: [], isDone: true, continueCursor: undefined };
   });
 
-
-
   return (
     <FavoritesClientPage
       initialFavorites={initialFavoritesResult.page}

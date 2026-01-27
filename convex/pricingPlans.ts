@@ -10,28 +10,36 @@ export const getPricingPlans = query({
   args: {
     tenantId: v.id("tenants"),
   },
-  returns: v.array(v.object({
-    _id: v.id("pricingPlans"),
-    _creationTime: v.number(),
-    tenantId: v.id("tenants"),
-    name: v.string(),
-    badge: v.string(),
-    originalPrice: v.optional(v.string()),
-    price: v.string(),
-    installments: v.string(),
-    installmentDetails: v.string(),
-    description: v.string(),
-    features: v.array(v.string()),
-    buttonText: v.string(),
-    productId: v.string(),
-    category: v.optional(v.union(v.literal("year_access"), v.literal("premium_pack"), v.literal("addon"))),
-    year: v.optional(v.number()),
-    regularPriceNum: v.optional(v.number()),
-    pixPriceNum: v.optional(v.number()),
-    accessYears: v.optional(v.array(v.number())),
-    isActive: v.optional(v.boolean()),
-    displayOrder: v.optional(v.number()),
-  })),
+  returns: v.array(
+    v.object({
+      _id: v.id("pricingPlans"),
+      _creationTime: v.number(),
+      tenantId: v.id("tenants"),
+      name: v.string(),
+      badge: v.string(),
+      originalPrice: v.optional(v.string()),
+      price: v.string(),
+      installments: v.string(),
+      installmentDetails: v.string(),
+      description: v.string(),
+      features: v.array(v.string()),
+      buttonText: v.string(),
+      productId: v.string(),
+      category: v.optional(
+        v.union(
+          v.literal("year_access"),
+          v.literal("premium_pack"),
+          v.literal("addon"),
+        ),
+      ),
+      year: v.optional(v.number()),
+      regularPriceNum: v.optional(v.number()),
+      pixPriceNum: v.optional(v.number()),
+      accessYears: v.optional(v.array(v.number())),
+      isActive: v.optional(v.boolean()),
+      displayOrder: v.optional(v.number()),
+    }),
+  ),
   handler: async (ctx, args) => {
     return await ctx.db
       .query("pricingPlans")
@@ -113,7 +121,7 @@ export const getActiveProducts = query({
       .query("pricingPlans")
       .withIndex("by_tenantId", (q) => q.eq("tenantId", args.tenantId))
       .collect();
-    
+
     return plans.filter((p) => p.isActive === true);
   },
 });
@@ -122,7 +130,7 @@ export const getActiveProducts = query({
  * Get pricing plan by product ID within a tenant
  */
 export const getByProductId = query({
-  args: { 
+  args: {
     tenantId: v.id("tenants"),
     productId: v.string(),
   },
@@ -134,13 +142,13 @@ export const getByProductId = query({
       name: v.string(),
       // ... include remaining schema fields
     }),
-    v.null()
+    v.null(),
   ),
   handler: async (ctx, args) => {
     return await ctx.db
       .query("pricingPlans")
-      .withIndex("by_tenantId_and_productId", (q) => 
-        q.eq("tenantId", args.tenantId).eq("productId", args.productId)
+      .withIndex("by_tenantId_and_productId", (q) =>
+        q.eq("tenantId", args.tenantId).eq("productId", args.productId),
       )
       .unique();
   },

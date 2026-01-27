@@ -105,7 +105,7 @@ export function isPlainLocalhost(hostname: string): boolean {
 /**
  * Get the tenant slug from a hostname.
  * Returns the subdomain if found, otherwise falls back to default tenant.
- * 
+ *
  * Note: This returns the actual subdomain from the hostname, even if it's not
  * in the static config. The static config is only used for UI branding fallbacks.
  * Tenant existence should be validated by querying the Convex database.

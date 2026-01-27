@@ -301,7 +301,8 @@ export function UnitsLessonsPage() {
         unitId: data.unitId,
         title: data.title,
         description: data.description,
-        durationSeconds: data.durationSeconds ?? editMode.lesson.durationSeconds,
+        durationSeconds:
+          data.durationSeconds ?? editMode.lesson.durationSeconds,
         order_index: editMode.lesson.order_index,
         isPublished: editMode.lesson.isPublished,
         videoId: data.videoId ?? editMode.lesson.videoId,
@@ -416,10 +417,11 @@ export function UnitsLessonsPage() {
       <div className=" relative">
         {/* Sidebar trigger - follows sidebar position */}
         <SidebarTrigger
-          className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-blue-brand hover:text-blue-brand-dark hover:bg-blue-brand-light transition-[left] duration-200 ease-linear z-10 ${state === "collapsed"
-            ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
-            : "left-[calc(var(--sidebar-width)+0.25rem)]"
-            }`}
+          className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-blue-brand hover:text-blue-brand-dark hover:bg-blue-brand-light transition-[left] duration-200 ease-linear z-10 ${
+            state === "collapsed"
+              ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
+              : "left-[calc(var(--sidebar-width)+0.25rem)]"
+          }`}
         />
 
         {/* Header */}

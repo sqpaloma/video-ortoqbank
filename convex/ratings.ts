@@ -78,13 +78,13 @@ export const getUserRating = query({
       lessonId: v.id("lessons"),
       rating: v.number(),
     }),
-    v.null()
+    v.null(),
   ),
   handler: async (ctx, args) => {
     const ratings = await ctx.db
       .query("lessonRatings")
       .withIndex("by_tenantId_and_lessonId", (q) =>
-        q.eq("tenantId", args.tenantId).eq("lessonId", args.lessonId)
+        q.eq("tenantId", args.tenantId).eq("lessonId", args.lessonId),
       )
       .collect();
 
@@ -137,19 +137,21 @@ export const getAllRatingsWithDetails = query({
   },
 
   returns: v.object({
-    page: v.array(v.object({
-      _id: v.id("lessonRatings"),
-      _creationTime: v.number(),
-      userId: v.string(),
-      lessonId: v.id("lessons"),
-      unitId: v.id("units"),
-      rating: v.number(),
-      createdAt: v.number(),
-      userName: v.string(),
-      userEmail: v.string(),
-      lessonTitle: v.string(),
-      unitTitle: v.string(),
-    })),
+    page: v.array(
+      v.object({
+        _id: v.id("lessonRatings"),
+        _creationTime: v.number(),
+        userId: v.string(),
+        lessonId: v.id("lessons"),
+        unitId: v.id("units"),
+        rating: v.number(),
+        createdAt: v.number(),
+        userName: v.string(),
+        userEmail: v.string(),
+        lessonTitle: v.string(),
+        unitTitle: v.string(),
+      }),
+    ),
     isDone: v.boolean(),
     continueCursor: v.union(v.string(), v.null()),
   }),
@@ -159,11 +161,10 @@ export const getAllRatingsWithDetails = query({
       .query("lessonRatings")
       .withIndex("by_tenantId", (q) => q.eq("tenantId", args.tenantId))
       .order("desc")
-     
+
       .paginate(args.paginationOpts);
-      
-       const ratings = paginatedRatings.page;
-    
+
+    const ratings = paginatedRatings.page;
 
     const ratingsWithDetails = await Promise.all(
       ratings.map(async (rating) => {
@@ -194,8 +195,6 @@ export const getAllRatingsWithDetails = query({
         };
       }),
     );
-
-  
 
     return {
       page: ratingsWithDetails,

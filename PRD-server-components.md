@@ -9,16 +9,19 @@ Este documento descreve o processo de conversão de páginas client-side para um
 ## Objetivos
 
 ### Performance
+
 - ✅ Eliminação do loading spinner inicial (server-side rendering)
 - ✅ Redução do Time to First Byte (TTFB)
 - ✅ Melhoria no Largest Contentful Paint (LCP)
 - ✅ Manutenção da reatividade em tempo real após hidratação
 
 ### SEO
+
 - ✅ Conteúdo renderizado no servidor para crawlers
 - ✅ Meta tags dinâmicas baseadas em dados do Convex
 
 ### Developer Experience
+
 - ✅ Código mais organizado e manutenível
 - ✅ Separação clara entre server e client
 - ✅ Otimização automática de imports (lucide-react)
@@ -31,7 +34,7 @@ graph TB
     ServerPage[Server Component<br/>page.tsx]
     ClientWrapper[Client Component<br/>*-client.tsx]
     Convex[(Convex Database)]
-    
+
     Browser -->|1. Request inicial| ServerPage
     ServerPage -->|2. preloadQuery| Convex
     Convex -->|3. Dados| ServerPage
@@ -39,7 +42,7 @@ graph TB
     Browser -->|5. Hydration| ClientWrapper
     ClientWrapper -->|6. usePreloadedQuery| Convex
     Convex -->|7. Real-time updates| ClientWrapper
-    
+
     style ServerPage fill:#e1f5fe
     style ClientWrapper fill:#fff3e0
     style Convex fill:#f3e5f5
@@ -48,6 +51,7 @@ graph TB
 ## Estrutura de Arquivos
 
 ### Antes (Client-only)
+
 ```
 categories/
 ├── page.tsx                    # "use client" - tudo no cliente
@@ -58,6 +62,7 @@ categories/
 ```
 
 ### Depois (Híbrido)
+
 ```
 categories/
 ├── page.tsx                    # Server Component (sem "use client")
@@ -95,7 +100,7 @@ const nextConfig: NextConfig = {
 /**
  * Get the tenant slug from a hostname.
  * Returns the subdomain if found, otherwise falls back to default tenant.
- * 
+ *
  * Note: This returns the actual subdomain from the hostname, even if it's not
  * in the static config. The static config is only used for UI branding fallbacks.
  * Tenant existence should be validated by querying the Convex database.
@@ -348,7 +353,7 @@ export const yourQuery = query({
       tenantId: v.id("tenants"),
       title: v.string(),
       // ... outros campos
-    })
+    }),
   ),
   handler: async (ctx, args) => {
     const items = await ctx.db
@@ -364,9 +369,9 @@ export const yourQuery = query({
 
 // Query de busca TAMBÉM precisa de tenantId
 export const searchYourData = query({
-  args: { 
-    query: v.string(), 
-    tenantId: v.id("tenants") // NECESSÁRIO para useTenantQuery
+  args: {
+    query: v.string(),
+    tenantId: v.id("tenants"), // NECESSÁRIO para useTenantQuery
   },
   returns: v.array(
     v.object({
@@ -375,7 +380,7 @@ export const searchYourData = query({
       tenantId: v.id("tenants"),
       title: v.string(),
       // ... outros campos
-    })
+    }),
   ),
   handler: async (ctx, args) => {
     const searchQuery = args.query.toLowerCase().trim();
@@ -392,9 +397,10 @@ export const searchYourData = query({
     }
 
     return items
-      .filter((item) =>
-        item.title.toLowerCase().includes(searchQuery) ||
-        item.description.toLowerCase().includes(searchQuery),
+      .filter(
+        (item) =>
+          item.title.toLowerCase().includes(searchQuery) ||
+          item.description.toLowerCase().includes(searchQuery),
       )
       .slice(0, 20);
   },
@@ -404,11 +410,13 @@ export const searchYourData = query({
 ## Checklist de Implementação
 
 ### Preparação
+
 - [ ] Adicionar `lucide-react` ao `optimizePackageImports` no `next.config.ts`
 - [ ] Atualizar `lib/tenant.ts` para aceitar slugs dinâmicos
 - [ ] Atualizar `components/providers/tenant-provider.tsx` com `isValidSlugFormat`
 
 ### Conversão da Página
+
 - [ ] Remover `"use client"` do `page.tsx`
 - [ ] Adicionar imports do Convex: `preloadQuery`, `fetchQuery`
 - [ ] Adicionar imports do Next.js: `headers` from `next/headers`
@@ -420,6 +428,7 @@ export const searchYourData = query({
 - [ ] Criar e passar props para client component
 
 ### Client Component
+
 - [ ] Criar novo arquivo `*-client.tsx`
 - [ ] Adicionar `"use client"` no topo
 - [ ] Importar e tipar `Preloaded` do Convex
@@ -429,17 +438,20 @@ export const searchYourData = query({
 - [ ] Implementar handlers de eventos
 
 ### Componentes de UI (Opcional)
+
 - [ ] Extrair lógica de grid/lista para componente separado
 - [ ] Implementar estados de loading/empty
 - [ ] Usar `memo()` se necessário (ou confiar no React Compiler)
 
 ### Queries do Convex
+
 - [ ] Adicionar `tenantId: v.id("tenants")` aos args de TODAS as queries usadas com `useTenantQuery`
 - [ ] Adicionar `returns` com validador completo
 - [ ] Usar índice `by_tenantId_and_*` nas queries
 - [ ] Filtrar por `tenantId` no handler
 
 ### Testes
+
 - [ ] Página carrega sem loading spinner inicial
 - [ ] Dados aparecem imediatamente no primeiro render
 - [ ] Busca funciona corretamente
@@ -455,6 +467,7 @@ export const searchYourData = query({
 **Causa:** Slug do tenant não existe no banco de dados Convex.
 
 **Solução:**
+
 1. Verificar que o tenant existe no Convex: `api.tenants.list`
 2. Verificar que o slug extraído está correto nos logs do console
 3. Criar tenant no Convex se necessário
@@ -464,6 +477,7 @@ export const searchYourData = query({
 **Causa:** Query do Convex não aceita `tenantId` mas está sendo chamada com `useTenantQuery`.
 
 **Solução:**
+
 ```typescript
 // ANTES (errado)
 export const myQuery = query({
@@ -473,9 +487,9 @@ export const myQuery = query({
 
 // DEPOIS (correto)
 export const myQuery = query({
-  args: { 
+  args: {
     someField: v.string(),
-    tenantId: v.id("tenants") // ADICIONAR
+    tenantId: v.id("tenants"), // ADICIONAR
   },
   // ...
 });
@@ -486,6 +500,7 @@ export const myQuery = query({
 **Causa:** Usando `useQuery` ou `useTenantQuery` ao invés de `usePreloadedQuery`.
 
 **Solução:**
+
 ```typescript
 // ERRADO no client component
 const data = useTenantQuery(api.myModule.myQuery, {});
@@ -501,6 +516,7 @@ const data = usePreloadedQuery(preloadedData);
 ### Problema 4: TypeScript reclama de tipo `Preloaded`
 
 **Solução:**
+
 ```typescript
 import { Preloaded, usePreloadedQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -516,12 +532,13 @@ interface Props {
 **Causa:** Usando `await headers()` dentro de try-catch ou após operações assíncronas.
 
 **Solução:** Chamar `headers()` no início da função, antes de qualquer `await`:
+
 ```typescript
 export default async function Page() {
   // FAZER ISSO PRIMEIRO
   const headersList = await headers();
   const host = headersList.get("host") || "localhost";
-  
+
   // Depois fazer o resto...
   const { userId, getToken } = await auth();
   // ...
@@ -531,17 +548,20 @@ export default async function Page() {
 ## Benefícios Mensuráveis
 
 ### Performance
+
 - **TTFB:** Redução de ~200-500ms (dados já no HTML)
 - **LCP:** Redução de ~300-800ms (sem loading spinner)
 - **FCP:** Redução de ~100-300ms (conteúdo renderizado no servidor)
 - **Cold Start:** Redução de 200-800ms (otimização de imports)
 
 ### SEO
+
 - ✅ Conteúdo indexável por crawlers
 - ✅ Meta tags dinâmicas
 - ✅ Structured data disponível no HTML
 
 ### UX
+
 - ✅ Sem flash de loading spinner
 - ✅ Conteúdo aparece instantaneamente
 - ✅ Mantém reatividade após load
@@ -551,17 +571,19 @@ export default async function Page() {
 - [Convex Next.js Server Rendering](https://docs.convex.dev/client/nextjs/app-router/server-rendering)
 - [Next.js Server Components](https://nextjs.org/docs/app/building-your-application/rendering/server-components)
 - [Vercel React Best Practices](https://vercel.com/blog/how-we-optimized-package-imports-in-next-js)
-- [Implementação de Referência](app/(dashboard)/categories/)
+- [Implementação de Referência](<app/(dashboard)/categories/>)
 
 ## Próximos Passos
 
 ### Páginas Prioritárias para Migração
+
 1. **Favorites** (`app/(dashboard)/favorites/`) - Similar à categories
 2. **Units** (`app/(dashboard)/units/`) - Mais complexo, tem dependências
 3. **Profile** (`app/(dashboard)/profile/`) - Já parcialmente implementado
 4. **Admin pages** - Baixa prioridade (não são SEO-critical)
 
 ### Melhorias Futuras
+
 - [ ] Adicionar `generateMetadata` para SEO dinâmico
 - [ ] Implementar Streaming SSR com múltiplos Suspense boundaries
 - [ ] Adicionar error boundaries específicos
@@ -573,4 +595,3 @@ export default async function Page() {
 **Última atualização:** 2026-01-21  
 **Versão:** 1.0.0  
 **Autor:** Implementação baseada na conversão de `app/(dashboard)/categories/`
-

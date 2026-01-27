@@ -676,7 +676,15 @@ export const maybeProvisionAccess = internalMutation({
       if (pricingPlan?.accessYears && pricingPlan.accessYears.length > 0) {
         // Access expires at end of the latest year (Dec 31, 23:59:59.999)
         const latestYear = Math.max(...pricingPlan.accessYears);
-        accessExpiresAt = new Date(latestYear, 11, 31, 23, 59, 59, 999).getTime();
+        accessExpiresAt = new Date(
+          latestYear,
+          11,
+          31,
+          23,
+          59,
+          59,
+          999,
+        ).getTime();
         console.log(
           `📅 Access expiration calculated: ${new Date(accessExpiresAt).toISOString()} (year ${latestYear})`,
         );

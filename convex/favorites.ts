@@ -345,5 +345,3 @@ export const clearUserFavorites = mutation({
     return favorites.length;
   },
 });
-
-

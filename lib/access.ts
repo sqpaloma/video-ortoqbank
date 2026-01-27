@@ -9,7 +9,9 @@ import { Id } from "@/convex/_generated/dataModel";
 /**
  * Get the current tenant ID from hostname (server-side)
  */
-async function getTenantId(token: string | null): Promise<Id<"tenants"> | null> {
+async function getTenantId(
+  token: string | null,
+): Promise<Id<"tenants"> | null> {
   const headersList = await headers();
   const host = headersList.get("host") || "localhost";
   const tenantSlug = getTenantSlugFromHostname(host);
@@ -52,7 +54,7 @@ export async function requireVideoAccess(
 
   // Get tenant ID from hostname
   const tenantId = await getTenantId(token);
-  
+
   if (!tenantId) {
     console.error("[requireVideoAccess] Tenant not found");
     redirect(redirectTo);
@@ -99,7 +101,7 @@ export async function checkVideoAccess(): Promise<{
 
   // Get tenant ID from hostname
   const tenantId = await getTenantId(token);
-  
+
   if (!tenantId) {
     console.error("[checkVideoAccess] Tenant not found");
     return { hasAccess: false, userId };

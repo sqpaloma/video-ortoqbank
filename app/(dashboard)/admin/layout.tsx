@@ -58,11 +58,14 @@ export default async function AdminLayout({
   ).catch(() => null);
 
   // User must have access AND be an admin (or superadmin) in this tenant
-  const isAdmin = accessCheck?.hasAccess &&
+  const isAdmin =
+    accessCheck?.hasAccess &&
     (accessCheck.role === "admin" || accessCheck.isSuperAdmin);
 
   if (!isAdmin) {
-    console.log(`[Admin Layout] User ${userId} is not admin of tenant ${tenantSlug}`);
+    console.log(
+      `[Admin Layout] User ${userId} is not admin of tenant ${tenantSlug}`,
+    );
     redirect("/categories");
   }
 

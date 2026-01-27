@@ -53,7 +53,6 @@ export const createDefaultTenant = internalMutation({
   },
 });
 
-
 /**
  * Step 2: Migrate categories to include tenantId
  */
@@ -72,7 +71,7 @@ export const migrateCategories = internalMutation({
   handler: async (ctx, args) => {
     const batchSize = args.batchSize || 100;
 
-   // Use pagination to ensure progress across batches
+    // Use pagination to ensure progress across batches
     const categories = await ctx.db
       .query("categories")
       .paginate({ cursor: args.cursor ?? null, numItems: batchSize });
@@ -95,7 +94,12 @@ export const migrateCategories = internalMutation({
     }
 
     console.log(`Categories: migrated ${migrated}, skipped ${skipped}`);
-    return { migrated, skipped, hasMore: !categories.isDone, cursor: categories.continueCursor };
+    return {
+      migrated,
+      skipped,
+      hasMore: !categories.isDone,
+      cursor: categories.continueCursor,
+    };
   },
 });
 
@@ -138,7 +142,12 @@ export const migrateUnits = internalMutation({
     }
 
     console.log(`Units: migrated ${migrated}, skipped ${skipped}`);
-    return { migrated, skipped, hasMore: !units.isDone, cursor: units.continueCursor };
+    return {
+      migrated,
+      skipped,
+      hasMore: !units.isDone,
+      cursor: units.continueCursor,
+    };
   },
 });
 
@@ -181,7 +190,12 @@ export const migrateLessons = internalMutation({
     }
 
     console.log(`Lessons: migrated ${migrated}, skipped ${skipped}`);
-    return { migrated, skipped, hasMore: !lessons.isDone, cursor: lessons.continueCursor };
+    return {
+      migrated,
+      skipped,
+      hasMore: !lessons.isDone,
+      cursor: lessons.continueCursor,
+    };
   },
 });
 
@@ -224,7 +238,12 @@ export const migrateVideos = internalMutation({
     }
 
     console.log(`Videos: migrated ${migrated}, skipped ${skipped}`);
-    return { migrated, skipped, hasMore: !videos.isDone, cursor: videos.continueCursor };
+    return {
+      migrated,
+      skipped,
+      hasMore: !videos.isDone,
+      cursor: videos.continueCursor,
+    };
   },
 });
 
@@ -267,7 +286,12 @@ export const migratePricingPlans = internalMutation({
     }
 
     console.log(`Pricing Plans: migrated ${migrated}, skipped ${skipped}`);
-    return { migrated, skipped, hasMore: !plans.isDone, cursor: plans.continueCursor };
+    return {
+      migrated,
+      skipped,
+      hasMore: !plans.isDone,
+      cursor: plans.continueCursor,
+    };
   },
 });
 
@@ -310,7 +334,12 @@ export const migrateCoupons = internalMutation({
     }
 
     console.log(`Coupons: migrated ${migrated}, skipped ${skipped}`);
-    return { migrated, skipped, hasMore: !coupons.isDone, cursor: coupons.continueCursor };
+    return {
+      migrated,
+      skipped,
+      hasMore: !coupons.isDone,
+      cursor: coupons.continueCursor,
+    };
   },
 });
 
@@ -370,7 +399,12 @@ export const createUserMemberships = internalMutation({
     }
 
     console.log(`User Memberships: created ${created}, skipped ${skipped}`);
-    return { created, skipped, hasMore: !users.isDone, cursor: users.continueCursor };
+    return {
+      created,
+      skipped,
+      hasMore: !users.isDone,
+      cursor: users.continueCursor,
+    };
   },
 });
 
@@ -413,7 +447,12 @@ export const migrateUserProgress = internalMutation({
     }
 
     console.log(`User Progress: migrated ${migrated}, skipped ${skipped}`);
-    return { migrated, skipped, hasMore: !progress.isDone, cursor: progress.continueCursor };
+    return {
+      migrated,
+      skipped,
+      hasMore: !progress.isDone,
+      cursor: progress.continueCursor,
+    };
   },
 });
 
@@ -456,7 +495,12 @@ export const migrateUnitProgress = internalMutation({
     }
 
     console.log(`Unit Progress: migrated ${migrated}, skipped ${skipped}`);
-    return { migrated, skipped, hasMore: !progress.isDone, cursor: progress.continueCursor };
+    return {
+      migrated,
+      skipped,
+      hasMore: !progress.isDone,
+      cursor: progress.continueCursor,
+    };
   },
 });
 
@@ -499,7 +543,12 @@ export const migrateGlobalProgress = internalMutation({
     }
 
     console.log(`Global Progress: migrated ${migrated}, skipped ${skipped}`);
-    return { migrated, skipped, hasMore: !progress.isDone, cursor: progress.continueCursor };
+    return {
+      migrated,
+      skipped,
+      hasMore: !progress.isDone,
+      cursor: progress.continueCursor,
+    };
   },
 });
 
@@ -542,7 +591,12 @@ export const migrateFavorites = internalMutation({
     }
 
     console.log(`Favorites: migrated ${migrated}, skipped ${skipped}`);
-    return { migrated, skipped, hasMore: !favorites.isDone, cursor: favorites.continueCursor };
+    return {
+      migrated,
+      skipped,
+      hasMore: !favorites.isDone,
+      cursor: favorites.continueCursor,
+    };
   },
 });
 
@@ -582,7 +636,12 @@ export const migrateRecentViews = internalMutation({
     }
 
     console.log(`Recent Views: migrated ${migrated}, skipped ${skipped}`);
-    return { migrated, skipped, hasMore: !views.isDone, cursor: views.continueCursor };
+    return {
+      migrated,
+      skipped,
+      hasMore: !views.isDone,
+      cursor: views.continueCursor,
+    };
   },
 });
 
@@ -625,7 +684,12 @@ export const migratePendingOrders = internalMutation({
     }
 
     console.log(`Pending Orders: migrated ${migrated}, skipped ${skipped}`);
-    return { migrated, skipped, hasMore: !orders.isDone, cursor: orders.continueCursor };
+    return {
+      migrated,
+      skipped,
+      hasMore: !orders.isDone,
+      cursor: orders.continueCursor,
+    };
   },
 });
 
@@ -665,7 +729,12 @@ export const migrateInvoices = internalMutation({
     }
 
     console.log(`Invoices: migrated ${migrated}, skipped ${skipped}`);
-    return { migrated, skipped, hasMore: !invoices.isDone, cursor: invoices.continueCursor };
+    return {
+      migrated,
+      skipped,
+      hasMore: !invoices.isDone,
+      cursor: invoices.continueCursor,
+    };
   },
 });
 
@@ -708,7 +777,12 @@ export const migrateFeedback = internalMutation({
     }
 
     console.log(`Lesson Feedback: migrated ${migrated}, skipped ${skipped}`);
-    return { migrated, skipped, hasMore: !feedback.isDone, cursor: feedback.continueCursor };
+    return {
+      migrated,
+      skipped,
+      hasMore: !feedback.isDone,
+      cursor: feedback.continueCursor,
+    };
   },
 });
 
@@ -748,7 +822,12 @@ export const migrateRatings = internalMutation({
     }
 
     console.log(`Lesson Ratings: migrated ${migrated}, skipped ${skipped}`);
-    return { migrated, skipped, hasMore: !ratings.isDone, cursor: ratings.continueCursor };
+    return {
+      migrated,
+      skipped,
+      hasMore: !ratings.isDone,
+      cursor: ratings.continueCursor,
+    };
   },
 });
 
@@ -788,7 +867,12 @@ export const migrateCouponUsage = internalMutation({
     }
 
     console.log(`Coupon Usage: migrated ${migrated}, skipped ${skipped}`);
-    return { migrated, skipped, hasMore: !usages.isDone, cursor: usages.continueCursor };
+    return {
+      migrated,
+      skipped,
+      hasMore: !usages.isDone,
+      cursor: usages.continueCursor,
+    };
   },
 });
 
@@ -828,7 +912,12 @@ export const migrateEmailInvitations = internalMutation({
     }
 
     console.log(`Email Invitations: migrated ${migrated}, skipped ${skipped}`);
-    return { migrated, skipped, hasMore: !invitations.isDone, cursor: invitations.continueCursor };
+    return {
+      migrated,
+      skipped,
+      hasMore: !invitations.isDone,
+      cursor: invitations.continueCursor,
+    };
   },
 });
 
@@ -845,10 +934,9 @@ export const runFullMigration = mutation({
     message: v.string(),
     instructions: v.array(v.string()),
   }),
-  handler: async (ctx, ) => {
+  handler: async (ctx) => {
     // Require superadmin for migration
     await requireSuperAdmin(ctx);
-
 
     return {
       message: "Migration must be run via internal mutations",

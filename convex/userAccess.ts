@@ -91,7 +91,11 @@ export const getTenantAccessDetails = query({
     hasActiveAccess: v.boolean(),
     accessExpiresAt: v.optional(v.number()),
     daysUntilExpiration: v.optional(v.number()),
-    userStatus: v.union(v.literal("active"), v.literal("inactive"), v.literal("suspended")),
+    userStatus: v.union(
+      v.literal("active"),
+      v.literal("inactive"),
+      v.literal("suspended"),
+    ),
   }),
   async handler(
     ctx,
@@ -133,7 +137,6 @@ export const getTenantAccessDetails = query({
     let daysUntilExpiration: number | undefined;
 
     if (membership.accessExpiresAt && membership.hasActiveAccess) {
-        
       if (membership.accessExpiresAt > now) {
         daysUntilExpiration = Math.ceil(
           (membership.accessExpiresAt - now) / (24 * 60 * 60 * 1000),

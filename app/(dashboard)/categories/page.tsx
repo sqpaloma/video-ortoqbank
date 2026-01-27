@@ -36,14 +36,11 @@ export default async function CategoriesPage() {
           <p className="text-muted-foreground mb-2">
             Tenant &quot;{tenantSlug}&quot; not found
           </p>
-          <p className="text-sm text-muted-foreground">
-            Host: {host}
-          </p>
+          <p className="text-sm text-muted-foreground">Host: {host}</p>
         </div>
       </div>
     );
   }
-
 
   // Preload categories (main data)
   const preloadedCategories = await preloadQuery(
@@ -55,20 +52,20 @@ export default async function CategoriesPage() {
   // Preload aggregate stats (only if user is authenticated)
   const preloadedContentStats = userId
     ? await preloadQuery(
-      api.aggregate.getByTenant,
-      { tenantId: tenant._id },
-      token ? { token } : undefined,
-    ).catch(() => null)
+        api.aggregate.getByTenant,
+        { tenantId: tenant._id },
+        token ? { token } : undefined,
+      ).catch(() => null)
     : null;
 
   // Preload completed count (only if user is authenticated)
   const preloadedCompletedCount =
     userId && tenant._id
       ? await preloadQuery(
-        api.progress.queries.getCompletedPublishedLessonsCount,
-        { userId, tenantId: tenant._id },
-        token ? { token } : undefined,
-      ).catch(() => null)
+          api.progress.queries.getCompletedPublishedLessonsCount,
+          { userId, tenantId: tenant._id },
+          token ? { token } : undefined,
+        ).catch(() => null)
       : null;
 
   return (

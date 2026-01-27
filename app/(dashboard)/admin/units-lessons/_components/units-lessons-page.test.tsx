@@ -36,7 +36,8 @@ vi.mock("@/hooks/use-confirm-modal", () => ({
 
 // Mock the sidebar component - include all exports
 vi.mock("@/components/ui/sidebar", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/components/ui/sidebar")>();
+  const actual =
+    await importOriginal<typeof import("@/components/ui/sidebar")>();
   return {
     ...actual,
     useSidebar: () => ({ state: "expanded" }),
@@ -75,7 +76,9 @@ vi.mock("./units-tree-sidebar", () => ({
 
 // Mock dialog components
 vi.mock("@/components/ui/dialog", () => ({
-  Dialog: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  Dialog: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
   DialogContent: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
   ),

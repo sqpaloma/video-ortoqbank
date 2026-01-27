@@ -9,7 +9,11 @@ interface LogoCardProps {
   onUploadStateChange: (isUploading: boolean) => void;
 }
 
-export function LogoCard({ logoUrl, onLogoUrlChange, onUploadStateChange }: LogoCardProps) {
+export function LogoCard({
+  logoUrl,
+  onLogoUrlChange,
+  onUploadStateChange,
+}: LogoCardProps) {
   return (
     <Card>
       <CardHeader>
@@ -34,4 +38,3 @@ export function LogoCard({ logoUrl, onLogoUrlChange, onUploadStateChange }: Logo
     </Card>
   );
 }
-

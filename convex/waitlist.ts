@@ -34,7 +34,7 @@ export const createWaitlistEntry = mutation({
       const existingEntry = await ctx.db
         .query("waitlist")
         .withIndex("by_tenantId_and_email", (q) =>
-          q.eq("tenantId", args.tenantId).eq("email", args.email)
+          q.eq("tenantId", args.tenantId).eq("email", args.email),
         )
         .first();
 

@@ -41,7 +41,8 @@ export function Rating({ userId, lessonId, unitId }: RatingProps) {
 
   const handleRatingClick = async (rating: number) => {
     // Don't submit if already submitting or if same rating
-    if (isSubmitting || !isTenantReady || !userId || !lessonId || !unitId) return;
+    if (isSubmitting || !isTenantReady || !userId || !lessonId || !unitId)
+      return;
     if (userRating?.rating === rating) return;
 
     setIsSubmitting(true);
@@ -73,7 +74,7 @@ export function Rating({ userId, lessonId, unitId }: RatingProps) {
             disabled={isSubmitting}
             className={cn(
               "focus:outline-none transition-opacity",
-              isSubmitting && "opacity-50 cursor-not-allowed"
+              isSubmitting && "opacity-50 cursor-not-allowed",
             )}
             aria-label={`Avaliar com ${star} estrela${star > 1 ? "s" : ""}`}
           >

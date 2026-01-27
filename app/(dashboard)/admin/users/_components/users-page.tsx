@@ -7,7 +7,10 @@ import { Id } from "@/convex/_generated/dataModel";
 import { SearchUsers } from "./search-users";
 import { UserCard } from "./user-card";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
-import { useTenantPaginatedQuery, useTenantMutation } from "@/hooks/use-tenant-convex";
+import {
+  useTenantPaginatedQuery,
+  useTenantMutation,
+} from "@/hooks/use-tenant-convex";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
@@ -15,7 +18,9 @@ import { useCurrentUser } from "@/hooks/useCurrentUser";
 export function UsersPage() {
   // Use tenant-scoped mutation to update member roles
   const updateMemberRole = useTenantMutation(api.tenants.updateMemberRole);
-  const [loadingUsers, setLoadingUsers] = useState<Set<Id<"tenantMemberships">>>(new Set());
+  const [loadingUsers, setLoadingUsers] = useState<
+    Set<Id<"tenantMemberships">>
+  >(new Set());
   const [searchTerm, setSearchTerm] = useState("");
 
   // Get current user to prevent self-demotion
@@ -25,12 +30,15 @@ export function UsersPage() {
   const { results, status, loadMore, isLoading } = useTenantPaginatedQuery(
     api.users.getTenantUsersPaginated,
     { search: searchTerm || undefined },
-    { initialNumItems: 12 }
+    { initialNumItems: 12 },
   );
 
   const { state } = useSidebar();
 
-  const handleSetRole = async (membershipId: Id<"tenantMemberships">, role: "member" | "admin") => {
+  const handleSetRole = async (
+    membershipId: Id<"tenantMemberships">,
+    role: "member" | "admin",
+  ) => {
     setLoadingUsers((prev) => new Set(prev).add(membershipId));
     try {
       await updateMemberRole({ membershipId, role });
@@ -69,10 +77,11 @@ export function UsersPage() {
     return (
       <div className="min-h-screen relative">
         <SidebarTrigger
-          className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-black hover:text-black hover:bg-gray-100 transition-[left] duration-200 ease-linear z-10 ${state === "collapsed"
-            ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
-            : "left-[calc(var(--sidebar-width)+0.25rem)]"
-            }`}
+          className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-black hover:text-black hover:bg-gray-100 transition-[left] duration-200 ease-linear z-10 ${
+            state === "collapsed"
+              ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
+              : "left-[calc(var(--sidebar-width)+0.25rem)]"
+          }`}
         />
         <div className="border-b">
           <div className="p-4 pt-12 flex items-center pl-14 gap-4">
@@ -91,10 +100,11 @@ export function UsersPage() {
   return (
     <div className="min-h-screen relative">
       <SidebarTrigger
-        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-black hover:text-black hover:bg-gray-100 transition-[left] duration-200 ease-linear z-10 ${state === "collapsed"
-          ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
-          : "left-[calc(var(--sidebar-width)+0.25rem)]"
-          }`}
+        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-black hover:text-black hover:bg-gray-100 transition-[left] duration-200 ease-linear z-10 ${
+          state === "collapsed"
+            ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
+            : "left-[calc(var(--sidebar-width)+0.25rem)]"
+        }`}
       />
 
       {/* Header */}
@@ -113,8 +123,6 @@ export function UsersPage() {
           <div className="mb-6">
             <SearchUsers onSearch={handleSearch} />
           </div>
-
-
 
           {/* Users grid */}
           {results && results.length > 0 && (
@@ -137,19 +145,14 @@ export function UsersPage() {
             <div className="text-center py-12 text-muted-foreground">
               {searchTerm
                 ? "Nenhum usuário encontrado para esta busca."
-                : "Nenhum usuário encontrado."
-              }
+                : "Nenhum usuário encontrado."}
             </div>
           )}
 
           {/* Load more button */}
           {status === "CanLoadMore" && (
             <div className="flex justify-center mt-8">
-              <Button
-                onClick={() => loadMore(12)}
-                variant="outline"
-                size="lg"
-              >
+              <Button onClick={() => loadMore(12)} variant="outline" size="lg">
                 Ver mais
               </Button>
             </div>

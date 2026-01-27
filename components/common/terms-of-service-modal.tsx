@@ -60,8 +60,8 @@ export function TermsOfServiceModal({
             (&ldquo;Termos de Uso&rdquo;) rege o acesso e a utilização do
             produto Ortoclub, um banco de questões de Ortopedia com gabarito
             comentado, oferecido online aos candidatos à prova de título de
-            especialista em Ortopedia (SBOT). Ao adquirir o acesso ao Ortoclub
-            e criar uma conta, você (doravante denominado &ldquo;Usuário&rdquo;)
+            especialista em Ortopedia (SBOT). Ao adquirir o acesso ao Ortoclub e
+            criar uma conta, você (doravante denominado &ldquo;Usuário&rdquo;)
             declara ter lido, compreendido e aceitado integralmente estes Termos
             de Uso.
           </p>
@@ -127,21 +127,20 @@ export function TermsOfServiceModal({
           </p>
           <p className="mb-4">
             <span className="font-semibold">Uso Adequado do Conteúdo:</span>{" "}
-            Utilizar o conteúdo do Ortoclub apenas para estudo pessoal. É
-            vedado ao Usuário copiar, reproduzir, publicar, compartilhar ou
-            distribuir as questões, respostas comentadas, textos, imagens ou
-            qualquer material do Ortoclub em qualquer meio (digital ou físico)
-            sem autorização. Também não é permitido utilizar o conteúdo para
-            criar obras derivadas, compilações ou produtos concorrentes.
+            Utilizar o conteúdo do Ortoclub apenas para estudo pessoal. É vedado
+            ao Usuário copiar, reproduzir, publicar, compartilhar ou distribuir
+            as questões, respostas comentadas, textos, imagens ou qualquer
+            material do Ortoclub em qualquer meio (digital ou físico) sem
+            autorização. Também não é permitido utilizar o conteúdo para criar
+            obras derivadas, compilações ou produtos concorrentes.
           </p>
           <p className="mb-4">
             <span className="font-semibold">Equipamentos e Conexão:</span>{" "}
             Garantir que possui os equipamentos (computador, smartphone, etc.) e
-            conexão à internet necessários para acessar a plataforma. A
-            Ortoclub não será responsável por impossibilidades de acesso
-            decorrentes de problemas do dispositivo do Usuário, falhas de
-            provedor de internet ou configurações fora dos requisitos mínimos do
-            sistema.
+            conexão à internet necessários para acessar a plataforma. A Ortoclub
+            não será responsável por impossibilidades de acesso decorrentes de
+            problemas do dispositivo do Usuário, falhas de provedor de internet
+            ou configurações fora dos requisitos mínimos do sistema.
           </p>
 
           <h2 className="mt-6 mb-3 text-xl font-bold">
@@ -152,8 +151,8 @@ export function TermsOfServiceModal({
             conteúdo disponibilizado no Ortoclub (incluindo, mas não se
             limitando a, questões, explicações, comentários de gabarito, textos,
             imagens, layout, logotipos e marcas) é de propriedade intelectual da
-            Ortoclub ou de seus licenciantes, sendo protegido pela legislação
-            de direitos autorais e de propriedade intelectual aplicável (Lei
+            Ortoclub ou de seus licenciantes, sendo protegido pela legislação de
+            direitos autorais e de propriedade intelectual aplicável (Lei
             Federal nº 9.610/98 e demais normas pertinentes). O simples fato de
             o Usuário ter adquirido acesso ao Ortoclub não lhe confere nenhum
             direito de propriedade sobre esse conteúdo, mas apenas uma licença
@@ -223,8 +222,8 @@ export function TermsOfServiceModal({
             <span className="font-semibold">
               Manutenções e Disponibilidade:
             </span>{" "}
-            A Ortoclub envida seus melhores esforços para manter a plataforma
-            em funcionamento e acessível 24 (vinte e quatro) horas por dia. No
+            A Ortoclub envida seus melhores esforços para manter a plataforma em
+            funcionamento e acessível 24 (vinte e quatro) horas por dia. No
             entanto, poderão ocorrer interrupções temporárias para manutenções,
             atualizações ou por motivos de força maior (como falhas de
             infraestrutura, ataques virtuais, casos fortuitos etc.). A Ortoclub
@@ -293,8 +292,8 @@ export function TermsOfServiceModal({
             <span className="font-semibold">
               Sem Garantia de Novos Conteúdos:
             </span>{" "}
-            A aquisição do acesso ao Ortoclub não garante ao Usuário o direito
-            a receber acréscimos ou novos conteúdos além daqueles já
+            A aquisição do acesso ao Ortoclub não garante ao Usuário o direito a
+            receber acréscimos ou novos conteúdos além daqueles já
             disponibilizados no momento da compra. O Usuário compreende que o
             banco de questões já inclui um acervo substancial de perguntas com
             gabarito comentado e que eventuais ampliações desse acervo ocorrerão
@@ -347,9 +346,9 @@ export function TermsOfServiceModal({
             informações de contato do Usuário serão utilizadas de acordo com a
             Política de Privacidade da Ortoclub e em conformidade com a
             legislação aplicável de proteção de dados, incluindo a Lei Geral de
-            Proteção de Dados (LGPD - Lei Federal nº 13.709/2018). A Ortoclub
-            se compromete a não fornecer dados pessoais do Usuário a terceiros
-            para fins de marketing sem o devido consentimento, limitando-se a
+            Proteção de Dados (LGPD - Lei Federal nº 13.709/2018). A Ortoclub se
+            compromete a não fornecer dados pessoais do Usuário a terceiros para
+            fins de marketing sem o devido consentimento, limitando-se a
             utilizar os dados para comunicações diretas da própria plataforma.
           </p>
 
@@ -379,8 +378,8 @@ export function TermsOfServiceModal({
             Estes Termos de Uso, juntamente com a Política de Privacidade do
             Ortoclub (se aplicável) e demais regras ou termos específicos
             disponibilizados na plataforma, constituem o acordo integral entre a
-            Ortoclub e o Usuário no que diz respeito à utilização do serviço.
-            Na hipótese de qualquer disposição destes Termos ser considerada
+            Ortoclub e o Usuário no que diz respeito à utilização do serviço. Na
+            hipótese de qualquer disposição destes Termos ser considerada
             ilegal, inválida ou inexequível, as demais disposições permanecerão
             em pleno vigor e efeito.
           </p>
@@ -396,12 +395,12 @@ export function TermsOfServiceModal({
             <span className="font-semibold">Legislação e Foro:</span> Estes
             Termos de Uso serão regidos e interpretados de acordo com as leis da
             República Federativa do Brasil. Quaisquer litígios ou controvérsias
-            decorrentes da utilização do Ortoclub ou relacionados a estes
-            Termos serão preferencialmente resolvidos de forma amigável. Não
-            havendo solução consensual, fica desde já eleito o foro da comarca
-            da sede da Ortoclub, no Brasil, como o competente para dirimir os
-            conflitos oriundos deste instrumento, com renúncia expressa a
-            qualquer outro, por mais privilegiado que seja ou venha a ser.
+            decorrentes da utilização do Ortoclub ou relacionados a estes Termos
+            serão preferencialmente resolvidos de forma amigável. Não havendo
+            solução consensual, fica desde já eleito o foro da comarca da sede
+            da Ortoclub, no Brasil, como o competente para dirimir os conflitos
+            oriundos deste instrumento, com renúncia expressa a qualquer outro,
+            por mais privilegiado que seja ou venha a ser.
           </p>
 
           <p className="mt-8 mb-2 text-sm text-gray-500">

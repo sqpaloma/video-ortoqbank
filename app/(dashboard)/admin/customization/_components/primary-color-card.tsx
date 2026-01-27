@@ -52,9 +52,10 @@ export function PrimaryColorCard({
                 className={`
                   relative h-12 rounded-lg transition-all
                   hover:scale-105 hover:shadow-md
-                  ${!useCustomColor && primaryColor === color.value
-                    ? "ring-2 ring-offset-2 ring-gray-900"
-                    : ""
+                  ${
+                    !useCustomColor && primaryColor === color.value
+                      ? "ring-2 ring-offset-2 ring-gray-900"
+                      : ""
                   }
                 `}
                 style={{ backgroundColor: color.value }}
@@ -95,8 +96,8 @@ export function PrimaryColorCard({
             )}
           </div>
           <p className="text-sm text-muted-foreground">
-            Esta cor será aplicada em botões, links, sidebar e outros
-            elementos de destaque.
+            Esta cor será aplicada em botões, links, sidebar e outros elementos
+            de destaque.
           </p>
         </div>
       </CardContent>
@@ -106,4 +107,3 @@ export function PrimaryColorCard({
 
 // Export PRESET_COLORS for use in parent component
 export { PRESET_COLORS };
-

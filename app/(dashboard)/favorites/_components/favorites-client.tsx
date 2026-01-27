@@ -34,8 +34,6 @@ interface FavoritesClientPageProps {
   tenantId: Id<"tenants">;
 }
 
-
-
 // Transform favorite data to Video interface
 function transformFavoriteToVideo(fav: FavoriteLessonData): Video {
   return {
@@ -100,7 +98,11 @@ export function FavoritesClientPage({
     }
     // During hydration, map server state to client status type
     return initialIsDone ? "Exhausted" : "CanLoadMore";
-  }, [isClientReady, status, initialIsDone]) as "LoadingFirstPage" | "CanLoadMore" | "LoadingMore" | "Exhausted";
+  }, [isClientReady, status, initialIsDone]) as
+    | "LoadingFirstPage"
+    | "CanLoadMore"
+    | "LoadingMore"
+    | "Exhausted";
 
   // Transform to Video interface
   const favorites = useMemo(

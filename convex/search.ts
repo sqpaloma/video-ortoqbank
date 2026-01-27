@@ -134,8 +134,8 @@ export const searchCategories = query({
       description: v.string(),
       isPublished: v.boolean(),
       // Include other fields from your categories schema
-    })
-    ),
+    }),
+  ),
   handler: async (ctx, args) => {
     const searchQuery = args.query.toLowerCase().trim();
 

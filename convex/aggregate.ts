@@ -76,7 +76,7 @@ export const getByTenant = query({
     const lessons = await ctx.db
       .query("lessons")
       .withIndex("by_tenantId_isPublished", (q) =>
-        q.eq("tenantId", args.tenantId).eq("isPublished", true)
+        q.eq("tenantId", args.tenantId).eq("isPublished", true),
       )
       .collect();
     const totalLessons = lessons.length;
