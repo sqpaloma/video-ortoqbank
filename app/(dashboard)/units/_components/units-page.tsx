@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useQueryState, parseAsString } from "nuqs";
@@ -40,7 +39,6 @@ export function UnitsPage({ categoryId, categoryTitle }: UnitsPageProps) {
   });
   const units = useMemo(() => unitsRaw ?? [], [unitsRaw]);
   const { user } = useUser();
-  const { state } = useSidebar();
   const isTenantReady = useTenantReady();
 
   // URL state for selected lesson (nuqs)
@@ -391,11 +389,6 @@ export function UnitsPage({ categoryId, categoryTitle }: UnitsPageProps) {
 
   return (
     <div className="min-h-screen relative">
-      {/* Sidebar trigger - follows sidebar position */}
-      <SidebarTrigger
-        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-brand-blue hover:text-brand-blue hover:bg-brand-blue transition-[left] duration-200 ease-linear z-10 ${state === "collapsed" ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]" : "left-[calc(var(--sidebar-width)+0.25rem)]"}`}
-      />
-
       {/* Header */}
       <div className="py-4 pl-16 px-6 flex items-center gap-4 border-b">
         <div className="flex-1">

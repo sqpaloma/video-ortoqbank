@@ -1152,7 +1152,7 @@ function CheckoutPageContent() {
 
 export default function CheckoutPage() {
   return (
-    <TenantProvider>
+    <TenantProvider applyBrandColor={false}>
       <Suspense
         fallback={
           <div className="flex min-h-screen items-center justify-center bg-gray-50 py-8">

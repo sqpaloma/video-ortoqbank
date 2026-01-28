@@ -45,7 +45,6 @@ export const createDefaultTenant = internalMutation({
       name: args.name,
       slug: args.slug,
       status: "active",
-      createdAt: Date.now(),
     });
 
     console.log(`Created default tenant "${args.name}" with ID: ${tenantId}`);
@@ -918,6 +917,36 @@ export const migrateEmailInvitations = internalMutation({
       hasMore: !invitations.isDone,
       cursor: invitations.continueCursor,
     };
+  },
+});
+
+/**
+ * Remove createdAt field from all tenants (cleanup migration)
+ */
+export const removeCreatedAtFromTenants = internalMutation({
+  args: {},
+  returns: v.object({
+    updated: v.number(),
+  }),
+  handler: async (ctx) => {
+    const tenants = await ctx.db.query("tenants").collect();
+
+    let updated = 0;
+    for (const tenant of tenants) {
+      const t = tenant as typeof tenant & { createdAt?: number };
+      if (t.createdAt !== undefined) {
+        // Remove the createdAt field by patching without it
+        const { _id, _creationTime, ...rest } = tenant;
+        const { createdAt, ...cleanData } = rest as typeof rest & {
+          createdAt?: number;
+        };
+        await ctx.db.replace(tenant._id, cleanData);
+        updated++;
+      }
+    }
+
+    console.log(`Removed createdAt from ${updated} tenants`);
+    return { updated };
   },
 });
 

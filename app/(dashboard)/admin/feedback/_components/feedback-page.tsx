@@ -1,6 +1,5 @@
 "use client";
 
-import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,6 @@ import { FeedbackList } from "./feedback-list";
 import { RatingsList } from "./ratings-list";
 
 export function FeedbackPage() {
-  const { state } = useSidebar();
   const {
     results: feedbacks,
     status: feedbackStatus,
@@ -22,27 +20,8 @@ export function FeedbackPage() {
     { initialNumItems: 10 },
   );
 
-  const {
-    results: ratings,
-    status: ratingsStatus,
-    loadMore: loadMoreRatings,
-  } = useTenantPaginatedQuery(
-    api.ratings.getAllRatingsWithDetails,
-    {},
-    { initialNumItems: 10 },
-  );
-
   return (
     <div className="min-h-screen relative">
-      {/* Sidebar trigger - follows sidebar position */}
-      <SidebarTrigger
-        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-black hover:text-black hover:bg-gray-100 transition-[left] duration-200 ease-linear z-10 ${
-          state === "collapsed"
-            ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
-            : "left-[calc(var(--sidebar-width)+0.25rem)]"
-        }`}
-      />
-
       {/* Header */}
       <div className="border-b">
         <div className="p-4 pt-12 flex items-center pl-14 gap-4">
@@ -112,41 +91,8 @@ export function FeedbackPage() {
 
             <TabsContent value="ratings" className="space-y-4">
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Star className="h-5 w-5" />
-                    Todas as Avaliações
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {ratingsStatus === "LoadingFirstPage" ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      Carregando avaliações...
-                    </div>
-                  ) : !ratings || ratings.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      Nenhuma avaliação encontrada
-                    </div>
-                  ) : (
-                    <>
-                      <RatingsList ratings={ratings} />
-                      {ratingsStatus === "CanLoadMore" && (
-                        <div className="flex justify-center mt-6">
-                          <Button
-                            onClick={() => loadMoreRatings(10)}
-                            variant="outline"
-                          >
-                            Ver mais
-                          </Button>
-                        </div>
-                      )}
-                      {ratingsStatus === "LoadingMore" && (
-                        <div className="text-center py-4 text-muted-foreground">
-                          Carregando mais...
-                        </div>
-                      )}
-                    </>
-                  )}
+                <CardContent className="pt-6">
+                  <RatingsList />
                 </CardContent>
               </Card>
             </TabsContent>

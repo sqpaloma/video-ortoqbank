@@ -10,7 +10,6 @@ import { FormData } from "./pricing-plan-form-fields";
 import { CreatePlanCard } from "./create-plan-card";
 import { EditPlanCard } from "./edit-plan-card";
 import { PricingPlanCard } from "./pricing-plan-card";
-import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { PlusIcon } from "lucide-react";
 import {
   useTenantMutation,
@@ -45,7 +44,6 @@ export function PricingPlansPage() {
   const plans = useTenantQuery(api.pricingPlans.getPricingPlans, {}) || [];
   const savePlan = useTenantMutation(api.pricingPlans.savePricingPlan);
   const removePlan = useTenantMutation(api.pricingPlans.removePricingPlan);
-  const { state } = useSidebar();
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<Partial<FormData>>({});
@@ -170,11 +168,6 @@ export function PricingPlansPage() {
 
   return (
     <div className="min-h-screen relative">
-      {/* Sidebar trigger - follows sidebar position */}
-      <SidebarTrigger
-        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-black hover:text-black hover:bg-gray-100 transition-[left] duration-200 ease-linear z-10 ${state === "collapsed" ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]" : "left-[calc(var(--sidebar-width)+0.25rem)]"}`}
-      />
-
       <div className="border-b">
         <div className="p-4 pt-12 flex items-center justify-between pr-12 pl-14 gap-4">
           <div>

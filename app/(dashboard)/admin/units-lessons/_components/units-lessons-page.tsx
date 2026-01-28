@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, createContext, useContext } from "react";
-import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { api } from "@/convex/_generated/api";
 import {
   useTenantQuery,
@@ -73,7 +72,6 @@ export function UnitsLessonsPage() {
 
   // Query categories with tenant context
   const categories = useTenantQuery(api.categories.list, {});
-  const { state } = useSidebar();
   const { toast } = useToast();
   const { error, showError, hideError } = useErrorModal();
   const { confirm, showConfirm, hideConfirm } = useConfirmModal();
@@ -211,8 +209,14 @@ export function UnitsLessonsPage() {
 
         const reorderedLessons = arrayMove(unitLessons, oldIndex, newIndex);
 
+        // Update lessonNumber in reordered lessons for immediate UI feedback
+        const reorderedWithNumbers = reorderedLessons.map((lesson, index) => ({
+          ...lesson,
+          lessonNumber: index + 1,
+        }));
+
         // Update local state immediately for smooth UI
-        updateDraggedLessonsForUnit(unitId, reorderedLessons, localLessons);
+        updateDraggedLessonsForUnit(unitId, reorderedWithNumbers, localLessons);
 
         // Save to database
         try {
@@ -220,9 +224,10 @@ export function UnitsLessonsPage() {
             throw new Error("Tenant not loaded");
           }
 
-          const updates = reorderedLessons.map((lesson, index) => ({
+          const updates = reorderedWithNumbers.map((lesson, index) => ({
             id: lesson._id,
             order_index: index,
+            lessonNumber: index + 1,
           }));
 
           await reorderLessons({ updates });
@@ -415,15 +420,6 @@ export function UnitsLessonsPage() {
       value={{ handleDeleteUnit, handleDeleteLesson, localUnits, localLessons }}
     >
       <div className=" relative">
-        {/* Sidebar trigger - follows sidebar position */}
-        <SidebarTrigger
-          className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-blue-brand hover:text-blue-brand-dark hover:bg-blue-brand-light transition-[left] duration-200 ease-linear z-10 ${
-            state === "collapsed"
-              ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
-              : "left-[calc(var(--sidebar-width)+0.25rem)]"
-          }`}
-        />
-
         {/* Header */}
         <div className="border-b ">
           <div className="p-4 pt-12 flex items-center pl-14 gap-4">

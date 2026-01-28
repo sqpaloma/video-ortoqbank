@@ -3,11 +3,11 @@
 import { SearchIcon, BookOpenIcon, VideoIcon } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
-import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useTenantQuery } from "@/hooks/use-tenant-convex";
 
 interface SearchBarProps {
   placeholder?: string;
@@ -33,8 +33,8 @@ export function SearchBar({
     return () => clearTimeout(timer);
   }, [query]);
 
-  // Buscar sugestões
-  const suggestions = useQuery(
+  // Buscar sugestões - TENANT SCOPED (tenantId auto-injected by useTenantQuery)
+  const suggestions = useTenantQuery(
     api.search.getSuggestions,
     debouncedQuery.length >= 2 ? { query: debouncedQuery } : "skip",
   );

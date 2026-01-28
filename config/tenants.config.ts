@@ -1,13 +1,17 @@
 /**
- * Static tenant configuration for branding and content.
+ * Static tenant configuration for DEFAULT branding and content.
  *
- * This file contains UI/branding settings that are:
- * - Type-safe with full TypeScript autocomplete
- * - Fast to access (no database query needed)
- * - Version controlled (changes go through PR review)
+ * IMPORTANT: Tenants are managed dynamically in the Convex `tenants` table.
+ * This file only provides FALLBACK branding for tenants that don't have
+ * custom branding configured in the database.
  *
- * Core tenant data (slug, id, isActive, access control) lives in the
- * Convex `tenants` table for dynamic updates.
+ * To add a new tenant:
+ * 1. Create the tenant in Convex database (via admin UI or API)
+ * 2. Configure the subdomain in Vercel
+ * 3. (Optional) Add branding here for static defaults
+ *
+ * Core tenant data (slug, domain, displayName, logoUrl, primaryColor, status)
+ * lives in the Convex `tenants` table for dynamic management.
  */
 
 export interface TenantBranding {

@@ -18,9 +18,9 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
-// Mock Convex useQuery hook
-vi.mock("convex/react", () => ({
-  useQuery: vi.fn(() => null), // Return null for suggestions by default
+// Mock useTenantQuery hook
+vi.mock("@/hooks/use-tenant-convex", () => ({
+  useTenantQuery: vi.fn(() => null), // Return null for suggestions by default
 }));
 
 describe("SearchBar", () => {

@@ -6,7 +6,6 @@ import { Id } from "@/convex/_generated/dataModel";
 
 import { CouponForm, CouponFormData, CouponType } from "./coupon-form";
 import { CouponListItem } from "./coupon-list-item";
-import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import {
   useTenantMutation,
   useTenantQuery,
@@ -32,7 +31,6 @@ export function CouponsPage() {
   const createCoupon = useTenantMutation(api.promoCoupons.create);
   const updateCoupon = useTenantMutation(api.promoCoupons.update);
   const removeCoupon = useTenantMutation(api.promoCoupons.remove);
-  const { state } = useSidebar();
 
   const [form, setForm] = useState<CouponFormData>(initialFormData);
   const nowIso = useMemo(() => new Date().toISOString().slice(0, 16), []);
@@ -64,15 +62,6 @@ export function CouponsPage() {
 
   return (
     <div className="min-h-screen relative">
-      {/* Sidebar trigger - follows sidebar position */}
-      <SidebarTrigger
-        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-black hover:text-black hover:bg-gray-100 transition-[left] duration-200 ease-linear z-10 ${
-          state === "collapsed"
-            ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
-            : "left-[calc(var(--sidebar-width)+0.25rem)]"
-        }`}
-      />
-
       {/* Header */}
       <div className="border-b">
         <div className="p-4 pt-12 flex items-center pl-14 gap-4">

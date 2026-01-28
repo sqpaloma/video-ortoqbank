@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useTenant } from "@/components/providers/tenant-provider";
-import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Check, Loader2, X } from "lucide-react";
@@ -27,7 +26,6 @@ interface OriginalState {
 const DEFAULT_PRIMARY_COLOR = "oklch(0.6167 0.1623 250.58)";
 
 export function CustomizationPage() {
-  const { state } = useSidebar();
   const {
     tenantId,
     tenantDisplayName,
@@ -139,7 +137,13 @@ export function CustomizationPage() {
       ? hexToOklch(customColor)
       : primaryColor || DEFAULT_PRIMARY_COLOR;
     document.documentElement.style.setProperty("--blue-brand", colorToApply);
-  }, [primaryColor, customColor, useCustomColor]);
+
+    // Cleanup: restore original saved color when component unmounts
+    return () => {
+      const originalColor = tenantPrimaryColor || DEFAULT_PRIMARY_COLOR;
+      document.documentElement.style.setProperty("--blue-brand", originalColor);
+    };
+  }, [primaryColor, customColor, useCustomColor, tenantPrimaryColor]);
 
   // Convert hex to oklch (simplified approximation)
   function hexToOklch(hex: string): string {
@@ -249,15 +253,6 @@ export function CustomizationPage() {
 
   return (
     <div className="min-h-screen relative">
-      {/* Sidebar trigger */}
-      <SidebarTrigger
-        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-black hover:text-black hover:bg-gray-100 transition-[left] duration-200 ease-linear z-10 ${
-          state === "collapsed"
-            ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
-            : "left-[calc(var(--sidebar-width)+0.25rem)]"
-        }`}
-      />
-
       {/* Header */}
       <div className="border-b">
         <div className="p-4 pt-12 flex items-center pl-14 gap-4">

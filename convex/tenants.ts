@@ -27,6 +27,7 @@ export const getBySlug = query({
       _id: v.id("tenants"),
       name: v.string(),
       slug: v.string(),
+      domain: v.optional(v.string()),
       displayName: v.optional(v.string()),
       logoUrl: v.optional(v.string()),
       primaryColor: v.optional(v.string()),
@@ -43,6 +44,7 @@ export const getBySlug = query({
       _id: tenant._id,
       name: tenant.name,
       slug: tenant.slug,
+      domain: tenant.domain,
       displayName: tenant.displayName,
       logoUrl: tenant.logoUrl,
       primaryColor: tenant.primaryColor,
@@ -61,11 +63,11 @@ export const getById = query({
       _id: v.id("tenants"),
       name: v.string(),
       slug: v.string(),
+      domain: v.optional(v.string()),
       displayName: v.optional(v.string()),
       logoUrl: v.optional(v.string()),
       primaryColor: v.optional(v.string()),
       status: v.union(v.literal("active"), v.literal("suspended")),
-      createdAt: v.number(),
     }),
     v.null(),
   ),
@@ -78,11 +80,11 @@ export const getById = query({
       _id: tenant._id,
       name: tenant.name,
       slug: tenant.slug,
+      domain: tenant.domain,
       displayName: tenant.displayName,
       logoUrl: tenant.logoUrl,
       primaryColor: tenant.primaryColor,
       status: tenant.status,
-      createdAt: tenant.createdAt,
     };
   },
 });
@@ -97,11 +99,11 @@ export const list = query({
       _id: v.id("tenants"),
       name: v.string(),
       slug: v.string(),
+      domain: v.optional(v.string()),
       displayName: v.optional(v.string()),
       logoUrl: v.optional(v.string()),
       primaryColor: v.optional(v.string()),
       status: v.union(v.literal("active"), v.literal("suspended")),
-      createdAt: v.number(),
     }),
   ),
   handler: async (ctx) => {
@@ -114,11 +116,11 @@ export const list = query({
       _id: t._id,
       name: t.name,
       slug: t.slug,
+      domain: t.domain,
       displayName: t.displayName,
       logoUrl: t.logoUrl,
       primaryColor: t.primaryColor,
       status: t.status,
-      createdAt: t.createdAt,
     }));
   },
 });
@@ -133,6 +135,7 @@ export const getMyTenants = query({
       tenantId: v.id("tenants"),
       name: v.string(),
       slug: v.string(),
+      domain: v.optional(v.string()),
       logoUrl: v.optional(v.string()),
       role: v.union(v.literal("member"), v.literal("admin")),
       hasActiveAccess: v.boolean(),
@@ -154,6 +157,7 @@ export const getMyTenants = query({
           tenantId: tenant._id,
           name: tenant.name,
           slug: tenant.slug,
+          domain: tenant.domain,
           logoUrl: tenant.logoUrl,
           role: membership.role,
           hasActiveAccess: membership.hasActiveAccess,
@@ -176,6 +180,7 @@ export const create = mutation({
   args: {
     name: v.string(),
     slug: v.string(),
+    domain: v.optional(v.string()),
     logoUrl: v.optional(v.string()),
     primaryColor: v.optional(v.string()),
   },
@@ -203,10 +208,10 @@ export const create = mutation({
     const tenantId = await ctx.db.insert("tenants", {
       name: args.name,
       slug: args.slug,
+      domain: args.domain,
       logoUrl: args.logoUrl,
       primaryColor: args.primaryColor,
       status: "active",
-      createdAt: Date.now(),
     });
 
     return tenantId;
@@ -220,6 +225,7 @@ export const update = mutation({
   args: {
     tenantId: v.id("tenants"),
     name: v.optional(v.string()),
+    domain: v.optional(v.string()),
     logoUrl: v.optional(v.string()),
     primaryColor: v.optional(v.string()),
   },
@@ -231,12 +237,16 @@ export const update = mutation({
 
     const updates: Partial<{
       name: string;
+      domain: string;
       logoUrl: string;
       primaryColor: string;
     }> = {};
 
     if (args.name !== undefined) {
       updates.name = args.name;
+    }
+    if (args.domain !== undefined) {
+      updates.domain = args.domain;
     }
     if (args.logoUrl !== undefined) {
       updates.logoUrl = args.logoUrl;
@@ -412,23 +422,13 @@ export const removeMember = mutation({
       throw new Error("Cannot remove yourself from the tenant");
     }
     // Prevent removing the last admin
+    // OPTIMIZED: Uses by_tenantId_and_role index instead of filter
     if (membership.role === "admin") {
       const adminMemberships = await ctx.db
         .query("tenantMemberships")
-        .withIndex("by_tenantId", (q) => q.eq("tenantId", args.tenantId))
-        .filter((q) => q.eq(q.field("role"), "admin"))
-        .collect();
-      if (adminMemberships.length <= 1) {
-        throw new Error("Cannot remove the last admin from the tenant");
-      }
-    }
-
-    // Prevent removing the last admin
-    if (membership.role === "admin") {
-      const adminMemberships = await ctx.db
-        .query("tenantMemberships")
-        .withIndex("by_tenantId", (q) => q.eq("tenantId", args.tenantId))
-        .filter((q) => q.eq(q.field("role"), "admin"))
+        .withIndex("by_tenantId_and_role", (q) =>
+          q.eq("tenantId", args.tenantId).eq("role", "admin"),
+        )
         .collect();
       if (adminMemberships.length <= 1) {
         throw new Error("Cannot remove the last admin from the tenant");
@@ -472,11 +472,13 @@ export const updateMemberRole = mutation({
       throw new Error("Cannot demote yourself");
     }
     // Prevent demoting the last admin
+    // OPTIMIZED: Uses by_tenantId_and_role index instead of filter
     if (membership.role === "admin" && args.role === "member") {
       const adminCount = await ctx.db
         .query("tenantMemberships")
-        .withIndex("by_tenantId", (q) => q.eq("tenantId", args.tenantId))
-        .filter((q) => q.eq(q.field("role"), "admin"))
+        .withIndex("by_tenantId_and_role", (q) =>
+          q.eq("tenantId", args.tenantId).eq("role", "admin"),
+        )
         .collect();
       if (adminCount.length <= 1) {
         throw new Error("Cannot demote the last admin");
@@ -526,13 +528,14 @@ export const updateMemberAccess = mutation({
 // ============================================================================
 
 /**
- * Update tenant branding (display name, logo, primary color)
+ * Update tenant branding (display name, logo, primary color, domain)
  * Only tenant admins can update their own tenant's branding
  */
 export const updateBranding = mutation({
   args: {
     tenantId: v.id("tenants"),
     displayName: v.optional(v.string()),
+    domain: v.optional(v.string()),
     logoUrl: v.optional(v.string()),
     primaryColor: v.optional(v.string()),
   },
@@ -549,12 +552,16 @@ export const updateBranding = mutation({
     // Build update object with only provided fields
     const updates: Partial<{
       displayName: string;
+      domain: string;
       logoUrl: string;
       primaryColor: string;
     }> = {};
 
     if (args.displayName !== undefined) {
       updates.displayName = args.displayName;
+    }
+    if (args.domain !== undefined) {
+      updates.domain = args.domain;
     }
     if (args.logoUrl !== undefined) {
       updates.logoUrl = args.logoUrl;
@@ -583,6 +590,7 @@ export const createDefaultTenant = internalMutation({
   args: {
     name: v.string(),
     slug: v.string(),
+    domain: v.optional(v.string()),
   },
   returns: v.id("tenants"),
   handler: async (ctx, args) => {
@@ -595,8 +603,8 @@ export const createDefaultTenant = internalMutation({
     const tenantId = await ctx.db.insert("tenants", {
       name: args.name,
       slug: args.slug,
+      domain: args.domain,
       status: "active",
-      createdAt: Date.now(),
     });
 
     return tenantId;

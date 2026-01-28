@@ -56,6 +56,8 @@ interface TenantProviderProps {
   children: ReactNode;
   /** Optional: Pass tenant slug directly (for SSR or testing) */
   tenantSlug?: string;
+  /** Optional: Whether to apply brand color CSS variable (defaults to true) */
+  applyBrandColor?: boolean;
 }
 
 /**
@@ -114,6 +116,7 @@ function getTenantSlugFromLocation(): string {
 export function TenantProvider({
   children,
   tenantSlug: propSlug,
+  applyBrandColor = true,
 }: TenantProviderProps) {
   const slug = useMemo<string | null>(() => {
     // Priority 1: Use prop if provided
@@ -157,9 +160,9 @@ export function TenantProvider({
   const resolvedPrimaryColor =
     tenant?.primaryColor || staticConfig?.branding.primaryColor || null;
 
-  // Inject primary color as CSS variable when it changes
+  // Inject primary color as CSS variable when it changes (only if applyBrandColor is true)
   useEffect(() => {
-    if (resolvedPrimaryColor) {
+    if (applyBrandColor && resolvedPrimaryColor) {
       document.documentElement.style.setProperty(
         "--blue-brand",
         resolvedPrimaryColor,
@@ -169,12 +172,12 @@ export function TenantProvider({
     // Cleanup: reset to default when component unmounts or color is removed
     return () => {
       // Only reset if we had set a custom color
-      if (resolvedPrimaryColor) {
+      if (applyBrandColor && resolvedPrimaryColor) {
         // Reset to the default blue-brand color
         document.documentElement.style.removeProperty("--blue-brand");
       }
     };
-  }, [resolvedPrimaryColor]);
+  }, [resolvedPrimaryColor, applyBrandColor]);
 
   const contextValue: TenantContextType = {
     // Dynamic data from Convex

@@ -207,6 +207,10 @@ export const getRecentViewsWithDetails = query({
   },
 });
 
+/**
+ * OPTIMIZED: Uses by_tenantId_userId_lessonId compound index for efficient lookup
+ * Returns the most recent view for a specific lesson
+ */
 export const getLastViewForLesson = query({
   args: {
     tenantId: v.id("tenants"),
@@ -214,16 +218,19 @@ export const getLastViewForLesson = query({
     lessonId: v.id("lessons"),
   },
   handler: async (ctx, args) => {
+    // Use compound index to directly find views for this specific lesson
     const views = await ctx.db
       .query("recentViews")
-      .withIndex("by_tenantId_and_userId", (q) =>
-        q.eq("tenantId", args.tenantId).eq("userId", args.userId),
+      .withIndex("by_tenantId_userId_lessonId", (q) =>
+        q
+          .eq("tenantId", args.tenantId)
+          .eq("userId", args.userId)
+          .eq("lessonId", args.lessonId),
       )
       .order("desc")
-      .collect();
+      .first();
 
-    const view = views.find((v) => v.lessonId === args.lessonId);
-    return view || null;
+    return views || null;
   },
 });
 
