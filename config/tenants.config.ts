@@ -64,7 +64,7 @@ export interface TenantConfig {
  */
 export const tenantsConfig = {
   // Default tenant - Ortoclub (app)
-  app: {
+  teot: {
     branding: {
       name: "Ortoclub",
       shortName: "OQB",
@@ -142,7 +142,7 @@ export const tenantsConfig = {
 export type TenantSlug = keyof typeof tenantsConfig;
 
 /** Default tenant slug when none is detected */
-export const DEFAULT_TENANT_SLUG: TenantSlug = "app";
+export const DEFAULT_TENANT_SLUG: TenantSlug = "teot";
 
 /**
  * Get tenant configuration by slug.
