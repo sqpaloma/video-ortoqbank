@@ -19,7 +19,9 @@ interface RatingProps {
 
 export function Rating({ userId, lessonId, unitId }: RatingProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [hoverRating, setHoverRating] = useState<1 | 2 | 3 | 4 | 5 | null>(null);
+  const [hoverRating, setHoverRating] = useState<1 | 2 | 3 | 4 | 5 | null>(
+    null,
+  );
   const prevLessonIdRef = useRef(lessonId);
 
   const submitRating = useTenantMutation(api.ratings.submitRating);

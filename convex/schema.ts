@@ -90,10 +90,7 @@ export default defineSchema({
     iconUrl: v.optional(v.string()),
     isPublished: v.boolean(),
   })
-    .index("by_slug", ["slug"])
-    .index("by_position", ["position"])
-    .index("by_isPublished", ["isPublished"])
-    .index("by_isPublished_and_position", ["isPublished", "position"])
+    // Tenant-scoped indices only (multitenancy requirement)
     .index("by_tenantId", ["tenantId"])
     .index("by_tenantId_and_position", ["tenantId", "position"])
     .index("by_tenantId_and_slug", ["tenantId", "slug"])
@@ -118,7 +115,8 @@ export default defineSchema({
     .index("by_isPublished", ["isPublished"])
     .index("by_categoryId_and_isPublished", ["categoryId", "isPublished"])
     .index("by_tenantId", ["tenantId"])
-    .index("by_tenantId_and_categoryId", ["tenantId", "categoryId"]),
+    .index("by_tenantId_and_categoryId", ["tenantId", "categoryId"])
+    .index("by_tenantId_and_isPublished", ["tenantId", "isPublished"]),
 
   // Lessons table (video lessons)
   lessons: defineTable({
@@ -265,7 +263,8 @@ export default defineSchema({
     .index("by_userId_and_lessonId", ["userId", "lessonId"])
     .index("by_lessonId", ["lessonId"])
     .index("by_tenantId", ["tenantId"])
-    .index("by_tenantId_and_userId", ["tenantId", "userId"]),
+    .index("by_tenantId_and_userId", ["tenantId", "userId"])
+    .index("by_tenantId_userId_lessonId", ["tenantId", "userId", "lessonId"]),
 
   // Recent views (user's recent lesson views)
   recentViews: defineTable({
@@ -285,7 +284,8 @@ export default defineSchema({
     .index("by_lessonId", ["lessonId"])
     .index("by_userId_and_lessonId", ["userId", "lessonId"])
     .index("by_tenantId", ["tenantId"])
-    .index("by_tenantId_and_userId", ["tenantId", "userId"]),
+    .index("by_tenantId_and_userId", ["tenantId", "userId"])
+    .index("by_tenantId_userId_lessonId", ["tenantId", "userId", "lessonId"]),
 
   // Content statistics moved to Aggregate component
   // See convex/aggregate.ts for the new implementation using @convex-dev/aggregate
@@ -317,8 +317,13 @@ export default defineSchema({
     userId: v.string(), // clerkUserId
     lessonId: v.id("lessons"),
     unitId: v.id("units"),
-    rating: v.union(v.literal(1), v.literal(2), v.literal(3), v.literal(4), v.literal(5)), // 1-5 stars
-    
+    rating: v.union(
+      v.literal(1),
+      v.literal(2),
+      v.literal(3),
+      v.literal(4),
+      v.literal(5),
+    ), // 1-5 stars
   })
     .index("by_userId", ["userId"])
     .index("by_lessonId", ["lessonId"])

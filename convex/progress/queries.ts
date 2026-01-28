@@ -230,6 +230,9 @@ export const getCompletedLessonsByCategory = query({
 /**
  * Get all published categories with user progress for each
  * Returns category info along with progress percentage
+ *
+ * OPTIMIZED: Loads all published lessons in a single query instead of N+1 queries
+ * (one per category). Groups lessons by categoryId in memory.
  */
 export const getCategoriesWithProgress = query({
   args: {
@@ -258,7 +261,25 @@ export const getCategoriesWithProgress = query({
     // Sort by position
     const sortedCategories = categories.sort((a, b) => a.position - b.position);
 
-    // Get all user progress for this tenant
+    // OPTIMIZATION: Load ALL published lessons for this tenant in a single query
+    // instead of querying per category (N+1 problem)
+    const allPublishedLessons = await ctx.db
+      .query("lessons")
+      .withIndex("by_tenantId_isPublished", (q) =>
+        q.eq("tenantId", args.tenantId).eq("isPublished", true),
+      )
+      .take(2000); // Defensive limit
+
+    // Group lessons by categoryId in memory
+    const lessonsByCategory = new Map<string, typeof allPublishedLessons>();
+    for (const lesson of allPublishedLessons) {
+      const categoryId = lesson.categoryId;
+      const existing = lessonsByCategory.get(categoryId) || [];
+      existing.push(lesson);
+      lessonsByCategory.set(categoryId, existing);
+    }
+
+    // Get all user progress for this tenant (single query)
     const allUserProgress = await ctx.db
       .query("userProgress")
       .withIndex("by_tenantId_and_userId", (q) =>
@@ -271,40 +292,32 @@ export const getCategoriesWithProgress = query({
       allUserProgress.filter((p) => p.completed).map((p) => p.lessonId),
     );
 
-    // Calculate progress for each category
-    const categoriesWithProgress = await Promise.all(
-      sortedCategories.map(async (category) => {
-        // Get all published lessons for this category
-        const lessons = await ctx.db
-          .query("lessons")
-          .withIndex("by_categoryId", (q) => q.eq("categoryId", category._id))
-          .collect();
+    // Calculate progress for each category using pre-loaded data
+    const categoriesWithProgress = sortedCategories.map((category) => {
+      // Get lessons for this category from the pre-loaded map
+      const categoryLessons = lessonsByCategory.get(category._id) || [];
+      const totalLessons = categoryLessons.length;
 
-        // Filter to only published lessons
-        const publishedLessons = lessons.filter((l) => l.isPublished);
-        const totalLessons = publishedLessons.length;
+      // Count completed lessons
+      const completedLessons = categoryLessons.filter((l) =>
+        completedLessonIds.has(l._id),
+      ).length;
 
-        // Count completed lessons
-        const completedLessons = publishedLessons.filter((l) =>
-          completedLessonIds.has(l._id),
-        ).length;
+      // Calculate progress percentage
+      const progressPercent =
+        totalLessons > 0
+          ? Math.round((completedLessons / totalLessons) * 100)
+          : 0;
 
-        // Calculate progress percentage
-        const progressPercent =
-          totalLessons > 0
-            ? Math.round((completedLessons / totalLessons) * 100)
-            : 0;
-
-        return {
-          _id: category._id,
-          title: category.title,
-          iconUrl: category.iconUrl,
-          progressPercent,
-          completedLessons,
-          totalLessons,
-        };
-      }),
-    );
+      return {
+        _id: category._id,
+        title: category.title,
+        iconUrl: category.iconUrl,
+        progressPercent,
+        completedLessons,
+        totalLessons,
+      };
+    });
 
     return categoriesWithProgress;
   },

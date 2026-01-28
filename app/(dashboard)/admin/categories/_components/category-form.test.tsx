@@ -112,7 +112,10 @@ describe("CategoryForm", () => {
       const submitButton = screen.getByText("Criar Categoria");
 
       await user.type(titleInput, "AB");
-      await user.type(descriptionInput, "Descrição válida com mais de 10 chars");
+      await user.type(
+        descriptionInput,
+        "Descrição válida com mais de 10 chars",
+      );
       await user.click(submitButton);
 
       await waitFor(() => {
@@ -163,7 +166,10 @@ describe("CategoryForm", () => {
       const submitButton = screen.getByText("Criar Categoria");
 
       await user.type(titleInput, "Título válido");
-      await user.type(descriptionInput, "Descrição válida com mais de 10 chars");
+      await user.type(
+        descriptionInput,
+        "Descrição válida com mais de 10 chars",
+      );
       await user.type(iconInput, "url-invalida");
       await user.click(submitButton);
 
@@ -273,7 +279,10 @@ describe("CategoryForm", () => {
       const submitButton = screen.getByText("Criar Categoria");
 
       await user.type(titleInput, "Categoria Falha");
-      await user.type(descriptionInput, "Descrição da categoria que vai falhar");
+      await user.type(
+        descriptionInput,
+        "Descrição da categoria que vai falhar",
+      );
       await user.click(submitButton);
 
       await waitFor(() => {

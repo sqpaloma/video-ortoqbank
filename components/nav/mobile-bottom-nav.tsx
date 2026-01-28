@@ -1,6 +1,6 @@
 "use client";
 
-import { GraduationCap, LayoutGrid, Menu, User } from "lucide-react";
+import { Menu, PlayCircleIcon, StarIcon, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -10,11 +10,11 @@ import { cn } from "@/lib/utils";
 
 // Define the main navigation items (excluding Home/Menu trigger)
 const navItems = [
-  { href: "/categories", label: "Cursos", icon: LayoutGrid, prefetch: true },
+  { href: "/categories", label: "Aulas", icon: PlayCircleIcon, prefetch: true },
   {
     href: "/favorites",
     label: "Favoritos",
-    icon: GraduationCap,
+    icon: StarIcon,
     prefetch: true,
   },
   { href: "/profile", label: "Perfil", icon: User, prefetch: true },

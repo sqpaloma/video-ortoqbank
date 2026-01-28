@@ -7,6 +7,9 @@ import { paginationOptsValidator } from "convex/server";
  * Favorites - Optimized with batch gets (tenant-scoped)
  */
 
+/**
+ * OPTIMIZED: Uses by_tenantId_userId_lessonId compound index for O(1) lookup
+ */
 export const addFavorite = mutation({
   args: {
     tenantId: v.id("tenants"),
@@ -23,15 +26,18 @@ export const addFavorite = mutation({
       throw new Error("Aula não pertence a este tenant");
     }
 
+    // Use compound index for O(1) duplicate check
     const existing = await ctx.db
       .query("favorites")
-      .withIndex("by_tenantId_and_userId", (q) =>
-        q.eq("tenantId", args.tenantId).eq("userId", args.userId),
+      .withIndex("by_tenantId_userId_lessonId", (q) =>
+        q
+          .eq("tenantId", args.tenantId)
+          .eq("userId", args.userId)
+          .eq("lessonId", args.lessonId),
       )
-      .collect();
+      .unique();
 
-    const found = existing.find((f) => f.lessonId === args.lessonId);
-    if (found) return found._id;
+    if (existing) return existing._id;
 
     const favoriteId: Id<"favorites"> = await ctx.db.insert("favorites", {
       tenantId: args.tenantId,
@@ -43,6 +49,9 @@ export const addFavorite = mutation({
   },
 });
 
+/**
+ * OPTIMIZED: Uses by_tenantId_userId_lessonId compound index for O(1) lookup
+ */
 export const removeFavorite = mutation({
   args: {
     tenantId: v.id("tenants"),
@@ -51,14 +60,16 @@ export const removeFavorite = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const favorites = await ctx.db
+    // Use compound index for O(1) lookup
+    const favorite = await ctx.db
       .query("favorites")
-      .withIndex("by_tenantId_and_userId", (q) =>
-        q.eq("tenantId", args.tenantId).eq("userId", args.userId),
+      .withIndex("by_tenantId_userId_lessonId", (q) =>
+        q
+          .eq("tenantId", args.tenantId)
+          .eq("userId", args.userId)
+          .eq("lessonId", args.lessonId),
       )
-      .collect();
-
-    const favorite = favorites.find((f) => f.lessonId === args.lessonId);
+      .unique();
 
     if (favorite) {
       await ctx.db.delete(favorite._id);
@@ -68,6 +79,9 @@ export const removeFavorite = mutation({
   },
 });
 
+/**
+ * OPTIMIZED: Uses by_tenantId_userId_lessonId compound index for O(1) lookup
+ */
 export const toggleFavorite = mutation({
   args: {
     tenantId: v.id("tenants"),
@@ -76,14 +90,16 @@ export const toggleFavorite = mutation({
   },
   returns: v.boolean(),
   handler: async (ctx, args) => {
-    const favorites = await ctx.db
+    // Use compound index for O(1) lookup
+    const existing = await ctx.db
       .query("favorites")
-      .withIndex("by_tenantId_and_userId", (q) =>
-        q.eq("tenantId", args.tenantId).eq("userId", args.userId),
+      .withIndex("by_tenantId_userId_lessonId", (q) =>
+        q
+          .eq("tenantId", args.tenantId)
+          .eq("userId", args.userId)
+          .eq("lessonId", args.lessonId),
       )
-      .collect();
-
-    const existing = favorites.find((f) => f.lessonId === args.lessonId);
+      .unique();
 
     if (existing) {
       await ctx.db.delete(existing._id);
@@ -107,6 +123,9 @@ export const toggleFavorite = mutation({
   },
 });
 
+/**
+ * OPTIMIZED: Uses by_tenantId_userId_lessonId compound index for O(1) lookup
+ */
 export const isFavorited = query({
   args: {
     tenantId: v.id("tenants"),
@@ -115,14 +134,18 @@ export const isFavorited = query({
   },
   returns: v.boolean(),
   handler: async (ctx, args) => {
-    const favorites = await ctx.db
+    // Use compound index for O(1) lookup
+    const favorite = await ctx.db
       .query("favorites")
-      .withIndex("by_tenantId_and_userId", (q) =>
-        q.eq("tenantId", args.tenantId).eq("userId", args.userId),
+      .withIndex("by_tenantId_userId_lessonId", (q) =>
+        q
+          .eq("tenantId", args.tenantId)
+          .eq("userId", args.userId)
+          .eq("lessonId", args.lessonId),
       )
-      .collect();
+      .unique();
 
-    return favorites.some((f) => f.lessonId === args.lessonId);
+    return favorite !== null;
   },
 });
 

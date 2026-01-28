@@ -5,11 +5,16 @@ import { query } from "./_generated/server";
  * Search for units and lessons by title/description
  * Uses .take() to limit results and batch gets for efficiency
  *
+ * SECURITY: Requires tenantId to ensure proper tenant isolation
+ *
  * Note: Full-text search indexes would be ideal here, but requires
  * defining searchIndex in schema. For now, we use optimized filtering.
  */
 export const getSuggestions = query({
-  args: { query: v.string() },
+  args: {
+    query: v.string(),
+    tenantId: v.id("tenants"), // Required for tenant isolation
+  },
   handler: async (ctx, args) => {
     const searchQuery = args.query.toLowerCase().trim();
 
@@ -17,16 +22,19 @@ export const getSuggestions = query({
       return { units: [], lessons: [] };
     }
 
-    // Fetch limited units (max 50, then filter)
+    // Fetch limited units (max 50, then filter) - TENANT SCOPED
     const units = await ctx.db
       .query("units")
-      .withIndex("by_isPublished", (q) => q.eq("isPublished", true))
+      .withIndex("by_tenantId_and_isPublished", (q) =>
+        q.eq("tenantId", args.tenantId).eq("isPublished", true),
+      )
       .take(50);
 
-    // Fetch limited lessons (max 50, then filter)
+    // Fetch limited lessons (max 50, then filter) - TENANT SCOPED
     const lessons = await ctx.db
       .query("lessons")
-      .withIndex("by_isPublished", (q) => q.eq("isPublished", true))
+      .withIndex("by_tenantId", (q) => q.eq("tenantId", args.tenantId))
+      .filter((q) => q.eq(q.field("isPublished"), true))
       .take(50);
 
     // Filter units by search query

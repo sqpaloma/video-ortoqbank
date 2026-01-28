@@ -1,8 +1,23 @@
 import { v } from "convex/values";
-import { mutation, query, type MutationCtx } from "./_generated/server";
+import {
+  internalMutation,
+  mutation,
+  query,
+  type MutationCtx,
+} from "./_generated/server";
 import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 import { requireTenantAdmin } from "./lib/tenantContext";
+
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+/**
+ * Maximum number of documents to process per batch in cascade operations.
+ * This prevents hitting Convex transaction limits.
+ */
+const BATCH_SIZE = 25;
 
 // ============================================================================
 // QUERIES
@@ -45,14 +60,19 @@ export const listPublished = query({
 });
 
 /**
- * Get a category by ID
- * Note: tenantId is optional because useTenantQuery auto-injects it,
- * but we don't use it here since we're fetching by ID directly.
+ * Get a category by ID within a specific tenant
+ *
+ * SECURITY: Always validates that the category belongs to the specified tenant.
+ * Returns null if category doesn't exist or belongs to a different tenant.
+ *
+ * @param id - The category ID
+ * @param tenantId - The tenant ID (auto-injected by useTenantQuery)
+ * @returns The category if found and owned by tenant, null otherwise
  */
 export const getById = query({
   args: {
     id: v.id("categories"),
-    tenantId: v.optional(v.id("tenants")),
+    tenantId: v.id("tenants"), // Required for tenant isolation
   },
   returns: v.union(
     v.object({
@@ -70,10 +90,12 @@ export const getById = query({
   ),
   handler: async (ctx, args) => {
     const category = await ctx.db.get(args.id);
-    // Verify tenant ownership if tenantId provided
-    if (category && args.tenantId && category.tenantId !== args.tenantId) {
+
+    // Always verify tenant ownership
+    if (!category || category.tenantId !== args.tenantId) {
       return null;
     }
+
     return category;
   },
 });
@@ -375,6 +397,7 @@ export const update = mutation({
 
 /**
  * Delete a category with cascade delete (tenant admin only)
+ * OPTIMIZED: Uses batch processing for large cascades to prevent transaction limits
  */
 export const remove = mutation({
   args: {
@@ -394,16 +417,37 @@ export const remove = mutation({
       throw new Error("Categoria não pertence a este tenant");
     }
 
-    // Get all units in this category
-    const units = await ctx.db
+    // Get all units in this category to determine if batch processing is needed
+    const allUnits = await ctx.db
       .query("units")
       .withIndex("by_categoryId", (q) => q.eq("categoryId", args.id))
       .collect();
 
+    const needsBatchProcessing = allUnits.length > BATCH_SIZE;
+
+    if (needsBatchProcessing) {
+      // Schedule cascade delete in batches
+      await ctx.scheduler.runAfter(0, internal.categories.deleteCascadeBatch, {
+        categoryId: args.id,
+        unitsProcessed: 0,
+        lessonsDeleted: 0,
+      });
+
+      // Delete the category immediately (children will be deleted async)
+      await ctx.db.delete(args.id);
+
+      // Update category count immediately
+      await ctx.scheduler.runAfter(0, internal.aggregate.decrementCategories, {
+        amount: 1,
+      });
+
+      return null;
+    }
+
+    // For small cascades, process synchronously
     let totalPublishedLessons = 0;
 
-    // Delete all lessons in all units
-    for (const unit of units) {
+    for (const unit of allUnits) {
       const lessons = await ctx.db
         .query("lessons")
         .withIndex("by_unitId", (q) => q.eq("unitId", unit._id))
@@ -416,20 +460,18 @@ export const remove = mutation({
         await ctx.db.delete(lesson._id);
       }
 
-      // Delete the unit
       await ctx.db.delete(unit._id);
     }
 
-    // Delete the category
     await ctx.db.delete(args.id);
 
     // Update contentStats
     await ctx.scheduler.runAfter(0, internal.aggregate.decrementCategories, {
       amount: 1,
     });
-    if (units.length > 0) {
+    if (allUnits.length > 0) {
       await ctx.scheduler.runAfter(0, internal.aggregate.decrementUnits, {
-        amount: units.length,
+        amount: allUnits.length,
       });
     }
     if (totalPublishedLessons > 0) {
@@ -443,7 +485,71 @@ export const remove = mutation({
 });
 
 /**
+ * Internal: Delete units and lessons in batches for a category
+ * Called by scheduler when cascade is too large for single transaction
+ */
+export const deleteCascadeBatch = internalMutation({
+  args: {
+    categoryId: v.id("categories"),
+    unitsProcessed: v.number(),
+    lessonsDeleted: v.number(),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    // Get next batch of units to delete
+    const units = await ctx.db
+      .query("units")
+      .withIndex("by_categoryId", (q) => q.eq("categoryId", args.categoryId))
+      .take(BATCH_SIZE);
+
+    if (units.length === 0) {
+      // All done - update aggregate stats
+      if (args.unitsProcessed > 0) {
+        await ctx.scheduler.runAfter(0, internal.aggregate.decrementUnits, {
+          amount: args.unitsProcessed,
+        });
+      }
+      if (args.lessonsDeleted > 0) {
+        await ctx.scheduler.runAfter(0, internal.aggregate.decrementLessons, {
+          amount: args.lessonsDeleted,
+        });
+      }
+      return null;
+    }
+
+    let lessonsDeletedThisBatch = 0;
+
+    // Delete lessons and units in this batch
+    for (const unit of units) {
+      const lessons = await ctx.db
+        .query("lessons")
+        .withIndex("by_unitId", (q) => q.eq("unitId", unit._id))
+        .take(50); // Limit lessons per unit in batch
+
+      for (const lesson of lessons) {
+        if (lesson.isPublished) {
+          lessonsDeletedThisBatch++;
+        }
+        await ctx.db.delete(lesson._id);
+      }
+
+      await ctx.db.delete(unit._id);
+    }
+
+    // Schedule next batch
+    await ctx.scheduler.runAfter(0, internal.categories.deleteCascadeBatch, {
+      categoryId: args.categoryId,
+      unitsProcessed: args.unitsProcessed + units.length,
+      lessonsDeleted: args.lessonsDeleted + lessonsDeletedThisBatch,
+    });
+
+    return null;
+  },
+});
+
+/**
  * Reorder categories (tenant admin only)
+ * OPTIMIZED: Limited to 50 categories per operation to prevent transaction limits
  */
 export const reorder = mutation({
   args: {
@@ -458,6 +564,13 @@ export const reorder = mutation({
   handler: async (ctx, args) => {
     // SECURITY: Require tenant admin access
     await requireTenantAdmin(ctx, args.tenantId);
+
+    // SCALE: Limit the number of updates per operation to prevent transaction limits
+    if (args.updates.length > 50) {
+      throw new Error(
+        "Máximo de 50 itens por operação de reordenação. Para reordenar mais itens, divida em múltiplas operações.",
+      );
+    }
 
     // Verify all categories belong to this tenant
     for (const update of args.updates) {
@@ -483,6 +596,7 @@ export const reorder = mutation({
 
 /**
  * Toggle publish status (cascade to units and lessons) - tenant admin only
+ * OPTIMIZED: Uses batch processing for large cascades to prevent transaction limits
  */
 export const togglePublish = mutation({
   args: {
@@ -506,34 +620,48 @@ export const togglePublish = mutation({
 
     const newPublishStatus = !category.isPublished;
 
-    // Update category
+    // Update category immediately
     await ctx.db.patch(args.id, {
       isPublished: newPublishStatus,
     });
 
-    // Get all units in this category
-    const units = await ctx.db
+    // Get all units in this category to check if batch processing is needed
+    const allUnits = await ctx.db
       .query("units")
       .withIndex("by_categoryId", (q) => q.eq("categoryId", args.id))
       .collect();
 
+    const needsBatchProcessing = allUnits.length > BATCH_SIZE;
+
+    if (needsBatchProcessing) {
+      // Schedule cascade toggle in batches
+      await ctx.scheduler.runAfter(
+        0,
+        internal.categories.togglePublishCascadeBatch,
+        {
+          categoryId: args.id,
+          isPublished: newPublishStatus,
+          lessonsChanged: 0,
+        },
+      );
+
+      return newPublishStatus;
+    }
+
+    // For small cascades, process synchronously
     let publishedLessonsChange = 0;
 
-    // Update all units and their lessons
-    for (const unit of units) {
-      // Update unit
+    for (const unit of allUnits) {
       await ctx.db.patch(unit._id, {
         isPublished: newPublishStatus,
       });
 
-      // Get and update all lessons in this unit
       const lessons = await ctx.db
         .query("lessons")
         .withIndex("by_unitId", (q) => q.eq("unitId", unit._id))
         .collect();
 
       for (const lesson of lessons) {
-        // Only count if changing from published to unpublished or vice versa
         if (lesson.isPublished !== newPublishStatus) {
           await ctx.db.patch(lesson._id, {
             isPublished: newPublishStatus,
@@ -557,5 +685,100 @@ export const togglePublish = mutation({
     }
 
     return newPublishStatus;
+  },
+});
+
+/**
+ * Internal: Toggle publish status for units and lessons in batches
+ * Called by scheduler when cascade is too large for single transaction
+ */
+export const togglePublishCascadeBatch = internalMutation({
+  args: {
+    categoryId: v.id("categories"),
+    isPublished: v.boolean(),
+    lessonsChanged: v.number(),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    // Get units that still need to be updated (those with different publish status)
+    const unitsToUpdate = await ctx.db
+      .query("units")
+      .withIndex("by_categoryId", (q) => q.eq("categoryId", args.categoryId))
+      .collect();
+
+    // Filter to units that need updating
+    const unitsNeedingUpdate = unitsToUpdate.filter(
+      (u) => u.isPublished !== args.isPublished,
+    );
+
+    if (unitsNeedingUpdate.length === 0) {
+      // All done - update aggregate stats
+      if (args.lessonsChanged !== 0) {
+        if (args.lessonsChanged > 0) {
+          await ctx.scheduler.runAfter(0, internal.aggregate.incrementLessons, {
+            amount: args.lessonsChanged,
+          });
+        } else {
+          await ctx.scheduler.runAfter(0, internal.aggregate.decrementLessons, {
+            amount: Math.abs(args.lessonsChanged),
+          });
+        }
+      }
+      return null;
+    }
+
+    // Process a batch of units
+    const batchUnits = unitsNeedingUpdate.slice(0, BATCH_SIZE);
+    let lessonsChangedThisBatch = 0;
+
+    for (const unit of batchUnits) {
+      await ctx.db.patch(unit._id, {
+        isPublished: args.isPublished,
+      });
+
+      // Update lessons in this unit
+      const lessons = await ctx.db
+        .query("lessons")
+        .withIndex("by_unitId", (q) => q.eq("unitId", unit._id))
+        .take(50); // Limit lessons per unit in batch
+
+      for (const lesson of lessons) {
+        if (lesson.isPublished !== args.isPublished) {
+          await ctx.db.patch(lesson._id, {
+            isPublished: args.isPublished,
+          });
+          lessonsChangedThisBatch += args.isPublished ? 1 : -1;
+        }
+      }
+    }
+
+    // Schedule next batch if needed
+    if (unitsNeedingUpdate.length > BATCH_SIZE) {
+      await ctx.scheduler.runAfter(
+        0,
+        internal.categories.togglePublishCascadeBatch,
+        {
+          categoryId: args.categoryId,
+          isPublished: args.isPublished,
+          lessonsChanged: args.lessonsChanged + lessonsChangedThisBatch,
+        },
+      );
+    } else {
+      // Final batch - update aggregate stats
+      const totalLessonsChanged = args.lessonsChanged + lessonsChangedThisBatch;
+      if (totalLessonsChanged !== 0) {
+        if (totalLessonsChanged > 0) {
+          await ctx.scheduler.runAfter(0, internal.aggregate.incrementLessons, {
+            amount: totalLessonsChanged,
+          });
+        } else {
+          await ctx.scheduler.runAfter(0, internal.aggregate.decrementLessons, {
+            amount: Math.abs(totalLessonsChanged),
+          });
+        }
+      }
+    }
+
+    return null;
   },
 });

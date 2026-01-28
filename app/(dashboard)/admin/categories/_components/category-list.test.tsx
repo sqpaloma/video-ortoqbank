@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import userEvent from "@testing-library/user-event";
 import { CategoryList } from "./category-list";
-import { Doc } from "@/convex/_generated/dataModel";
+import { Doc, Id } from "@/convex/_generated/dataModel";
 
 // Mock functions
 const mockUpdateCategory = vi.fn(() => Promise.resolve());
@@ -74,7 +74,7 @@ vi.mock("@/components/ui/image-upload", () => ({
   ),
 }));
 
-// Mock Next.js Image
+// Mock Next.js Image (intentional img in test mock)
 vi.mock("next/image", () => ({
   default: ({
     src,
@@ -85,7 +85,10 @@ vi.mock("next/image", () => ({
     width: number;
     height: number;
     className: string;
-  }) => <img src={src} alt={alt} />,
+  }) => (
+    // eslint-disable-next-line @next/next/no-img-element -- test mock
+    <img src={src} alt={alt} />
+  ),
 }));
 
 // Mock DnD Kit
@@ -132,9 +135,9 @@ vi.mock("@dnd-kit/utilities", () => ({
 
 const mockCategories: Doc<"categories">[] = [
   {
-    _id: "cat1" as any,
+    _id: "cat1" as Id<"categories">,
     _creationTime: 1234567890,
-    tenantId: "tenant1" as any,
+    tenantId: "tenant1" as Id<"tenants">,
     title: "Categoria 1",
     slug: "categoria-1",
     description: "Descrição da categoria 1",
@@ -143,9 +146,9 @@ const mockCategories: Doc<"categories">[] = [
     iconUrl: "https://example.com/icon1.png",
   },
   {
-    _id: "cat2" as any,
+    _id: "cat2" as Id<"categories">,
     _creationTime: 1234567891,
-    tenantId: "tenant1" as any,
+    tenantId: "tenant1" as Id<"tenants">,
     title: "Categoria 2",
     slug: "categoria-2",
     description: "Descrição da categoria 2",
@@ -154,9 +157,9 @@ const mockCategories: Doc<"categories">[] = [
     iconUrl: undefined,
   },
   {
-    _id: "cat3" as any,
+    _id: "cat3" as Id<"categories">,
     _creationTime: 1234567892,
-    tenantId: "tenant1" as any,
+    tenantId: "tenant1" as Id<"tenants">,
     title: "Categoria 3",
     slug: "categoria-3",
     description: "Descrição da categoria 3",
@@ -252,7 +255,9 @@ describe("CategoryList", () => {
       await waitFor(() => {
         expect(mockShowConfirm).toHaveBeenCalled();
         const confirmCall = mockShowConfirm.mock.calls[0];
-        expect(confirmCall[0]).toContain('Despublicar a categoria "Categoria 1"');
+        expect(confirmCall[0]).toContain(
+          'Despublicar a categoria "Categoria 1"',
+        );
       });
     });
   });
@@ -263,8 +268,8 @@ describe("CategoryList", () => {
       render(<CategoryList categories={mockCategories} />);
 
       const editButtons = screen.getAllByRole("button", { name: "" });
-      const editButton = editButtons.find(
-        (btn) => btn.querySelector("svg.lucide-edit"),
+      const editButton = editButtons.find((btn) =>
+        btn.querySelector("svg.lucide-edit"),
       );
 
       if (editButton) {
@@ -286,8 +291,8 @@ describe("CategoryList", () => {
 
       // Abrir modal de edição
       const editButtons = screen.getAllByRole("button", { name: "" });
-      const editButton = editButtons.find(
-        (btn) => btn.querySelector("svg.lucide-edit"),
+      const editButton = editButtons.find((btn) =>
+        btn.querySelector("svg.lucide-edit"),
       );
 
       if (editButton) {
@@ -334,8 +339,8 @@ describe("CategoryList", () => {
       render(<CategoryList categories={mockCategories} />);
 
       const editButtons = screen.getAllByRole("button", { name: "" });
-      const editButton = editButtons.find(
-        (btn) => btn.querySelector("svg.lucide-edit"),
+      const editButton = editButtons.find((btn) =>
+        btn.querySelector("svg.lucide-edit"),
       );
 
       if (editButton) {
@@ -368,8 +373,8 @@ describe("CategoryList", () => {
       render(<CategoryList categories={mockCategories} />);
 
       const editButtons = screen.getAllByRole("button", { name: "" });
-      const editButton = editButtons.find(
-        (btn) => btn.querySelector("svg.lucide-edit"),
+      const editButton = editButtons.find((btn) =>
+        btn.querySelector("svg.lucide-edit"),
       );
 
       if (editButton) {
@@ -404,8 +409,8 @@ describe("CategoryList", () => {
       render(<CategoryList categories={mockCategories} />);
 
       const editButtons = screen.getAllByRole("button", { name: "" });
-      const editButton = editButtons.find(
-        (btn) => btn.querySelector("svg.lucide-edit"),
+      const editButton = editButtons.find((btn) =>
+        btn.querySelector("svg.lucide-edit"),
       );
 
       if (editButton) {
@@ -435,8 +440,8 @@ describe("CategoryList", () => {
       render(<CategoryList categories={mockCategories} />);
 
       const deleteButtons = screen.getAllByRole("button", { name: "" });
-      const deleteButton = deleteButtons.find(
-        (btn) => btn.querySelector("svg.lucide-trash-2"),
+      const deleteButton = deleteButtons.find((btn) =>
+        btn.querySelector("svg.lucide-trash-2"),
       );
 
       if (deleteButton) {
@@ -447,9 +452,7 @@ describe("CategoryList", () => {
           const confirmCall = mockShowConfirm.mock.calls[0];
           expect(confirmCall[0]).toContain('A categoria "Categoria 1"');
           expect(confirmCall[0]).toContain("TODOS os módulos");
-          expect(confirmCall[2]).toBe(
-            "DELETAR CATEGORIA E TODO SEU CONTEÚDO",
-          );
+          expect(confirmCall[2]).toBe("DELETAR CATEGORIA E TODO SEU CONTEÚDO");
         });
       }
     });
@@ -528,15 +531,13 @@ describe("CategoryList", () => {
 
   describe("Tratamento de erros", () => {
     it("deve mostrar erro ao falhar na atualização", async () => {
-      mockUpdateCategory.mockRejectedValueOnce(
-        new Error("Erro ao atualizar"),
-      );
+      mockUpdateCategory.mockRejectedValueOnce(new Error("Erro ao atualizar"));
       const user = userEvent.setup();
       render(<CategoryList categories={mockCategories} />);
 
       const editButtons = screen.getAllByRole("button", { name: "" });
-      const editButton = editButtons.find(
-        (btn) => btn.querySelector("svg.lucide-edit"),
+      const editButton = editButtons.find((btn) =>
+        btn.querySelector("svg.lucide-edit"),
       );
 
       if (editButton) {

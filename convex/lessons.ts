@@ -41,17 +41,19 @@ export const list = query({
 
 /**
  * List only PUBLISHED lessons for a tenant (USER)
+ * OPTIMIZED: Uses by_tenantId_isPublished index instead of filtering in memory
  */
 export const listPublished = query({
   args: { tenantId: v.id("tenants") },
   handler: async (ctx, args) => {
     const lessons = await ctx.db
       .query("lessons")
-      .withIndex("by_tenantId", (q) => q.eq("tenantId", args.tenantId))
+      .withIndex("by_tenantId_isPublished", (q) =>
+        q.eq("tenantId", args.tenantId).eq("isPublished", true),
+      )
       .collect();
 
-    // Filter to published only
-    return lessons.filter((l) => l.isPublished);
+    return lessons;
   },
 });
 
@@ -96,6 +98,7 @@ export const listByUnit = query({
 
 /**
  * List all lessons for a category (ADMIN)
+ * OPTIMIZED: Limited to 500 lessons to prevent large reads
  */
 export const listByCategory = query({
   args: {
@@ -114,7 +117,7 @@ export const listByCategory = query({
       .withIndex("by_categoryId_and_order", (q) =>
         q.eq("categoryId", args.categoryId),
       )
-      .collect();
+      .take(500);
 
     return lessons;
   },
@@ -463,6 +466,7 @@ export const togglePublish = mutation({
 /**
  * Reorder lessons (tenant admin only)
  * Updates both order_index and lessonNumber to keep them in sync
+ * OPTIMIZED: Limited to 50 lessons per operation to prevent transaction limits
  */
 export const reorder = mutation({
   args: {
@@ -478,6 +482,13 @@ export const reorder = mutation({
   handler: async (ctx, args) => {
     // SECURITY: Require tenant admin access
     await requireTenantAdmin(ctx, args.tenantId);
+
+    // SCALE: Limit the number of updates per operation to prevent transaction limits
+    if (args.updates.length > 50) {
+      throw new Error(
+        "Máximo de 50 itens por operação de reordenação. Para reordenar mais itens, divida em múltiplas operações.",
+      );
+    }
 
     // Verify all lessons belong to this tenant
     for (const update of args.updates) {

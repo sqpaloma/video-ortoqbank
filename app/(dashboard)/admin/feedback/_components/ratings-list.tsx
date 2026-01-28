@@ -33,8 +33,9 @@ interface UnitInfo {
 export function RatingsList() {
   // Navigation state
   const [viewLevel, setViewLevel] = useState<ViewLevel>("categories");
-  const [selectedCategory, setSelectedCategory] =
-    useState<CategoryInfo | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryInfo | null>(
+    null,
+  );
   const [selectedUnit, setSelectedUnit] = useState<UnitInfo | null>(null);
 
   // Search state
@@ -103,11 +104,13 @@ export function RatingsList() {
         title: unit.categoryTitle,
       });
     }
-    
+
     // Determine the category ID and title
-    const categoryId = unit.categoryId || (selectedCategory?.categoryId ?? "" as Id<"categories">);
+    const categoryId =
+      unit.categoryId ||
+      (selectedCategory?.categoryId ?? ("" as Id<"categories">));
     const categoryTitle = unit.categoryTitle || selectedCategory?.title || "";
-    
+
     setSelectedUnit({
       unitId: unit.unitId,
       title: unit.title,

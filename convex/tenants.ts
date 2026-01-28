@@ -412,23 +412,13 @@ export const removeMember = mutation({
       throw new Error("Cannot remove yourself from the tenant");
     }
     // Prevent removing the last admin
+    // OPTIMIZED: Uses by_tenantId_and_role index instead of filter
     if (membership.role === "admin") {
       const adminMemberships = await ctx.db
         .query("tenantMemberships")
-        .withIndex("by_tenantId", (q) => q.eq("tenantId", args.tenantId))
-        .filter((q) => q.eq(q.field("role"), "admin"))
-        .collect();
-      if (adminMemberships.length <= 1) {
-        throw new Error("Cannot remove the last admin from the tenant");
-      }
-    }
-
-    // Prevent removing the last admin
-    if (membership.role === "admin") {
-      const adminMemberships = await ctx.db
-        .query("tenantMemberships")
-        .withIndex("by_tenantId", (q) => q.eq("tenantId", args.tenantId))
-        .filter((q) => q.eq(q.field("role"), "admin"))
+        .withIndex("by_tenantId_and_role", (q) =>
+          q.eq("tenantId", args.tenantId).eq("role", "admin"),
+        )
         .collect();
       if (adminMemberships.length <= 1) {
         throw new Error("Cannot remove the last admin from the tenant");
@@ -472,11 +462,13 @@ export const updateMemberRole = mutation({
       throw new Error("Cannot demote yourself");
     }
     // Prevent demoting the last admin
+    // OPTIMIZED: Uses by_tenantId_and_role index instead of filter
     if (membership.role === "admin" && args.role === "member") {
       const adminCount = await ctx.db
         .query("tenantMemberships")
-        .withIndex("by_tenantId", (q) => q.eq("tenantId", args.tenantId))
-        .filter((q) => q.eq(q.field("role"), "admin"))
+        .withIndex("by_tenantId_and_role", (q) =>
+          q.eq("tenantId", args.tenantId).eq("role", "admin"),
+        )
         .collect();
       if (adminCount.length <= 1) {
         throw new Error("Cannot demote the last admin");

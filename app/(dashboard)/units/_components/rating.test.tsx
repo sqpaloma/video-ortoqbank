@@ -66,15 +66,8 @@ describe("Rating", () => {
   });
 
   it("should display existing user rating", () => {
-    mockUserRating.mockReturnValue({
-      _id: "rating-id" as Id<"lessonRatings">,
-      _creationTime: Date.now(),
-      userId: mockUserId,
-      lessonId: mockLessonId,
-      unitId: mockUnitId,
-      rating: 5,
-      createdAt: Date.now(),
-    });
+    // API returns just the rating number (1-5), not the full document
+    mockUserRating.mockReturnValue(5);
 
     render(
       <Rating
@@ -91,15 +84,8 @@ describe("Rating", () => {
 
   it("should not call submitRating when clicking same rating as existing", async () => {
     const user = userEvent.setup();
-    mockUserRating.mockReturnValue({
-      _id: "rating-id" as Id<"lessonRatings">,
-      _creationTime: Date.now(),
-      userId: mockUserId,
-      lessonId: mockLessonId,
-      unitId: mockUnitId,
-      rating: 3,
-      createdAt: Date.now(),
-    });
+    // API returns just the rating number (1-5), not the full document
+    mockUserRating.mockReturnValue(3);
 
     render(
       <Rating

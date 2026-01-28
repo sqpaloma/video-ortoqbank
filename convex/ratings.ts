@@ -11,7 +11,13 @@ export const submitRating = mutation({
     userId: v.string(), // clerkUserId
     lessonId: v.id("lessons"),
     unitId: v.id("units"),
-    rating: v.union(v.literal(1), v.literal(2), v.literal(3), v.literal(4), v.literal(5)), // 1-5
+    rating: v.union(
+      v.literal(1),
+      v.literal(2),
+      v.literal(3),
+      v.literal(4),
+      v.literal(5),
+    ), // 1-5
   },
   handler: async (ctx, args) => {
     // Verify lesson belongs to tenant
@@ -32,7 +38,6 @@ export const submitRating = mutation({
       // Update existing rating
       await ctx.db.patch(existingRatings._id, {
         rating: args.rating,
-        
       });
       return existingRatings._id;
     } else {
@@ -55,7 +60,14 @@ export const getUserRating = query({
     userId: v.string(), // clerkUserId
     lessonId: v.id("lessons"),
   },
-  returns: v.union(v.literal(1), v.literal(2), v.literal(3), v.literal(4), v.literal(5), v.null()),
+  returns: v.union(
+    v.literal(1),
+    v.literal(2),
+    v.literal(3),
+    v.literal(4),
+    v.literal(5),
+    v.null(),
+  ),
   handler: async (ctx, args) => {
     const rating = await ctx.db
       .query("lessonRatings")
@@ -324,7 +336,13 @@ export const getAllRatingsWithDetails = query({
         userId: v.string(),
         lessonId: v.id("lessons"),
         unitId: v.id("units"),
-        rating: v.union(v.literal(1), v.literal(2), v.literal(3), v.literal(4), v.literal(5)),
+        rating: v.union(
+          v.literal(1),
+          v.literal(2),
+          v.literal(3),
+          v.literal(4),
+          v.literal(5),
+        ),
         userName: v.string(),
         userEmail: v.string(),
         lessonTitle: v.string(),
