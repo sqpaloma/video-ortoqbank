@@ -3,22 +3,10 @@
 import { Instagram, Mail } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 
 export default function SupportPage() {
-  const { state } = useSidebar();
-
   return (
     <div className="min-h-screen relative">
-      {/* Sidebar trigger - follows sidebar position */}
-      <SidebarTrigger
-        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-black hover:text-black hover:bg-gray-100 transition-[left] duration-200 ease-linear z-10 ${
-          state === "collapsed"
-            ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
-            : "left-[calc(var(--sidebar-width)+0.25rem)]"
-        }`}
-      />
-
       <div className="mx-auto max-w-5xl p-6 pt-12">
         <div className="mb-8">
           <h1 className="mb-2 text-2xl font-semibold">Suporte</h1>

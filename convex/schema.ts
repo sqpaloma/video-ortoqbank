@@ -13,7 +13,8 @@ export default defineSchema({
   // Tenants table - represents organizations/companies
   tenants: defineTable({
     name: v.string(),
-    slug: v.string(), // subdomain identifier (e.g., "acme" for acme.Ortoclub.com)
+    slug: v.string(), // subdomain identifier (e.g., "acme" for acme.ortoclub.com)
+    domain: v.optional(v.string()), // Full domain URL (e.g., "teot.ortoclub.com")
     displayName: v.optional(v.string()), // Name displayed next to logo (can differ from name)
     logoUrl: v.optional(v.string()),
     primaryColor: v.optional(v.string()), // Primary brand color (replaces --blue-brand CSS variable)
@@ -21,6 +22,7 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_slug", ["slug"])
+    .index("by_domain", ["domain"])
     .index("by_status", ["status"]),
 
   // Tenant memberships - links users to tenants with roles

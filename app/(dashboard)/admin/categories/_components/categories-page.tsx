@@ -2,14 +2,12 @@
 
 import { CategoryForm } from "./category-form";
 import { CategoryList } from "./category-list";
-import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { api } from "@/convex/_generated/api";
 import { useTenantQuery, useTenantReady } from "@/hooks/use-tenant-convex";
 
 export function CategoriesPage() {
   const isTenantReady = useTenantReady();
   const categories = useTenantQuery(api.categories.list, {});
-  const { state } = useSidebar();
 
   if (!isTenantReady || categories === undefined) {
     return (
@@ -24,14 +22,6 @@ export function CategoriesPage() {
 
   return (
     <div className="min-h-screen relative">
-      {/* Sidebar trigger - follows sidebar position */}
-      <SidebarTrigger
-        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-black hover:text-black hover:bg-gray-100 transition-[left] duration-200 ease-linear z-10 ${
-          state === "collapsed"
-            ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
-            : "left-[calc(var(--sidebar-width)+0.25rem)]"
-        }`}
-      />
 
       {/* Header */}
       <div className="border-b ">

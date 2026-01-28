@@ -6,7 +6,6 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { SearchUsers } from "./search-users";
 import { UserCard } from "./user-card";
-import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import {
   useTenantPaginatedQuery,
   useTenantMutation,
@@ -32,8 +31,6 @@ export function UsersPage() {
     { search: searchTerm || undefined },
     { initialNumItems: 12 },
   );
-
-  const { state } = useSidebar();
 
   const handleSetRole = async (
     membershipId: Id<"tenantMemberships">,
@@ -76,13 +73,6 @@ export function UsersPage() {
   if (status === "LoadingFirstPage") {
     return (
       <div className="min-h-screen relative">
-        <SidebarTrigger
-          className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-black hover:text-black hover:bg-gray-100 transition-[left] duration-200 ease-linear z-10 ${
-            state === "collapsed"
-              ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
-              : "left-[calc(var(--sidebar-width)+0.25rem)]"
-          }`}
-        />
         <div className="border-b">
           <div className="p-4 pt-12 flex items-center pl-14 gap-4">
             <div>
@@ -99,14 +89,6 @@ export function UsersPage() {
 
   return (
     <div className="min-h-screen relative">
-      <SidebarTrigger
-        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-black hover:text-black hover:bg-gray-100 transition-[left] duration-200 ease-linear z-10 ${
-          state === "collapsed"
-            ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
-            : "left-[calc(var(--sidebar-width)+0.25rem)]"
-        }`}
-      />
-
       {/* Header */}
       <div className="border-b">
         <div className="p-4 pt-12 flex items-center pl-14 gap-4">

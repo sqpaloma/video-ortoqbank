@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, createContext, useContext } from "react";
-import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { api } from "@/convex/_generated/api";
 import {
   useTenantQuery,
@@ -73,7 +72,6 @@ export function UnitsLessonsPage() {
 
   // Query categories with tenant context
   const categories = useTenantQuery(api.categories.list, {});
-  const { state } = useSidebar();
   const { toast } = useToast();
   const { error, showError, hideError } = useErrorModal();
   const { confirm, showConfirm, hideConfirm } = useConfirmModal();
@@ -422,15 +420,6 @@ export function UnitsLessonsPage() {
       value={{ handleDeleteUnit, handleDeleteLesson, localUnits, localLessons }}
     >
       <div className=" relative">
-        {/* Sidebar trigger - follows sidebar position */}
-        <SidebarTrigger
-          className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-black hover:text-black hover:bg-gray-100 transition-[left] duration-200 ease-linear z-10 ${
-            state === "collapsed"
-              ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
-              : "left-[calc(var(--sidebar-width)+0.25rem)]"
-          }`}
-        />
-
         {/* Header */}
         <div className="border-b ">
           <div className="p-4 pt-12 flex items-center pl-14 gap-4">

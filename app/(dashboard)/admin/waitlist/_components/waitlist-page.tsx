@@ -8,12 +8,10 @@ import { WaitlistSearch } from "./waitlist-search";
 import { WaitlistTable } from "./waitlist-table";
 import { Button } from "@/components/ui/button";
 
-import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Loader2 } from "lucide-react";
 import { useTenantPaginatedQuery } from "@/hooks/use-tenant-convex";
 
 export function WaitlistPage() {
-  const { state } = useSidebar();
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -66,15 +64,6 @@ export function WaitlistPage() {
 
   return (
     <div className="min-h-screen relative">
-      {/* Sidebar trigger - follows sidebar position */}
-      <SidebarTrigger
-        className={`hidden md:inline-flex fixed top-2 h-6 w-6 text-black hover:text-black hover:bg-gray-100 transition-[left] duration-200 ease-linear z-10 ${
-          state === "collapsed"
-            ? "left-[calc(var(--sidebar-width-icon)+0.25rem)]"
-            : "left-[calc(var(--sidebar-width)+0.25rem)]"
-        }`}
-      />
-
       {/* Header */}
       <div className="border-b">
         <div className="p-4 pt-12 flex items-center pl-14 gap-4">
