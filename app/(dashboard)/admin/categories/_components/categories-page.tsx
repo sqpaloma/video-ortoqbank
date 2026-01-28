@@ -22,7 +22,6 @@ export function CategoriesPage() {
 
   return (
     <div className="min-h-screen relative">
-
       {/* Header */}
       <div className="border-b ">
         <div className="p-4 pt-12 flex items-center pl-14 gap-4">

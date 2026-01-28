@@ -15,7 +15,6 @@ import {
 import Link from "next/link";
 
 export function AdminHub() {
-
   const adminPages = [
     {
       title: "Categorias",

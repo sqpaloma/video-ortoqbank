@@ -936,10 +936,15 @@ export const removeCreatedAtFromTenants = internalMutation({
       const t = tenant as typeof tenant & { createdAt?: number };
       if (t.createdAt !== undefined) {
         // Remove the createdAt field by patching without it
-        const { _id: _unusedId, _creationTime: _unusedCreationTime, ...rest } = tenant;
-        const { createdAt: _unusedCreatedAt, ...cleanData } = rest as typeof rest & {
-          createdAt?: number;
-        };
+        const {
+          _id: _unusedId,
+          _creationTime: _unusedCreationTime,
+          ...rest
+        } = tenant;
+        const { createdAt: _unusedCreatedAt, ...cleanData } =
+          rest as typeof rest & {
+            createdAt?: number;
+          };
         await ctx.db.replace(tenant._id, cleanData);
         updated++;
       }

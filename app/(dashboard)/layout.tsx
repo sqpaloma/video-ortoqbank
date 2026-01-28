@@ -9,7 +9,11 @@ import {
   useTenant,
 } from "@/components/providers/tenant-provider";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
-import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
+import {
+  SidebarProvider,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
 import { MobileBottomNav } from "@/components/nav/mobile-bottom-nav";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { api } from "@/convex/_generated/api";
@@ -34,7 +38,7 @@ function SidebarContent({ children }: { children: React.ReactNode }) {
               : "left-[calc(var(--sidebar-width)+0.25rem)]"
           }`}
         />
-        
+
         {/* Add padding-bottom for mobile nav, remove for desktop */}
         <div className="mx-auto">{children}</div>
       </main>
