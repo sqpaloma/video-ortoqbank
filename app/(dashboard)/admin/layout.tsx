@@ -5,6 +5,9 @@ import { fetchQuery } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
 import { getTenantSlugFromHostname } from "@/lib/tenant";
 
+// Force dynamic rendering for admin routes (requires authentication)
+export const dynamic = 'force-dynamic';
+
 /**
  * Server-side admin layout with tenant-specific role-based authorization
  * This layout enforces that only tenant admins can access admin routes
