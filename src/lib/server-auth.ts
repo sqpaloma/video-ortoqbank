@@ -28,34 +28,58 @@ export interface AuthUser {
  * the Convex query. This ensures ctx.auth.getUserIdentity() works correctly.
  */
 export async function getCurrentUserServer(): Promise<AuthUser | null> {
+  console.log("========== SERVER AUTH DEBUG (getCurrentUserServer) ==========");
+  console.log("[getCurrentUserServer] NEXT_PUBLIC_CONVEX_URL:", process.env.NEXT_PUBLIC_CONVEX_URL);
+  
   const { userId, getToken } = await auth();
+  console.log("[getCurrentUserServer] Clerk userId:", userId);
 
   if (!userId) {
+    console.log("[getCurrentUserServer] ❌ No userId from Clerk");
+    console.log("==============================================================");
     return null;
   }
 
   try {
     // Get the Clerk token for Convex authentication
+    console.log("[getCurrentUserServer] Getting token with template: 'convex'...");
     const token = await getToken({ template: "convex" });
 
     if (!token) {
-      console.error("Failed to get Clerk token for Convex");
+      console.error("[getCurrentUserServer] ❌ Failed to get Clerk token for Convex");
+      console.log("==============================================================");
       return null;
     }
 
+    // Decode and log token
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      console.log("[getCurrentUserServer] ✅ Token received");
+      console.log("[getCurrentUserServer] Token issuer:", payload.iss);
+      console.log("[getCurrentUserServer] Token audience:", payload.aud);
+    } catch {
+      console.log("[getCurrentUserServer] Could not decode token");
+    }
+
     // Use preloadQuery with authentication token
-    // This properly passes the Clerk auth context to Convex
+    console.log("[getCurrentUserServer] Calling preloadQuery(api.users.current)...");
     const preloaded = await preloadQuery(api.users.current, {}, { token });
+    console.log("[getCurrentUserServer] ✅ preloadQuery completed");
 
     const user = preloaded._valueJSON as unknown as AuthUser;
 
     if (!user) {
+      console.log("[getCurrentUserServer] ⚠️ User not found in Convex (null)");
+      console.log("==============================================================");
       return null;
     }
 
+    console.log("[getCurrentUserServer] ✅ User found:", user.email);
+    console.log("==============================================================");
     return user as AuthUser;
   } catch (error) {
-    console.error("Error fetching user from Convex:", error);
+    console.error("[getCurrentUserServer] ❌ Error fetching user from Convex:", error);
+    console.log("==============================================================");
     return null;
   }
 }

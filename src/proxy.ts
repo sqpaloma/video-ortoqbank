@@ -32,6 +32,7 @@ const isPublicRoute = createRouteMatcher([
   "/checkout(.*)",
   "/api/webhooks(.*)",
   "/purchase(.*)",
+  "/test-client-auth", // Temporary: for auth debugging
 ]);
 
 // Define webhook routes that should bypass authentication
