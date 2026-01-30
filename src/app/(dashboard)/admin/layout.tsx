@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { fetchQuery } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
 import { getTenantSlugFromHostname } from "@/src/lib/tenant";
+import { getAuthToken } from "@/src/lib/auth";
 
 // Force dynamic rendering for admin routes (requires authentication)
 export const dynamic = "force-dynamic";
@@ -20,7 +21,7 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { userId, getToken } = await auth();
+  const { userId } = await auth();
 
   // Redirect if not authenticated
   if (!userId) {
@@ -32,8 +33,8 @@ export default async function AdminLayout({
   const host = headersList.get("host") || "localhost";
   const tenantSlug = getTenantSlugFromHostname(host);
 
-  // Get Convex token
-  const token = await getToken({ template: "convex" }).catch(() => null);
+  // Get Convex token using the proper server-side auth helper
+  const token = await getAuthToken();
 
   // Token is required for authenticated Convex queries
   if (!token) {
@@ -45,7 +46,7 @@ export default async function AdminLayout({
   const tenant = await fetchQuery(
     api.tenants.getBySlug,
     { slug: tenantSlug },
-    token ? { token } : undefined,
+    { token },
   ).catch(() => null);
 
   if (!tenant) {
@@ -57,7 +58,7 @@ export default async function AdminLayout({
   const accessCheck = await fetchQuery(
     api.tenants.checkUserAccess,
     { tenantId: tenant._id },
-    token ? { token } : undefined,
+    { token },
   ).catch(() => null);
 
   // User must have access AND be an admin (or superadmin) in this tenant
