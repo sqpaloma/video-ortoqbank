@@ -26,7 +26,7 @@ import { LessonInfoSection } from "./lesson-info-section";
 import { Feedback } from "./feedback";
 import { Rating } from "./rating";
 import { cn, formatCpf } from "@/src/lib/utils";
-import { getSignedEmbedUrl } from "@/src/lib/bunny";
+import { getSignedEmbedUrl } from "@/src/app/actions/bunny";
 import {
   useTenantQuery,
   useTenantMutation,
@@ -377,9 +377,9 @@ export function UnitsPage({ categoryId, categoryTitle }: UnitsPageProps) {
   const globalProgressPercent =
     totalLessonsCount > 0
       ? Math.min(
-          100,
-          Math.round((totalCompletedLessons / totalLessonsCount) * 100),
-        )
+        100,
+        Math.round((totalCompletedLessons / totalLessonsCount) * 100),
+      )
       : 0;
 
   if (units.length === 0) {
@@ -587,7 +587,7 @@ export function UnitsPage({ categoryId, categoryTitle }: UnitsPageProps) {
                           className={cn(
                             "flex-1 lg:flex-none lg:min-w-[160px]",
                             isLessonCompleted &&
-                              "bg-white text-green-600 hover:bg-green-50 border-green-600 border-2",
+                            "bg-white text-green-600 hover:bg-green-50 border-green-600 border-2",
                           )}
                         >
                           <CheckCircleIcon
