@@ -1,65 +1,125 @@
 import { v } from "convex/values";
 import {
   query,
-  internalMutation,
-  type QueryCtx,
-  type MutationCtx,
+  mutation as rawMutation,
+  internalMutation as rawInternalMutation,
 } from "./_generated/server";
-import { DirectAggregate } from "@convex-dev/aggregate";
-import { components, internal } from "./_generated/api";
+import { TableAggregate } from "@convex-dev/aggregate";
+import { components } from "./_generated/api";
+import type { DataModel, Id } from "./_generated/dataModel";
+import { Triggers } from "convex-helpers/server/triggers";
+import {
+  customMutation,
+  customCtx,
+} from "convex-helpers/server/customFunctions";
+
+// ============================================================================
+// CONTENT AGGREGATES (per tenant) - for total counts / denominators
+// ============================================================================
 
 /**
- * Aggregate instances for efficient counting
- * Using DirectAggregate since we're only tracking counts, not tied to specific table data
+ * Aggregate for counting total lessons per tenant
+ * Used as denominator for progress percentage calculations
  */
-export const lessonsAggregate = new DirectAggregate<{ Key: null; Id: string }>(
-  components.aggregateLessons,
-);
-
-export const unitsAggregate = new DirectAggregate<{ Key: null; Id: string }>(
-  components.aggregateUnits,
-);
-
-export const categoriesAggregate = new DirectAggregate<{
+export const totalLessonsPerTenant = new TableAggregate<{
+  Namespace: Id<"tenants">;
   Key: null;
-  Id: string;
-}>(components.aggregateCategories);
-
-/**
- * Helper function to get total lessons count
- * Can be called from other Convex functions (queries/mutations)
- */
-export async function getTotalLessonsCount(
-  ctx: QueryCtx | MutationCtx,
-): Promise<number> {
-  return await lessonsAggregate.count(ctx);
-}
-
-/**
- * Get content statistics using aggregates (GLOBAL - includes all tenants)
- * This is O(log n) instead of O(n) - much more efficient!
- * NOTE: Use getByTenant for tenant-scoped statistics
- */
-export const get = query({
-  args: {},
-  handler: async (ctx) => {
-    // Use aggregates to count efficiently
-    const totalLessons = await getTotalLessonsCount(ctx);
-    const totalUnits = await unitsAggregate.count(ctx);
-    const totalCategories = await categoriesAggregate.count(ctx);
-
-    return {
-      totalLessons,
-      totalUnits,
-      totalCategories,
-      updatedAt: Date.now(),
-    };
-  },
+  DataModel: DataModel;
+  TableName: "lessons";
+}>(components.aggregateLessons, {
+  namespace: (doc) => doc.tenantId,
+  sortKey: () => null,
 });
 
 /**
- * Get content statistics for a specific tenant
- * This queries the actual tables filtered by tenantId
+ * Aggregate for counting total units per tenant
+ */
+export const totalUnitsPerTenant = new TableAggregate<{
+  Namespace: Id<"tenants">;
+  Key: null;
+  DataModel: DataModel;
+  TableName: "units";
+}>(components.aggregateUnits, {
+  namespace: (doc) => doc.tenantId,
+  sortKey: () => null,
+});
+
+/**
+ * Aggregate for counting total categories per tenant
+ */
+export const totalCategoriesPerTenant = new TableAggregate<{
+  Namespace: Id<"tenants">;
+  Key: null;
+  DataModel: DataModel;
+  TableName: "categories";
+}>(components.aggregateCategories, {
+  namespace: (doc) => doc.tenantId,
+  sortKey: () => null,
+});
+
+// ============================================================================
+// USER PROGRESS AGGREGATE (per tenant + user) - for completed counts / numerators
+// ============================================================================
+
+/**
+ * Aggregate for counting completed lessons per user per tenant
+ * Namespace is a tuple of [tenantId, clerkUserId] for per-user counting
+ * Uses sumValue to only count documents where completed: true
+ */
+export const completedLessonsPerUser = new TableAggregate<{
+  Namespace: [Id<"tenants">, string]; // [tenantId, clerkUserId]
+  Key: null;
+  DataModel: DataModel;
+  TableName: "userProgress";
+}>(components.aggregateUserProgress, {
+  namespace: (doc) => [doc.tenantId, doc.userId],
+  sortKey: () => null,
+  // Only include completed lessons in the sum
+  sumValue: (doc) => (doc.completed ? 1 : 0),
+});
+
+// ============================================================================
+// TRIGGERS - Automatic sync on table changes
+// ============================================================================
+
+const triggers = new Triggers<DataModel>();
+triggers.register("lessons", totalLessonsPerTenant.trigger());
+triggers.register("units", totalUnitsPerTenant.trigger());
+triggers.register("categories", totalCategoriesPerTenant.trigger());
+triggers.register("userProgress", completedLessonsPerUser.trigger());
+
+// ============================================================================
+// CUSTOM MUTATION WRAPPERS - Use these for mutations that modify tracked tables
+// ============================================================================
+
+/**
+ * Custom mutation wrapper that automatically syncs aggregates via triggers
+ * Use this instead of `mutation` for functions that modify:
+ * - lessons table
+ * - units table
+ * - categories table
+ * - userProgress table
+ */
+export const mutationWithTrigger = customMutation(
+  rawMutation,
+  customCtx(triggers.wrapDB),
+);
+
+/**
+ * Custom internal mutation wrapper that automatically syncs aggregates via triggers
+ * Use this instead of `internalMutation` for internal functions that modify tracked tables
+ */
+export const internalMutationWithTrigger = customMutation(
+  rawInternalMutation,
+  customCtx(triggers.wrapDB),
+);
+
+// ============================================================================
+// QUERY FUNCTIONS - Read aggregate data
+// ============================================================================
+
+/**
+ * Get content statistics for a specific tenant using O(log n) aggregates
  */
 export const getByTenant = query({
   args: {
@@ -72,28 +132,15 @@ export const getByTenant = query({
     updatedAt: v.number(),
   }),
   handler: async (ctx, args) => {
-    // Count published lessons for this tenant
-    const lessons = await ctx.db
-      .query("lessons")
-      .withIndex("by_tenantId_isPublished", (q) =>
-        q.eq("tenantId", args.tenantId).eq("isPublished", true),
-      )
-      .collect();
-    const totalLessons = lessons.length;
-
-    // Count units for this tenant
-    const units = await ctx.db
-      .query("units")
-      .withIndex("by_tenantId", (q) => q.eq("tenantId", args.tenantId))
-      .collect();
-    const totalUnits = units.length;
-
-    // Count categories for this tenant
-    const categories = await ctx.db
-      .query("categories")
-      .withIndex("by_tenantId", (q) => q.eq("tenantId", args.tenantId))
-      .collect();
-    const totalCategories = categories.length;
+    const totalLessons = await totalLessonsPerTenant.count(ctx, {
+      namespace: args.tenantId,
+    });
+    const totalUnits = await totalUnitsPerTenant.count(ctx, {
+      namespace: args.tenantId,
+    });
+    const totalCategories = await totalCategoriesPerTenant.count(ctx, {
+      namespace: args.tenantId,
+    });
 
     return {
       totalLessons,
@@ -105,179 +152,160 @@ export const getByTenant = query({
 });
 
 /**
- * Internal mutation to increment lesson count
+ * Get user progress with percentage calculation
+ * Returns completed lessons count, total lessons, and progress percentage
  */
-export const incrementLessons = internalMutation({
-  args: { amount: v.number() },
-  handler: async (ctx, args) => {
-    // Insert multiple items into aggregate to increment count
-    for (let i = 0; i < args.amount; i++) {
-      await lessonsAggregate.insert(ctx, {
-        key: null, // We don't need ordering, just counting
-        id: `lesson_${Date.now()}_${i}_${Math.random()}`, // Unique ID
-      });
-    }
-    return null;
+export const getUserProgress = query({
+  args: {
+    tenantId: v.id("tenants"),
+    userId: v.string(),
   },
-});
-
-/**
- * Internal mutation to decrement lesson count
- */
-export const decrementLessons = internalMutation({
-  args: { amount: v.number() },
+  returns: v.object({
+    completedLessons: v.number(),
+    totalLessons: v.number(),
+    progressPercent: v.number(),
+  }),
   handler: async (ctx, args) => {
-    // Get items from aggregate and delete them
-    const result = await lessonsAggregate.paginate(ctx, {
-      pageSize: args.amount,
+    // Completed lessons for this user (numerator)
+    const completed = await completedLessonsPerUser.sum(ctx, {
+      namespace: [args.tenantId, args.userId],
     });
-    for (const item of result.page) {
-      await lessonsAggregate.delete(ctx, { key: item.key, id: item.id });
-    }
-    return null;
-  },
-});
 
-/**
- * Internal mutation to increment unit count
- */
-export const incrementUnits = internalMutation({
-  args: { amount: v.number() },
-  handler: async (ctx, args) => {
-    for (let i = 0; i < args.amount; i++) {
-      await unitsAggregate.insert(ctx, {
-        key: null,
-        id: `unit_${Date.now()}_${i}_${Math.random()}`,
-      });
-    }
-    return null;
-  },
-});
-
-/**
- * Internal mutation to decrement unit count
- */
-export const decrementUnits = internalMutation({
-  args: { amount: v.number() },
-  handler: async (ctx, args) => {
-    const result = await unitsAggregate.paginate(ctx, {
-      pageSize: args.amount,
+    // Total lessons in tenant (denominator)
+    const total = await totalLessonsPerTenant.count(ctx, {
+      namespace: args.tenantId,
     });
-    for (const item of result.page) {
-      await unitsAggregate.delete(ctx, { key: item.key, id: item.id });
-    }
-    return null;
+
+    // Calculate percentage
+    const progressPercent =
+      total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    return {
+      completedLessons: completed,
+      totalLessons: total,
+      progressPercent,
+    };
   },
 });
 
+// ============================================================================
+// BACKFILL / MIGRATION FUNCTIONS
+// ============================================================================
+
 /**
- * Internal mutation to increment category count
+ * Backfill all aggregates from existing table data
+ * Run this once after deploying the TableAggregate changes
+ * Uses insertIfDoesNotExist for idempotent backfill
  */
-export const incrementCategories = internalMutation({
-  args: { amount: v.number() },
+export const backfillAggregates = internalMutationWithTrigger({
+  args: {
+    cursor: v.optional(v.string()),
+    table: v.union(
+      v.literal("lessons"),
+      v.literal("units"),
+      v.literal("categories"),
+      v.literal("userProgress"),
+    ),
+  },
+  returns: v.object({
+    isDone: v.boolean(),
+    cursor: v.optional(v.string()),
+    processed: v.number(),
+  }),
   handler: async (ctx, args) => {
-    for (let i = 0; i < args.amount; i++) {
-      await categoriesAggregate.insert(ctx, {
-        key: null,
-        id: `category_${Date.now()}_${i}_${Math.random()}`,
-      });
+    const batchSize = 100;
+
+    if (args.table === "lessons") {
+      const result = await ctx.db
+        .query("lessons")
+        .paginate({ numItems: batchSize, cursor: args.cursor ?? null });
+
+      for (const doc of result.page) {
+        await totalLessonsPerTenant.insertIfDoesNotExist(ctx, doc);
+      }
+
+      return {
+        isDone: result.isDone,
+        cursor: result.continueCursor,
+        processed: result.page.length,
+      };
     }
-    return null;
+
+    if (args.table === "units") {
+      const result = await ctx.db
+        .query("units")
+        .paginate({ numItems: batchSize, cursor: args.cursor ?? null });
+
+      for (const doc of result.page) {
+        await totalUnitsPerTenant.insertIfDoesNotExist(ctx, doc);
+      }
+
+      return {
+        isDone: result.isDone,
+        cursor: result.continueCursor,
+        processed: result.page.length,
+      };
+    }
+
+    if (args.table === "categories") {
+      const result = await ctx.db
+        .query("categories")
+        .paginate({ numItems: batchSize, cursor: args.cursor ?? null });
+
+      for (const doc of result.page) {
+        await totalCategoriesPerTenant.insertIfDoesNotExist(ctx, doc);
+      }
+
+      return {
+        isDone: result.isDone,
+        cursor: result.continueCursor,
+        processed: result.page.length,
+      };
+    }
+
+    // userProgress
+    const result = await ctx.db
+      .query("userProgress")
+      .paginate({ numItems: batchSize, cursor: args.cursor ?? null });
+
+    for (const doc of result.page) {
+      await completedLessonsPerUser.insertIfDoesNotExist(ctx, doc);
+    }
+
+    return {
+      isDone: result.isDone,
+      cursor: result.continueCursor,
+      processed: result.page.length,
+    };
   },
 });
 
 /**
- * Internal mutation to decrement category count
+ * Clear all aggregates and prepare for fresh backfill
+ * Use this if aggregates are out of sync and need full reset
  */
-export const decrementCategories = internalMutation({
-  args: { amount: v.number() },
-  handler: async (ctx, args) => {
-    const result = await categoriesAggregate.paginate(ctx, {
-      pageSize: args.amount,
-    });
-    for (const item of result.page) {
-      await categoriesAggregate.delete(ctx, { key: item.key, id: item.id });
-    }
-    return null;
-  },
-});
-
-/**
- * Initialize content statistics (should be called once during setup)
- * Counts current content and populates aggregates
- */
-export const initialize = internalMutation({
+export const clearAllAggregates = internalMutationWithTrigger({
   args: {},
+  returns: v.null(),
   handler: async (ctx) => {
-    // Clear existing aggregates
-    const existingLessons = await lessonsAggregate.paginate(ctx, {
-      pageSize: 1000,
+    await totalLessonsPerTenant.clearAll(ctx, {
+      maxNodeSize: 16,
+      rootLazy: true,
     });
-    for (const item of existingLessons.page) {
-      await lessonsAggregate.delete(ctx, { key: item.key, id: item.id });
-    }
-
-    const existingUnits = await unitsAggregate.paginate(ctx, {
-      pageSize: 1000,
+    await totalUnitsPerTenant.clearAll(ctx, {
+      maxNodeSize: 16,
+      rootLazy: true,
     });
-    for (const item of existingUnits.page) {
-      await unitsAggregate.delete(ctx, { key: item.key, id: item.id });
-    }
-
-    const existingCategories = await categoriesAggregate.paginate(ctx, {
-      pageSize: 1000,
+    await totalCategoriesPerTenant.clearAll(ctx, {
+      maxNodeSize: 16,
+      rootLazy: true,
     });
-    for (const item of existingCategories.page) {
-      await categoriesAggregate.delete(ctx, { key: item.key, id: item.id });
-    }
+    await completedLessonsPerUser.clearAll(ctx, {
+      maxNodeSize: 16,
+      rootLazy: true,
+    });
 
-    // Count current content (using take to limit)
-    const lessons = await ctx.db
-      .query("lessons")
-      .withIndex("by_isPublished", (q) => q.eq("isPublished", true))
-      .collect();
-
-    const units = await ctx.db.query("units").take(1000);
-    const categories = await ctx.db.query("categories").take(100);
-
-    // Populate aggregates with current counts
-    for (let i = 0; i < lessons.length; i++) {
-      await lessonsAggregate.insert(ctx, {
-        key: null,
-        id: `lesson_init_${i}`,
-      });
-    }
-
-    for (let i = 0; i < units.length; i++) {
-      await unitsAggregate.insert(ctx, {
-        key: null,
-        id: `unit_init_${i}`,
-      });
-    }
-
-    for (let i = 0; i < categories.length; i++) {
-      await categoriesAggregate.insert(ctx, {
-        key: null,
-        id: `category_init_${i}`,
-      });
-    }
-
-    console.log(
-      `Initialized aggregates: ${lessons.length} lessons, ${units.length} units, ${categories.length} categories`,
-    );
-    return null;
-  },
-});
-
-/**
- * Recalculate all statistics from scratch
- * This should be called if aggregates get out of sync
- */
-export const recalculate = internalMutation({
-  args: {},
-  handler: async (ctx) => {
-    // Call initialize to clear and reinitialize
-    await ctx.runMutation(internal.aggregate.initialize, {});
+    console.log("All aggregates cleared. Run backfillAggregates to repopulate.");
     return null;
   },
 });

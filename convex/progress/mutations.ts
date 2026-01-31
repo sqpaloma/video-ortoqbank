@@ -1,13 +1,15 @@
 import { v } from "convex/values";
-import { mutation } from "../_generated/server";
 import { updateUnitAndGlobalProgress } from "./helpers";
-import { getTotalLessonsCount } from "../aggregate";
+import {
+  mutationWithTrigger,
+  totalLessonsPerTenant,
+} from "../aggregate";
 
 /**
  * Mark a lesson as completed for a user within a tenant
  * This will update userProgress, unitProgress, and userGlobalProgress atomically
  */
-export const markLessonCompleted = mutation({
+export const markLessonCompleted = mutationWithTrigger({
   args: {
     tenantId: v.id("tenants"),
     userId: v.string(), // clerkUserId
@@ -121,11 +123,13 @@ export const markLessonCompleted = mutation({
       (p) => p.completed,
     ).length;
 
-    // Get total lessons from aggregate
-    const totalLessonsInSystem = await getTotalLessonsCount(ctx);
+    // Get total lessons from aggregate (per tenant)
+    const totalLessonsInTenant = await totalLessonsPerTenant.count(ctx, {
+      namespace: args.tenantId,
+    });
     const globalProgressPercent =
-      totalLessonsInSystem > 0
-        ? Math.round((totalCompletedCount / totalLessonsInSystem) * 100)
+      totalLessonsInTenant > 0
+        ? Math.round((totalCompletedCount / totalLessonsInTenant) * 100)
         : 0;
 
     const globalProgressDoc = await ctx.db
@@ -158,7 +162,7 @@ export const markLessonCompleted = mutation({
 /**
  * Mark a lesson as incomplete (undo completion)
  */
-export const markLessonIncomplete = mutation({
+export const markLessonIncomplete = mutationWithTrigger({
   args: {
     tenantId: v.id("tenants"),
     userId: v.string(),
@@ -251,11 +255,13 @@ export const markLessonIncomplete = mutation({
       (p) => p.completed,
     ).length;
 
-    // Get total lessons from aggregate
-    const totalLessonsInSystem = await getTotalLessonsCount(ctx);
+    // Get total lessons from aggregate (per tenant)
+    const totalLessonsInTenant = await totalLessonsPerTenant.count(ctx, {
+      namespace: args.tenantId,
+    });
     const globalProgressPercent =
-      totalLessonsInSystem > 0
-        ? Math.round((totalCompletedCount / totalLessonsInSystem) * 100)
+      totalLessonsInTenant > 0
+        ? Math.round((totalCompletedCount / totalLessonsInTenant) * 100)
         : 0;
 
     const globalProgressDoc = await ctx.db
@@ -280,7 +286,7 @@ export const markLessonIncomplete = mutation({
 /**
  * Initialize or recalculate global progress for a user in a tenant
  */
-export const recalculateGlobalProgress = mutation({
+export const recalculateGlobalProgress = mutationWithTrigger({
   args: {
     tenantId: v.id("tenants"),
     userId: v.string(),
@@ -298,11 +304,13 @@ export const recalculateGlobalProgress = mutation({
 
     const totalCompletedCount = allProgress.filter((p) => p.completed).length;
 
-    // Get total lessons from aggregate
-    const totalLessonsInSystem = await getTotalLessonsCount(ctx);
+    // Get total lessons from aggregate (per tenant)
+    const totalLessonsInTenant = await totalLessonsPerTenant.count(ctx, {
+      namespace: args.tenantId,
+    });
     const globalProgressPercent =
-      totalLessonsInSystem > 0
-        ? Math.round((totalCompletedCount / totalLessonsInSystem) * 100)
+      totalLessonsInTenant > 0
+        ? Math.round((totalCompletedCount / totalLessonsInTenant) * 100)
         : 0;
 
     const globalProgressDoc = await ctx.db
@@ -336,7 +344,7 @@ export const recalculateGlobalProgress = mutation({
  * Save video progress (current time, duration, and auto-complete if >90%)
  * This is called periodically from the video player
  */
-export const saveVideoProgress = mutation({
+export const saveVideoProgress = mutationWithTrigger({
   args: {
     tenantId: v.id("tenants"),
     userId: v.string(),

@@ -1,6 +1,6 @@
 import { type MutationCtx } from "../_generated/server";
 import { Id } from "../_generated/dataModel";
-import { getTotalLessonsCount } from "../aggregate";
+import { totalLessonsPerTenant } from "../aggregate";
 
 /**
  * Helper function to update unit and global progress for a tenant
@@ -73,11 +73,13 @@ export async function updateUnitAndGlobalProgress(
     (p) => p.completed,
   ).length;
 
-  // Get total lessons from aggregate (TODO: make this tenant-scoped in future)
-  const totalLessonsInSystem = await getTotalLessonsCount(ctx);
+  // Get total lessons from aggregate (per tenant)
+  const totalLessonsInTenant = await totalLessonsPerTenant.count(ctx, {
+    namespace: tenantId,
+  });
   const globalProgressPercent =
-    totalLessonsInSystem > 0
-      ? Math.round((totalCompletedCount / totalLessonsInSystem) * 100)
+    totalLessonsInTenant > 0
+      ? Math.round((totalCompletedCount / totalLessonsInTenant) * 100)
       : 0;
 
   const globalProgressDoc = await ctx.db
