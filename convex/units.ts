@@ -1,9 +1,13 @@
 import { v } from "convex/values";
-import { internalMutation, mutation, query } from "./_generated/server";
+import { query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
 import { paginationOptsValidator } from "convex/server";
 import { requireTenantAdmin } from "./lib/tenantContext";
+import {
+  mutationWithTrigger,
+  internalMutationWithTrigger,
+} from "./aggregate";
 
 // ============================================================================
 // CONSTANTS
@@ -216,7 +220,7 @@ function generateSlug(title: string): string {
 /**
  * Create a new unit (tenant admin only)
  */
-export const create = mutation({
+export const create = mutationWithTrigger({
   args: {
     tenantId: v.id("tenants"),
     categoryId: v.id("categories"),
@@ -276,11 +280,6 @@ export const create = mutation({
       isPublished: category.isPublished ?? true,
     });
 
-    // Update contentStats
-    await ctx.scheduler.runAfter(0, internal.aggregate.incrementUnits, {
-      amount: 1,
-    });
-
     return unitId;
   },
 });
@@ -288,7 +287,7 @@ export const create = mutation({
 /**
  * Update a unit (tenant admin only)
  */
-export const update = mutation({
+export const update = mutationWithTrigger({
   args: {
     tenantId: v.id("tenants"),
     id: v.id("units"),
@@ -348,7 +347,7 @@ export const update = mutation({
  * Delete a unit with cascade delete (tenant admin only)
  * OPTIMIZED: Uses batch processing for large cascades to prevent transaction limits
  */
-export const remove = mutation({
+export const remove = mutationWithTrigger({
   args: {
     tenantId: v.id("tenants"),
     id: v.id("units"),
@@ -378,41 +377,20 @@ export const remove = mutation({
       // Schedule cascade delete in batches
       await ctx.scheduler.runAfter(0, internal.units.deleteLessonsBatch, {
         unitId: args.id,
-        lessonsDeleted: 0,
       });
 
       // Delete the unit immediately (lessons will be deleted async)
       await ctx.db.delete(args.id);
 
-      // Update unit count immediately
-      await ctx.scheduler.runAfter(0, internal.aggregate.decrementUnits, {
-        amount: 1,
-      });
-
       return null;
     }
 
     // For small cascades, process synchronously
-    let publishedLessonsCount = 0;
-
     for (const lesson of lessons) {
-      if (lesson.isPublished) {
-        publishedLessonsCount++;
-      }
       await ctx.db.delete(lesson._id);
     }
 
     await ctx.db.delete(args.id);
-
-    // Update contentStats
-    await ctx.scheduler.runAfter(0, internal.aggregate.decrementUnits, {
-      amount: 1,
-    });
-    if (publishedLessonsCount > 0) {
-      await ctx.scheduler.runAfter(0, internal.aggregate.decrementLessons, {
-        amount: publishedLessonsCount,
-      });
-    }
 
     return null;
   },
@@ -422,10 +400,9 @@ export const remove = mutation({
  * Internal: Delete lessons in batches for a unit
  * Called by scheduler when cascade is too large for single transaction
  */
-export const deleteLessonsBatch = internalMutation({
+export const deleteLessonsBatch = internalMutationWithTrigger({
   args: {
     unitId: v.id("units"),
-    lessonsDeleted: v.number(),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
@@ -436,30 +413,21 @@ export const deleteLessonsBatch = internalMutation({
       .take(BATCH_SIZE);
 
     if (lessons.length === 0) {
-      // All done - update aggregate stats
-      if (args.lessonsDeleted > 0) {
-        await ctx.scheduler.runAfter(0, internal.aggregate.decrementLessons, {
-          amount: args.lessonsDeleted,
-        });
-      }
+      // All done
       return null;
     }
 
-    let publishedLessonsDeleted = 0;
-
     // Delete lessons in this batch
     for (const lesson of lessons) {
-      if (lesson.isPublished) {
-        publishedLessonsDeleted++;
-      }
       await ctx.db.delete(lesson._id);
     }
 
-    // Schedule next batch
-    await ctx.scheduler.runAfter(0, internal.units.deleteLessonsBatch, {
-      unitId: args.unitId,
-      lessonsDeleted: args.lessonsDeleted + publishedLessonsDeleted,
-    });
+    // Schedule next batch if there might be more
+    if (lessons.length === BATCH_SIZE) {
+      await ctx.scheduler.runAfter(0, internal.units.deleteLessonsBatch, {
+        unitId: args.unitId,
+      });
+    }
 
     return null;
   },
@@ -469,7 +437,7 @@ export const deleteLessonsBatch = internalMutation({
  * Reorder units (tenant admin only)
  * OPTIMIZED: Limited to 50 units per operation to prevent transaction limits
  */
-export const reorder = mutation({
+export const reorder = mutationWithTrigger({
   args: {
     tenantId: v.id("tenants"),
     updates: v.array(
@@ -516,7 +484,7 @@ export const reorder = mutation({
  * Toggle publish status (cascade to lessons) - tenant admin only
  * OPTIMIZED: Uses batch processing for large cascades to prevent transaction limits
  */
-export const togglePublish = mutation({
+export const togglePublish = mutationWithTrigger({
   args: {
     tenantId: v.id("tenants"),
     id: v.id("units"),
@@ -559,7 +527,6 @@ export const togglePublish = mutation({
         {
           unitId: args.id,
           isPublished: newPublishStatus,
-          lessonsChanged: 0,
         },
       );
 
@@ -567,26 +534,10 @@ export const togglePublish = mutation({
     }
 
     // For small cascades, process synchronously
-    let publishedLessonsChange = 0;
-
     for (const lesson of lessons) {
       if (lesson.isPublished !== newPublishStatus) {
         await ctx.db.patch(lesson._id, {
           isPublished: newPublishStatus,
-        });
-        publishedLessonsChange += newPublishStatus ? 1 : -1;
-      }
-    }
-
-    // Update contentStats if there were changes
-    if (publishedLessonsChange !== 0) {
-      if (publishedLessonsChange > 0) {
-        await ctx.scheduler.runAfter(0, internal.aggregate.incrementLessons, {
-          amount: publishedLessonsChange,
-        });
-      } else {
-        await ctx.scheduler.runAfter(0, internal.aggregate.decrementLessons, {
-          amount: Math.abs(publishedLessonsChange),
         });
       }
     }
@@ -599,11 +550,10 @@ export const togglePublish = mutation({
  * Internal: Toggle publish status for lessons in batches
  * Called by scheduler when cascade is too large for single transaction
  */
-export const togglePublishLessonsBatch = internalMutation({
+export const togglePublishLessonsBatch = internalMutationWithTrigger({
   args: {
     unitId: v.id("units"),
     isPublished: v.boolean(),
-    lessonsChanged: v.number(),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
@@ -619,30 +569,17 @@ export const togglePublishLessonsBatch = internalMutation({
     );
 
     if (lessonsNeedingUpdate.length === 0) {
-      // All done - update aggregate stats
-      if (args.lessonsChanged !== 0) {
-        if (args.lessonsChanged > 0) {
-          await ctx.scheduler.runAfter(0, internal.aggregate.incrementLessons, {
-            amount: args.lessonsChanged,
-          });
-        } else {
-          await ctx.scheduler.runAfter(0, internal.aggregate.decrementLessons, {
-            amount: Math.abs(args.lessonsChanged),
-          });
-        }
-      }
+      // All done
       return null;
     }
 
     // Process a batch of lessons
     const batchLessons = lessonsNeedingUpdate.slice(0, BATCH_SIZE);
-    let lessonsChangedThisBatch = 0;
 
     for (const lesson of batchLessons) {
       await ctx.db.patch(lesson._id, {
         isPublished: args.isPublished,
       });
-      lessonsChangedThisBatch += args.isPublished ? 1 : -1;
     }
 
     // Schedule next batch if needed
@@ -653,23 +590,8 @@ export const togglePublishLessonsBatch = internalMutation({
         {
           unitId: args.unitId,
           isPublished: args.isPublished,
-          lessonsChanged: args.lessonsChanged + lessonsChangedThisBatch,
         },
       );
-    } else {
-      // Final batch - update aggregate stats
-      const totalLessonsChanged = args.lessonsChanged + lessonsChangedThisBatch;
-      if (totalLessonsChanged !== 0) {
-        if (totalLessonsChanged > 0) {
-          await ctx.scheduler.runAfter(0, internal.aggregate.incrementLessons, {
-            amount: totalLessonsChanged,
-          });
-        } else {
-          await ctx.scheduler.runAfter(0, internal.aggregate.decrementLessons, {
-            amount: Math.abs(totalLessonsChanged),
-          });
-        }
-      }
     }
 
     return null;

@@ -11,6 +11,8 @@ const app = defineApp();
 app.use(aggregate, { name: "aggregateLessons" });
 app.use(aggregate, { name: "aggregateUnits" });
 app.use(aggregate, { name: "aggregateCategories" });
+app.use(aggregate, { name: "aggregateUserProgress" });
+app.use(aggregate, { name: "aggregateUnitProgress" });
 
 // Configure action retrier for reliable external API calls
 app.use(actionRetrier);

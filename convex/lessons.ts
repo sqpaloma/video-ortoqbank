@@ -1,9 +1,9 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
-import { internal } from "./_generated/api";
 import { paginationOptsValidator } from "convex/server";
 import { requireTenantAdmin } from "./lib/tenantContext";
+import { mutationWithTrigger } from "./aggregate";
 
 // ============================================================================
 // QUERIES
@@ -215,7 +215,7 @@ function generateSlug(title: string): string {
 /**
  * Create a new lesson (tenant admin only)
  */
-export const create = mutation({
+export const create = mutationWithTrigger({
   args: {
     tenantId: v.id("tenants"),
     unitId: v.id("units"),
@@ -280,13 +280,6 @@ export const create = mutation({
       isPublished: args.isPublished,
     });
 
-    // Update contentStats if lesson was published
-    if (args.isPublished) {
-      await ctx.scheduler.runAfter(0, internal.aggregate.incrementLessons, {
-        amount: 1,
-      });
-    }
-
     return lessonId;
   },
 });
@@ -294,7 +287,7 @@ export const create = mutation({
 /**
  * Update a lesson (tenant admin only)
  */
-export const update = mutation({
+export const update = mutationWithTrigger({
   args: {
     tenantId: v.id("tenants"),
     id: v.id("lessons"),
@@ -342,9 +335,6 @@ export const update = mutation({
       throw new Error("Já existe uma aula com este slug");
     }
 
-    const wasPublished = currentLesson.isPublished;
-    const willBePublished = args.isPublished;
-
     await ctx.db.patch(args.id, {
       unitId: args.unitId,
       categoryId: unit.categoryId,
@@ -358,17 +348,6 @@ export const update = mutation({
       isPublished: args.isPublished,
     });
 
-    // Update contentStats if publish status changed
-    if (!wasPublished && willBePublished) {
-      await ctx.scheduler.runAfter(0, internal.aggregate.incrementLessons, {
-        amount: 1,
-      });
-    } else if (wasPublished && !willBePublished) {
-      await ctx.scheduler.runAfter(0, internal.aggregate.decrementLessons, {
-        amount: 1,
-      });
-    }
-
     return null;
   },
 });
@@ -376,7 +355,7 @@ export const update = mutation({
 /**
  * Delete a lesson (tenant admin only)
  */
-export const remove = mutation({
+export const remove = mutationWithTrigger({
   args: {
     tenantId: v.id("tenants"),
     id: v.id("lessons"),
@@ -396,8 +375,6 @@ export const remove = mutation({
       throw new Error("Aula não pertence a este tenant");
     }
 
-    const wasPublished = lesson.isPublished;
-
     await ctx.db.delete(args.id);
 
     // Update the total lessons count on the unit
@@ -408,13 +385,6 @@ export const remove = mutation({
       });
     }
 
-    // Update contentStats if lesson was published
-    if (wasPublished) {
-      await ctx.scheduler.runAfter(0, internal.aggregate.decrementLessons, {
-        amount: 1,
-      });
-    }
-
     return null;
   },
 });
@@ -422,7 +392,7 @@ export const remove = mutation({
 /**
  * Toggle publish status (tenant admin only)
  */
-export const togglePublish = mutation({
+export const togglePublish = mutationWithTrigger({
   args: {
     tenantId: v.id("tenants"),
     id: v.id("lessons"),
@@ -448,17 +418,6 @@ export const togglePublish = mutation({
       isPublished: newPublishStatus,
     });
 
-    // Update contentStats
-    if (newPublishStatus) {
-      await ctx.scheduler.runAfter(0, internal.aggregate.incrementLessons, {
-        amount: 1,
-      });
-    } else {
-      await ctx.scheduler.runAfter(0, internal.aggregate.decrementLessons, {
-        amount: 1,
-      });
-    }
-
     return newPublishStatus;
   },
 });
@@ -468,7 +427,7 @@ export const togglePublish = mutation({
  * Updates both order_index and lessonNumber to keep them in sync
  * OPTIMIZED: Limited to 50 lessons per operation to prevent transaction limits
  */
-export const reorder = mutation({
+export const reorder = mutationWithTrigger({
   args: {
     tenantId: v.id("tenants"),
     updates: v.array(
@@ -516,7 +475,7 @@ export const reorder = mutation({
 /**
  * Migration: Backfill categoryId and tenantId for existing lessons
  */
-export const backfillCategoryId = mutation({
+export const backfillCategoryId = mutationWithTrigger({
   args: { tenantId: v.id("tenants") },
   handler: async (ctx, args) => {
     // SECURITY: Require tenant admin access
@@ -558,7 +517,7 @@ export const backfillCategoryId = mutation({
 /**
  * Migration: Initialize lessonNumberCounter for existing units
  */
-export const backfillLessonNumberCounter = mutation({
+export const backfillLessonNumberCounter = mutationWithTrigger({
   args: { tenantId: v.id("tenants") },
   handler: async (ctx, args) => {
     // SECURITY: Require tenant admin access
