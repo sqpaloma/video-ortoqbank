@@ -62,7 +62,6 @@ export function LessonEditPanel({
   const { error, showError, hideError } = useErrorModal();
   const { confirm, showConfirm, hideConfirm } = useConfirmModal();
   const updateLesson = useTenantMutation(api.lessons.update);
-  const deleteVideoFromBunny = useAction(api.bunny.videos.deleteVideo);
   const fetchVideoInfo = useAction(api.bunny.videos.fetchVideoInfo);
   const registerExistingVideo = useTenantAction(
     api.bunny.videos.registerExistingVideo,
@@ -215,19 +214,15 @@ export function LessonEditPanel({
 
   const handleRemoveVideo = () => {
     showConfirm(
-      "Tem certeza que deseja remover o vídeo desta aula? O vídeo será permanentemente excluído do sistema.",
+      "Tem certeza que deseja desvincular o vídeo desta aula? O vídeo continuará disponível no Bunny para uso futuro.",
       async () => {
         try {
           if (!isTenantReady) {
             throw new Error("Tenant not loaded");
           }
 
-          // First, delete video from Bunny CDN and Convex database
-          if (currentVideoId) {
-            await deleteVideoFromBunny({ videoId: currentVideoId });
-          }
-
-          // Then, update the lesson to clear the videoId reference
+          // Just update the lesson to clear the videoId reference
+          // The video stays on Bunny CDN for potential reuse
           await updateLesson({
             id: lesson._id,
             unitId: unitId as Id<"units">,
@@ -244,16 +239,16 @@ export function LessonEditPanel({
           setLinkedVideoDuration(undefined);
           toast({
             title: "Sucesso",
-            description: "Vídeo excluído permanentemente com sucesso!",
+            description: "Vídeo desvinculado da aula com sucesso!",
           });
         } catch (error) {
           showError(
-            error instanceof Error ? error.message : "Erro ao remover vídeo",
-            "Erro ao remover vídeo",
+            error instanceof Error ? error.message : "Erro ao desvincular vídeo",
+            "Erro ao desvincular vídeo",
           );
         }
       },
-      "Excluir vídeo",
+      "Desvincular vídeo",
     );
   };
 
