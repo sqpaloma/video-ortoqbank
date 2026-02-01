@@ -2,6 +2,8 @@ import { v } from "convex/values";
 
 import { mutation, query } from "./_generated/server";
 import { requireAdmin } from "./users";
+import { getTenantBySlug } from "./lib/tenantContext";
+
 
 /**
  * Get all pricing plans for a tenant (ADMIN)
@@ -44,6 +46,58 @@ export const getPricingPlans = query({
     return await ctx.db
       .query("pricingPlans")
       .withIndex("by_tenantId", (q) => q.eq("tenantId", args.tenantId))
+      .order("asc")
+      .collect();
+  },
+});
+
+/**
+ * Get pricing plans by tenant slug (PUBLIC - for landing page)
+ * Resolves tenant internally so no ID casting is needed
+ */
+export const getPublicPricingPlans = query({
+  args: {
+    tenantSlug: v.string(),
+  },
+  returns: v.array(
+    v.object({
+      _id: v.id("pricingPlans"),
+      _creationTime: v.number(),
+      tenantId: v.id("tenants"),
+      name: v.string(),
+      badge: v.string(),
+      originalPrice: v.optional(v.string()),
+      price: v.string(),
+      installments: v.string(),
+      installmentDetails: v.string(),
+      description: v.string(),
+      features: v.array(v.string()),
+      buttonText: v.string(),
+      productId: v.string(),
+      category: v.optional(
+        v.union(
+          v.literal("year_access"),
+          v.literal("premium_pack"),
+          v.literal("addon"),
+        ),
+      ),
+      year: v.optional(v.number()),
+      regularPriceNum: v.optional(v.number()),
+      pixPriceNum: v.optional(v.number()),
+      accessYears: v.optional(v.array(v.number())),
+      isActive: v.optional(v.boolean()),
+      displayOrder: v.optional(v.number()),
+    }),
+  ),
+  handler: async (ctx, args) => {
+    const tenant = await getTenantBySlug(ctx, args.tenantSlug);
+    if (!tenant) {
+      return [];
+    }
+
+    return await ctx.db
+      .query("pricingPlans")
+      .withIndex("by_tenantId", (q) => q.eq("tenantId", tenant._id))
       .order("asc")
       .collect();
   },
