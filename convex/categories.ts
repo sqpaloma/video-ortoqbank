@@ -3,10 +3,7 @@ import { query, type MutationCtx } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { Id } from "./_generated/dataModel";
 import { requireTenantAdmin } from "./lib/tenantContext";
-import {
-  mutationWithTrigger,
-  internalMutationWithTrigger,
-} from "./aggregate";
+import { mutationWithTrigger, internalMutationWithTrigger } from "./aggregate";
 
 // ============================================================================
 // CONSTANTS

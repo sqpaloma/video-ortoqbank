@@ -330,7 +330,9 @@ export const clearAllAggregates = internalMutationWithTrigger({
       rootLazy: true,
     });
 
-    console.log("All aggregates cleared. Run backfillAggregates to repopulate.");
+    console.log(
+      "All aggregates cleared. Run backfillAggregates to repopulate.",
+    );
     return null;
   },
 });

@@ -300,14 +300,15 @@ export function LessonForm({ units, onSuccess }: LessonFormProps) {
           {/* Video Info Display */}
           {videoInfo && (
             <div
-              className={`flex items-center gap-3 p-3 rounded-lg border ${videoInfo.status === "ready"
+              className={`flex items-center gap-3 p-3 rounded-lg border ${
+                videoInfo.status === "ready"
                   ? "bg-green-50 border-green-200"
                   : videoInfo.status === "processing"
                     ? "bg-yellow-50 border-yellow-200"
                     : videoInfo.status === "failed"
                       ? "bg-red-50 border-red-200"
                       : "bg-gray-50 border-gray-200"
-                }`}
+              }`}
             >
               {videoInfo.status === "ready" ? (
                 <CheckCircleIcon className="h-5 w-5 text-green-600 flex-shrink-0" />

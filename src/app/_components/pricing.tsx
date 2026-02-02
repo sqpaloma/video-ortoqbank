@@ -1,13 +1,13 @@
-import { fetchQuery } from 'convex/nextjs';
+import { fetchQuery } from "convex/nextjs";
 
-import { api } from '../../../convex/_generated/api';
-import { PricingClient } from './pricing-client';
+import { api } from "../../../convex/_generated/api";
+import { PricingClient } from "./pricing-client";
 
 // Dynamic rendering to support multi-tenant pricing
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 // Default tenant slug for landing page pricing
-const DEFAULT_TENANT_SLUG = 'teot';
+const DEFAULT_TENANT_SLUG = "teot";
 
 // Helper function to fetch plans with error handling
 async function getPlans() {
@@ -17,7 +17,7 @@ async function getPlans() {
       tenantSlug: DEFAULT_TENANT_SLUG,
     });
   } catch (error) {
-    console.error('Failed to fetch pricing plans:', error);
+    console.error("Failed to fetch pricing plans:", error);
     return [];
   }
 }

@@ -37,8 +37,8 @@ describe("LessonEditPanel", () => {
       <LessonEditPanel
         lesson={{ _id: "1", title: "Test Lesson" } as Doc<"lessons">}
         units={[]}
-        onSave={() => { }}
-        onCancel={() => { }}
+        onSave={() => {}}
+        onCancel={() => {}}
       />,
     );
     expect(screen.getByDisplayValue("Test Lesson")).toBeInTheDocument();

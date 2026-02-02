@@ -1,14 +1,18 @@
-import { SignInButton } from '@clerk/nextjs';
-import Image from 'next/image';
-import Link from 'next/link';
+import { SignInButton } from "@clerk/nextjs";
+import Image from "next/image";
+import Link from "next/link";
 
-import { Button } from '@/src/components/ui/button';
+import { Button } from "@/src/components/ui/button";
 
 export default function Header() {
   return (
     <header className="bg-blue-brand sticky top-0 z-50 text-white">
       <div className="container mx-auto flex items-center justify-between px-4 py-4">
-        <Link href="https://ortoclub.com" replace className="flex items-end space-x-2">
+        <Link
+          href="https://ortoclub.com"
+          replace
+          className="flex items-end space-x-2"
+        >
           <Image
             src="/logo-transparente.png"
             alt="OrtoQBank Logo"

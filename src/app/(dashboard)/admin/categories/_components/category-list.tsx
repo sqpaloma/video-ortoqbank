@@ -14,7 +14,10 @@ import { useErrorModal } from "@/src/hooks/use-error-modal";
 import { useConfirmModal } from "@/src/hooks/use-confirm-modal";
 import { ErrorModal } from "@/src/components/ui/error-modal";
 import { ConfirmModal } from "@/src/components/ui/confirm-modal";
-import { useTenantMutation, useTenantReady } from "@/src/hooks/use-tenant-convex";
+import {
+  useTenantMutation,
+  useTenantReady,
+} from "@/src/hooks/use-tenant-convex";
 import {
   EditIcon,
   Trash2Icon,
@@ -99,7 +102,7 @@ function SortableCategoryItem({
       className={cn(
         "flex items-center gap-2 p-3 border rounded-lg transition-colors",
         isEditOrderMode &&
-        "cursor-grab active:cursor-grabbing hover:bg-accent/50",
+          "cursor-grab active:cursor-grabbing hover:bg-accent/50",
         !isEditOrderMode && "hover:bg-accent/50",
         isDragging && "opacity-50 ring-2 ring-primary",
       )}
@@ -322,15 +325,15 @@ export function CategoryList({ categories }: CategoryListProps) {
     const action = currentStatus ? "despublicar" : "publicar";
     const message = currentStatus
       ? `Despublicar a categoria "${title}" irá:\n\n` +
-      `• Despublicar TODOS os módulos desta categoria\n` +
-      `• Despublicar TODAS as aulas destes módulos\n\n` +
-      `Os alunos não terão mais acesso a este conteúdo.\n\n` +
-      `Deseja continuar?`
+        `• Despublicar TODOS os módulos desta categoria\n` +
+        `• Despublicar TODAS as aulas destes módulos\n\n` +
+        `Os alunos não terão mais acesso a este conteúdo.\n\n` +
+        `Deseja continuar?`
       : `Publicar a categoria "${title}" irá:\n\n` +
-      `• Publicar TODOS os módulos desta categoria\n` +
-      `• Publicar TODAS as aulas destes módulos\n\n` +
-      `Os alunos terão acesso a todo este conteúdo.\n\n` +
-      `Deseja continuar?`;
+        `• Publicar TODOS os módulos desta categoria\n` +
+        `• Publicar TODAS as aulas destes módulos\n\n` +
+        `Os alunos terão acesso a todo este conteúdo.\n\n` +
+        `Deseja continuar?`;
 
     showConfirm(
       message,

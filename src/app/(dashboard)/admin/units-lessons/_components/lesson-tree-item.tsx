@@ -14,7 +14,10 @@ import { cn } from "@/src/lib/utils";
 import { LessonTreeItemProps } from "./types";
 import { useUnitsLessonsStore } from "./store";
 import { useUnitsLessonsPageContext } from "./units-lessons-page";
-import { useTenantMutation, useTenantReady } from "@/src/hooks/use-tenant-convex";
+import {
+  useTenantMutation,
+  useTenantReady,
+} from "@/src/hooks/use-tenant-convex";
 import { api } from "@/convex/_generated/api";
 import { useToast } from "@/src/hooks/use-toast";
 import { useErrorModal } from "@/src/hooks/use-error-modal";

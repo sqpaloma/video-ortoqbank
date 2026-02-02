@@ -4,7 +4,7 @@ export default {
   providers: [
     {
       // Production: clerk.ortoclub.com
-      domain: "https://clerk.ortoclub.com",
+      domain: process.env.CLERK_JWT_ISSUER_DOMAIN!,
       applicationID: "convex",
     },
   ],
