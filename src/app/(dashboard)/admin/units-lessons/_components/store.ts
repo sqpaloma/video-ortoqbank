@@ -5,7 +5,11 @@ export type EditMode =
   | { type: "none" }
   | { type: "unit"; unit: Doc<"units"> }
   | { type: "lesson"; lesson: Doc<"lessons"> }
-  | { type: "preview"; lesson: Doc<"lessons">; savedData: { title: string; description: string; videoId?: string } };
+  | {
+      type: "preview";
+      lesson: Doc<"lessons">;
+      savedData: { title: string; description: string; videoId?: string };
+    };
 
 interface UnitsLessonsState {
   // Category selection
@@ -19,7 +23,10 @@ interface UnitsLessonsState {
   setEditMode: (mode: EditMode) => void;
   editUnit: (unit: Doc<"units">) => void;
   editLesson: (lesson: Doc<"lessons">) => void;
-  showLessonPreview: (lesson: Doc<"lessons">, savedData: { title: string; description: string; videoId?: string }) => void;
+  showLessonPreview: (
+    lesson: Doc<"lessons">,
+    savedData: { title: string; description: string; videoId?: string },
+  ) => void;
   clearEditMode: () => void;
 
   // Create modals
@@ -80,7 +87,8 @@ export const useUnitsLessonsStore = create<UnitsLessonsState>((set) => ({
   setEditMode: (mode) => set({ editMode: mode }),
   editUnit: (unit) => set({ editMode: { type: "unit", unit } }),
   editLesson: (lesson) => set({ editMode: { type: "lesson", lesson } }),
-  showLessonPreview: (lesson, savedData) => set({ editMode: { type: "preview", lesson, savedData } }),
+  showLessonPreview: (lesson, savedData) =>
+    set({ editMode: { type: "preview", lesson, savedData } }),
   clearEditMode: () => set({ editMode: { type: "none" } }),
 
   // Create modals

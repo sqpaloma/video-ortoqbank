@@ -21,14 +21,10 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-
-
   const { userId } = await auth();
-
 
   // Redirect if not authenticated
   if (!userId) {
-
     redirect("/categories");
   }
 
@@ -37,17 +33,14 @@ export default async function AdminLayout({
   const host = headersList.get("host") || "localhost";
   const tenantSlug = getTenantSlugFromHostname(host);
 
-
   // Get Convex token using the proper server-side auth helper
 
   const token = await getAuthToken();
 
   // Token is required for authenticated Convex queries
   if (!token) {
-
     redirect("/categories");
   }
-
 
   // Get tenant ID from slug (public query, but passing token anyway)
 
@@ -60,11 +53,8 @@ export default async function AdminLayout({
   });
 
   if (!tenant) {
-
     redirect("/categories");
   }
-
-
 
   const accessCheck = await fetchQuery(
     api.tenants.checkUserAccess,
@@ -80,12 +70,8 @@ export default async function AdminLayout({
     (accessCheck.role === "admin" || accessCheck.isSuperAdmin);
 
   if (!isAdmin) {
-
-
     redirect("/categories");
   }
-
-
 
   // Only render content if user is authenticated AND is a tenant admin
   return <div className="space-y-6">{children}</div>;

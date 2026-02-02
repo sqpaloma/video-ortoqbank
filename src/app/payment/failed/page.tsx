@@ -1,28 +1,28 @@
-'use client';
+"use client";
 
-import { MessageCircle, RefreshCw, XCircle } from 'lucide-react';
-import { useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import { MessageCircle, RefreshCw, XCircle } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-import { Button } from '@/src/components/ui/button';
+import { Button } from "@/src/components/ui/button";
 
 const handleRetryPayment = () => {
   // Redirect back to pricing plans to retry
-  globalThis.location.href = '/';
+  globalThis.location.href = "/";
 };
 
 function PaymentFailedContent() {
   const searchParams = useSearchParams();
-  const orderId = searchParams.get('order');
+  const orderId = searchParams.get("order");
 
   const handleContactSupport = () => {
     // Redirect to support with context using URLSearchParams for proper encoding
     const params = new URLSearchParams();
-    params.append('issue', 'payment-failed');
+    params.append("issue", "payment-failed");
 
     // Only append order if orderId is non-null/defined
     if (orderId) {
-      params.append('order', orderId);
+      params.append("order", orderId);
     }
 
     globalThis.location.href = `/support?${params.toString()}`;

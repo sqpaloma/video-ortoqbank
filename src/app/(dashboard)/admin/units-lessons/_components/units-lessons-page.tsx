@@ -522,7 +522,6 @@ export function UnitsLessonsPage() {
                   onSave={handleSaveUnit}
                   onCancel={clearEditMode}
                 />
-
               ) : editMode.type === "lesson" ? (
                 <LessonEditPanel
                   lesson={editMode.lesson}
@@ -530,7 +529,6 @@ export function UnitsLessonsPage() {
                   onSave={handleSaveLesson}
                   onCancel={clearEditMode}
                 />
-
               ) : editMode.type === "preview" ? (
                 <LessonPreviewPanel
                   lesson={editMode.lesson}

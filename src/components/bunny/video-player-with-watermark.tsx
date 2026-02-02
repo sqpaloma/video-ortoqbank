@@ -11,7 +11,6 @@ import {
 interface VideoPlayerWithWatermarkProps {
   embedUrl: string;
 
-
   watermarkId: string | undefined;
   speed?: number; // Movement speed (pixels per frame), default 0.5
   /** Enable video protection (default: true) */

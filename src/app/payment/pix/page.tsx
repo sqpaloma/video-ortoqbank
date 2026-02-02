@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useQuery } from 'convex/react';
+import { useQuery } from "convex/react";
 import {
   AlertCircle,
   CheckCircle,
@@ -8,54 +8,56 @@ import {
   Copy,
   Loader2,
   QrCode,
-} from 'lucide-react';
-import Image from 'next/image';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useState } from 'react';
+} from "lucide-react";
+import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 
-import { Alert, AlertDescription } from '@/src/components/ui/alert';
-import { Button } from '@/src/components/ui/button';
+import { Alert, AlertDescription } from "@/src/components/ui/alert";
+import { Button } from "@/src/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/src/components/ui/card';
+} from "@/src/components/ui/card";
 
-import { api } from '../../../../convex/_generated/api';
-import { Id } from '@/convex/_generated/dataModel';
+import { api } from "../../../../convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 
 function PixPaymentContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const pendingOrderId = searchParams.get('order');
+  const pendingOrderId = searchParams.get("order");
   const [copied, setCopied] = useState(false);
   const [showManualCheck, setShowManualCheck] = useState(false);
 
   // Real-time payment status - no polling needed!
   const paymentStatus = useQuery(
     api.payments.checkPaymentStatus,
-    pendingOrderId ? { pendingOrderId: pendingOrderId as Id<'pendingOrders'> } : 'skip',
+    pendingOrderId
+      ? { pendingOrderId: pendingOrderId as Id<"pendingOrders"> }
+      : "skip",
   );
 
   useEffect(() => {
     if (!pendingOrderId) {
-      router.push('/?error=payment_required');
+      router.push("/?error=payment_required");
       return;
     }
   }, [pendingOrderId, router]);
 
   useEffect(() => {
     if (paymentStatus) {
-      if (paymentStatus.status === 'confirmed') {
+      if (paymentStatus.status === "confirmed") {
         // Payment confirmed! Redirect to success page
-        console.log('Payment confirmed, redirecting to success page');
+        console.log("Payment confirmed, redirecting to success page");
         router.push(`/checkout/success?order=${pendingOrderId}`);
         return;
       }
 
-      if (paymentStatus.status === 'failed') {
+      if (paymentStatus.status === "failed") {
         // Payment failed - stay on page to show error
         return;
       }
@@ -63,7 +65,7 @@ function PixPaymentContent() {
 
     // Show manual check option after 30 seconds for pending payments
     const timer = setTimeout(() => {
-      if (paymentStatus?.status === 'pending') {
+      if (paymentStatus?.status === "pending") {
         setShowManualCheck(true);
       }
     }, 30_000);
@@ -89,14 +91,14 @@ function PixPaymentContent() {
             <CardDescription>ID do pedido não encontrado</CardDescription>
           </CardHeader>
           <CardContent className="text-center">
-            <Button onClick={() => router.push('/')}>Voltar ao Início</Button>
+            <Button onClick={() => router.push("/")}>Voltar ao Início</Button>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  if (paymentStatus?.status === 'failed') {
+  if (paymentStatus?.status === "failed") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
         <Card className="w-full max-w-md">
@@ -117,10 +119,10 @@ function PixPaymentContent() {
               </AlertDescription>
             </Alert>
             <div className="flex flex-col gap-2">
-              <Button onClick={() => router.push('/checkout')}>
+              <Button onClick={() => router.push("/checkout")}>
                 Tentar Novamente
               </Button>
-              <Button variant="outline" onClick={() => router.push('/')}>
+              <Button variant="outline" onClick={() => router.push("/")}>
                 Voltar ao Início
               </Button>
             </div>
@@ -180,19 +182,19 @@ function PixPaymentContent() {
                     <strong>Email:</strong> {paymentStatus.orderDetails.email}
                   </p>
                   <p>
-                    <strong>Produto:</strong>{' '}
+                    <strong>Produto:</strong>{" "}
                     {paymentStatus.orderDetails.productId}
                   </p>
                   <p>
-                    <strong>Valor:</strong> R${' '}
+                    <strong>Valor:</strong> R${" "}
                     {paymentStatus.orderDetails.finalPrice.toFixed(2)}
                   </p>
                   {paymentStatus.pixData?.expirationDate && (
                     <p>
-                      <strong>Expira em:</strong>{' '}
+                      <strong>Expira em:</strong>{" "}
                       {new Date(
                         paymentStatus.pixData.expirationDate,
-                      ).toLocaleString('pt-BR')}
+                      ).toLocaleString("pt-BR")}
                     </p>
                   )}
                 </div>
@@ -235,7 +237,7 @@ function PixPaymentContent() {
                   <Button
                     onClick={handleCopyPixCode}
                     className="flex items-center gap-2"
-                    variant={copied ? 'default' : 'outline'}
+                    variant={copied ? "default" : "outline"}
                   >
                     {copied ? (
                       <>
@@ -310,7 +312,7 @@ function PixPaymentContent() {
             <div className="flex flex-col gap-2 border-t pt-4">
               <Button
                 variant="outline"
-                onClick={() => router.push('/')}
+                onClick={() => router.push("/")}
                 className="w-full"
               >
                 Voltar ao Início
