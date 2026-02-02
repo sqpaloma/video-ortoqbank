@@ -10,16 +10,8 @@ import {
 
 interface VideoPlayerWithWatermarkProps {
   embedUrl: string;
-  /**
-   * Pre-computed watermark identifier.
-   * This should be fetched from the server using the `api.watermark.generateWatermarkId`
-   * query, which computes an HMAC-SHA256 hash of the user's CPF with a server-side secret.
-   *
-   * The watermark ID is:
-   * - Non-reversible: Cannot be used to recover the original CPF
-   * - Cryptographically secure: Uses HMAC-SHA256 with a secret key
-   * - Resistant to brute force: Secret key prevents offline attacks
-   */
+
+
   watermarkId: string | undefined;
   speed?: number; // Movement speed (pixels per frame), default 0.5
   /** Enable video protection (default: true) */
@@ -153,17 +145,16 @@ export function VideoPlayerWithWatermark({
       {mounted && watermarkId && (
         <div
           ref={watermarkRef}
-          className="absolute pointer-events-none z-10"
+          className="absolute pointer-events-none z-10 text-white/70"
           style={{
             top: 0,
             left: 0,
             padding: "8px 12px",
             borderRadius: "4px",
-            fontSize: "12px",
-            color: "white",
+            fontSize: "11px",
             fontFamily: "monospace",
+            fontWeight: "600",
             userSelect: "none",
-            textShadow: "1px 1px 2px rgba(0,0,0,0.5)",
             willChange: "transform",
           }}
         >

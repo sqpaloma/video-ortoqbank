@@ -64,7 +64,8 @@ export const listPublished = query({
       )
       .collect();
 
-    return units;
+    // Sort by order_index to respect the admin-defined ordering
+    return units.sort((a, b) => a.order_index - b.order_index);
   },
 });
 
@@ -134,7 +135,8 @@ export const listPublishedByCategory = query({
       )
       .collect();
 
-    return units;
+    // Sort by order_index to respect the admin-defined ordering
+    return units.sort((a, b) => a.order_index - b.order_index);
   },
 });
 

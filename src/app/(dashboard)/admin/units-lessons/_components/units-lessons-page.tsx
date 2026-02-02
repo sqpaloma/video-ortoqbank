@@ -41,10 +41,12 @@ import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 // Import refactored components
 import { UnitsTreeSidebar } from "./units-tree-sidebar";
 import { UnitEditPanel } from "./unit-edit-panel";
+
 import { LessonEditPanel } from "./lesson-edit-panel";
 import { UnitForm } from "./unit-create-form";
 import { LessonForm } from "./lesson-create-form";
 import { useUnitsLessonsStore } from "./store";
+import { LessonPreviewPanel } from "../lesson-preview-panel";
 
 // Context for passing down handlers that need access to mutations
 interface UnitsLessonsPageContextValue {
@@ -82,6 +84,8 @@ export function UnitsLessonsPage() {
     setSelectedCategoryId,
     editMode,
     clearEditMode,
+    editLesson,
+    showLessonPreview,
     showCreateUnitModal,
     showCreateLessonModal,
     setShowCreateUnitModal,
@@ -319,7 +323,12 @@ export function UnitsLessonsPage() {
         description: "Aula atualizada com sucesso!",
       });
 
-      clearEditMode();
+      // Show preview panel with the saved data
+      showLessonPreview(editMode.lesson, {
+        title: data.title,
+        description: data.description,
+        videoId: data.videoId,
+      });
     } catch (error) {
       showError(
         error instanceof Error ? error.message : "Erro ao atualizar aula",
@@ -513,14 +522,22 @@ export function UnitsLessonsPage() {
                   onSave={handleSaveUnit}
                   onCancel={clearEditMode}
                 />
-              ) : (
+
+              ) : editMode.type === "lesson" ? (
                 <LessonEditPanel
                   lesson={editMode.lesson}
                   units={units || []}
                   onSave={handleSaveLesson}
                   onCancel={clearEditMode}
                 />
-              )}
+
+              ) : editMode.type === "preview" ? (
+                <LessonPreviewPanel
+                  lesson={editMode.lesson}
+                  savedData={editMode.savedData}
+                  onEdit={() => editLesson(editMode.lesson)}
+                />
+              ) : null}
             </div>
           </div>
         ) : (

@@ -1,26 +1,25 @@
 import { create } from "zustand";
 import { Doc, Id } from "@/convex/_generated/dataModel";
-
 // Edit mode discriminated union
 export type EditMode =
   | { type: "none" }
   | { type: "unit"; unit: Doc<"units"> }
-  | { type: "lesson"; lesson: Doc<"lessons"> };
+  | { type: "lesson"; lesson: Doc<"lessons"> }
+  | { type: "preview"; lesson: Doc<"lessons">; savedData: { title: string; description: string; videoId?: string } };
 
 interface UnitsLessonsState {
   // Category selection
   selectedCategoryId: Id<"categories"> | null;
   setSelectedCategoryId: (id: Id<"categories"> | null) => void;
-
   // Expanded units in tree view
   expandedUnits: Set<string>;
   toggleUnit: (unitId: string) => void;
-
   // Edit mode
   editMode: EditMode;
   setEditMode: (mode: EditMode) => void;
   editUnit: (unit: Doc<"units">) => void;
   editLesson: (lesson: Doc<"lessons">) => void;
+  showLessonPreview: (lesson: Doc<"lessons">, savedData: { title: string; description: string; videoId?: string }) => void;
   clearEditMode: () => void;
 
   // Create modals
@@ -28,13 +27,11 @@ interface UnitsLessonsState {
   showCreateLessonModal: boolean;
   setShowCreateUnitModal: (show: boolean) => void;
   setShowCreateLessonModal: (show: boolean) => void;
-
   // Drag and drop state
   isDraggingUnit: boolean;
   isDraggingLesson: boolean;
   setIsDraggingUnit: (dragging: boolean) => void;
   setIsDraggingLesson: (dragging: boolean) => void;
-
   // Optimistic updates for drag reordering
   draggedUnits: Doc<"units">[] | null;
   draggedLessons: Record<string, Doc<"lessons">[]> | null;
@@ -45,11 +42,9 @@ interface UnitsLessonsState {
     lessons: Doc<"lessons">[],
     currentLessons: Record<string, Doc<"lessons">[]>,
   ) => void;
-
   // Reset store (useful when changing categories)
   reset: () => void;
 }
-
 const initialState = {
   selectedCategoryId: null,
   expandedUnits: new Set<string>(),
@@ -61,10 +56,8 @@ const initialState = {
   draggedUnits: null,
   draggedLessons: null,
 };
-
 export const useUnitsLessonsStore = create<UnitsLessonsState>((set) => ({
   ...initialState,
-
   // Category selection
   setSelectedCategoryId: (id) =>
     set({
@@ -72,7 +65,6 @@ export const useUnitsLessonsStore = create<UnitsLessonsState>((set) => ({
       editMode: { type: "none" },
       expandedUnits: new Set(),
     }),
-
   // Expanded units
   toggleUnit: (unitId) =>
     set((state) => {
@@ -84,21 +76,19 @@ export const useUnitsLessonsStore = create<UnitsLessonsState>((set) => ({
       }
       return { expandedUnits: newSet };
     }),
-
   // Edit mode
   setEditMode: (mode) => set({ editMode: mode }),
   editUnit: (unit) => set({ editMode: { type: "unit", unit } }),
   editLesson: (lesson) => set({ editMode: { type: "lesson", lesson } }),
+  showLessonPreview: (lesson, savedData) => set({ editMode: { type: "preview", lesson, savedData } }),
   clearEditMode: () => set({ editMode: { type: "none" } }),
 
   // Create modals
   setShowCreateUnitModal: (show) => set({ showCreateUnitModal: show }),
   setShowCreateLessonModal: (show) => set({ showCreateLessonModal: show }),
-
   // Drag and drop
   setIsDraggingUnit: (dragging) => set({ isDraggingUnit: dragging }),
   setIsDraggingLesson: (dragging) => set({ isDraggingLesson: dragging }),
-
   // Optimistic updates
   setDraggedUnits: (units) => set({ draggedUnits: units }),
   setDraggedLessons: (lessons) => set({ draggedLessons: lessons }),
@@ -109,7 +99,6 @@ export const useUnitsLessonsStore = create<UnitsLessonsState>((set) => ({
         [unitId]: lessons,
       },
     })),
-
   // Reset
   reset: () => set(initialState),
 }));

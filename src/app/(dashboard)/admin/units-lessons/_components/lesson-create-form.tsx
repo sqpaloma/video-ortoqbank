@@ -102,16 +102,14 @@ export function LessonForm({ units, onSuccess }: LessonFormProps) {
       setVideoInfo(info as VideoInfo);
       setVideoId(extractedId);
 
-      // Auto-populate fields if empty
+      // Auto-populate fields if empty (excluding thumbnail - must be uploaded via ImageKit)
       if (!title && info.title) {
         setTitle(info.title);
       }
       if (!description && info.description) {
         setDescription(info.description);
       }
-      if (!thumbnailUrl && info.thumbnailUrl) {
-        setThumbnailUrl(info.thumbnailUrl);
-      }
+
 
       toast({
         title: "✅ Vídeo encontrado!",
@@ -300,15 +298,14 @@ export function LessonForm({ units, onSuccess }: LessonFormProps) {
           {/* Video Info Display */}
           {videoInfo && (
             <div
-              className={`flex items-center gap-3 p-3 rounded-lg border ${
-                videoInfo.status === "ready"
-                  ? "bg-green-50 border-green-200"
-                  : videoInfo.status === "processing"
-                    ? "bg-yellow-50 border-yellow-200"
-                    : videoInfo.status === "failed"
-                      ? "bg-red-50 border-red-200"
-                      : "bg-gray-50 border-gray-200"
-              }`}
+              className={`flex items-center gap-3 p-3 rounded-lg border ${videoInfo.status === "ready"
+                ? "bg-green-50 border-green-200"
+                : videoInfo.status === "processing"
+                  ? "bg-yellow-50 border-yellow-200"
+                  : videoInfo.status === "failed"
+                    ? "bg-red-50 border-red-200"
+                    : "bg-gray-50 border-gray-200"
+                }`}
             >
               {videoInfo.status === "ready" ? (
                 <CheckCircleIcon className="h-5 w-5 text-green-600 flex-shrink-0" />

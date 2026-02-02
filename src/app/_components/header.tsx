@@ -25,7 +25,7 @@ export default function Header() {
           </span>
         </Link>
         <div className="flex items-center gap-8">
-          <SignInButton forceRedirectUrl="/criar-teste">
+          <SignInButton forceRedirectUrl="/categories">
             <Button className="hover:text-brand-blue translate-y-1 rounded-full border border-white px-4 py-1.5 text-sm font-medium transition-colors hover:bg-white">
               Entrar
             </Button>
