@@ -8,7 +8,7 @@ import Image from "next/image";
 export default function QuestionsPromo() {
   const handleVisitClick = () => {
     // Link to Tokebank questions platform
-    window.open("https://Ortoclub.com.br/criar-teste", "_blank");
+    window.open("https://Ortoclub.com.br/categories", "_blank");
   };
 
   return (
