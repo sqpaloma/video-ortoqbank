@@ -4,10 +4,7 @@ import { Id } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
 import { paginationOptsValidator } from "convex/server";
 import { requireTenantAdmin } from "./lib/tenantContext";
-import {
-  mutationWithTrigger,
-  internalMutationWithTrigger,
-} from "./aggregate";
+import { mutationWithTrigger, internalMutationWithTrigger } from "./aggregate";
 
 // ============================================================================
 // CONSTANTS

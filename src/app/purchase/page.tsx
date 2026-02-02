@@ -32,13 +32,13 @@ export default function PurchasePage() {
           <CardContent className="space-y-6">
             {isSignedIn && (
               <p className="text-center text-gray-600">
-                Olá, <span className="font-medium">{user?.firstName}</span>! Você
-                está logado, mas ainda não possui acesso a esta plataforma.
+                Olá, <span className="font-medium">{user?.firstName}</span>!
+                Você está logado, mas ainda não possui acesso a esta plataforma.
               </p>
             )}
             <p className="text-center text-gray-600">
-              Esta área é exclusiva para assinantes do Ortoclub Video. Adquira seu
-              acesso e tenha disponível:
+              Esta área é exclusiva para assinantes do Ortoclub Video. Adquira
+              seu acesso e tenha disponível:
             </p>
 
             <ul className="space-y-3">
@@ -67,7 +67,9 @@ export default function PurchasePage() {
               </Button>
 
               <Button asChild variant="outline" className="w-full" size="lg">
-                <Link href="mailto:Ortoqbankb@gmail.com">Precisa de ajuda?</Link>
+                <Link href="mailto:Ortoqbankb@gmail.com">
+                  Precisa de ajuda?
+                </Link>
               </Button>
 
               {isSignedIn && (

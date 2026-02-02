@@ -4,7 +4,6 @@ import { mutation, query } from "./_generated/server";
 import { requireAdmin } from "./users";
 import { getTenantBySlug } from "./lib/tenantContext";
 
-
 /**
  * Get all pricing plans for a tenant (ADMIN)
  */

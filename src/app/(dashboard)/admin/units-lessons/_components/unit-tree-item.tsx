@@ -22,7 +22,10 @@ import { LessonTreeItem } from "./lesson-tree-item";
 import { UnitTreeItemProps } from "./types";
 import { useUnitsLessonsStore } from "./store";
 import { useUnitsLessonsPageContext } from "./units-lessons-page";
-import { useTenantMutation, useTenantReady } from "@/src/hooks/use-tenant-convex";
+import {
+  useTenantMutation,
+  useTenantReady,
+} from "@/src/hooks/use-tenant-convex";
 import { api } from "@/convex/_generated/api";
 import { useToast } from "@/src/hooks/use-toast";
 import { useErrorModal } from "@/src/hooks/use-error-modal";
@@ -89,7 +92,7 @@ export function UnitTreeItem({
       className={cn(
         "space-y-1",
         isItemDragging &&
-        "opacity-50 ring-2 ring-primary rounded-lg shadow-lg z-50",
+          "opacity-50 ring-2 ring-primary rounded-lg shadow-lg z-50",
       )}
     >
       {/* Unit Header */}

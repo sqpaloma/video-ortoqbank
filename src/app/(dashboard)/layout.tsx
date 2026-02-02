@@ -16,6 +16,7 @@ import {
 } from "@/src/components/ui/sidebar";
 import { MobileBottomNav } from "@/src/components/nav/mobile-bottom-nav";
 import { useCurrentUser } from "@/src/hooks/useCurrentUser";
+import { useDashboardProtection } from "@/src/hooks/useVideoProtection";
 import { api } from "@/convex/_generated/api";
 
 // Inner component that uses useSidebar - must be inside SidebarProvider
@@ -57,6 +58,9 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     error: tenantError,
     tenantId,
   } = useTenant();
+
+  // Enable dashboard-level protection (keyboard shortcuts blocking)
+  useDashboardProtection();
 
   // Check user's access to this specific tenant
   const accessCheck = useQuery(

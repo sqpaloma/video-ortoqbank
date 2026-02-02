@@ -1,22 +1,22 @@
-'use client';
+"use client";
 
-import { Check, Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { Check, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
-import { Button } from '@/src/components/ui/button';
+import { Button } from "@/src/components/ui/button";
 
-import { Doc } from '../../../convex/_generated/dataModel';
+import { Doc } from "../../../convex/_generated/dataModel";
 
 interface PricingClientProps {
-  plans: Doc<'pricingPlans'>[];
+  plans: Doc<"pricingPlans">[];
 }
 
 export function PricingClient({ plans }: PricingClientProps) {
   const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleCheckout = async (plan: Doc<'pricingPlans'>) => {
+  const handleCheckout = async (plan: Doc<"pricingPlans">) => {
     setLoadingPlanId(plan._id);
 
     try {
@@ -27,7 +27,7 @@ export function PricingClient({ plans }: PricingClientProps) {
 
       router.push(`/checkout?${searchParams.toString()}`);
     } catch (error) {
-      console.error('Erro ao redirecionar para checkout:', error);
+      console.error("Erro ao redirecionar para checkout:", error);
       setLoadingPlanId(null);
     }
   };
@@ -46,7 +46,7 @@ export function PricingClient({ plans }: PricingClientProps) {
       </div>
       <div className="container mx-auto mt-8 px-4 sm:px-6">
         <div className="mx-auto flex flex-col items-center justify-center gap-6 lg:flex-row lg:items-stretch">
-          {plans?.map((plan, index) => (
+          {plans?.map((plan) => (
             <div
               key={plan._id}
               className="group hover:bg-brand-blue relative flex w-full max-w-sm flex-col rounded-2xl bg-white shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl lg:w-90 lg:max-w-none"
@@ -75,7 +75,7 @@ export function PricingClient({ plans }: PricingClientProps) {
                   <span className="text-4xl font-bold">{plan.price}</span>
                 </div>
                 <div className="text-sm text-gray-600 transition-all duration-300 group-hover:text-white">
-                  {plan.installments?.replaceAll(/R\$(\d+),(\d+)/g, 'R$$1')}
+                  {plan.installments?.replaceAll(/R\$(\d+),(\d+)/g, "R$$1")}
                 </div>
               </div>
 

@@ -8,7 +8,7 @@ vi.mock("@dnd-kit/sortable", () => ({
   useSortable: () => ({
     attributes: {},
     listeners: {},
-    setNodeRef: () => { },
+    setNodeRef: () => {},
     transform: null,
     transition: null,
     isDragging: false,

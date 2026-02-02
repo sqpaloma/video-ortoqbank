@@ -1,18 +1,18 @@
-import { auth } from '@clerk/nextjs/server';
-import { headers } from 'next/headers';
-import { redirect } from 'next/navigation';
+import { auth } from "@clerk/nextjs/server";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-import Header from '@/src/app/_components/header';
-import Pricing from '@/src/app/_components/pricing';
+import Header from "@/src/app/_components/header";
+import Pricing from "@/src/app/_components/pricing";
 import {
   extractSubdomain,
   isValidTenantSlug,
   isPlainLocalhost,
-} from '@/src/lib/tenant';
+} from "@/src/lib/tenant";
 
 export default async function Home() {
   const headersList = await headers();
-  const host = headersList.get('host') || '';
+  const host = headersList.get("host") || "";
 
   // Extract subdomain from hostname
   const subdomain = extractSubdomain(host);
@@ -21,16 +21,16 @@ export default async function Home() {
   // Exception: allow plain localhost for development
   if (!subdomain || !isValidTenantSlug(subdomain)) {
     if (!isPlainLocalhost(host)) {
-      redirect('https://ortoclub.com');
+      redirect("https://ortoclub.com");
     }
     // For localhost without subdomain, show a message or redirect
-    redirect('https://ortoclub.com');
+    redirect("https://ortoclub.com");
   }
 
   // If user is already logged in, redirect to admin categories
   const { userId } = await auth();
   if (userId) {
-    redirect('/admin/categories');
+    redirect("/admin/categories");
   }
 
   return (

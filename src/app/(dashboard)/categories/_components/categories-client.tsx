@@ -48,11 +48,11 @@ function FetchedContentStatsProvider({
   children: (
     data:
       | {
-        totalLessons: number;
-        totalUnits: number;
-        totalCategories: number;
-        updatedAt: number;
-      }
+          totalLessons: number;
+          totalUnits: number;
+          totalCategories: number;
+          updatedAt: number;
+        }
       | undefined,
   ) => React.ReactNode;
 }) {

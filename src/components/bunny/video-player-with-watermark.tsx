@@ -1,6 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { EyeOff, Shield } from "lucide-react";
+import {
+  useVideoProtection,
+  useBlockContextMenu,
+  type ProtectionReason,
+} from "@/src/hooks/useVideoProtection";
 
 interface VideoPlayerWithWatermarkProps {
   embedUrl: string;
@@ -16,18 +22,48 @@ interface VideoPlayerWithWatermarkProps {
    */
   watermarkId: string | undefined;
   speed?: number; // Movement speed (pixels per frame), default 0.5
+  /** Enable video protection (default: true) */
+  enableProtection?: boolean;
+}
+
+function getProtectionMessage(reason: ProtectionReason): string {
+  switch (reason) {
+    case "tab_hidden":
+      return "Volte para a aba para continuar assistindo";
+    case "window_blur":
+      return "Clique na janela para continuar assistindo";
+    case "devtools_open":
+      return "Feche as ferramentas de desenvolvedor para continuar";
+    default:
+      return "Vídeo pausado por segurança";
+  }
 }
 
 export function VideoPlayerWithWatermark({
   embedUrl,
   watermarkId,
   speed = 0.5,
+  enableProtection = true,
 }: VideoPlayerWithWatermarkProps) {
   const [mounted, setMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const watermarkRef = useRef<HTMLDivElement>(null);
   const positionRef = useRef({ x: 0, y: 0 });
   const velocityRef = useRef({ x: speed, y: speed * 0.7 }); // Slightly different speeds for natural movement
+
+  // Video protection hooks
+  const { isHidden, reason } = useVideoProtection({
+    detectTabVisibility: enableProtection,
+    detectWindowBlur: enableProtection,
+    detectDevTools: enableProtection,
+  });
+
+  // Block right-click on video container
+  useBlockContextMenu(
+    enableProtection
+      ? (containerRef as React.RefObject<HTMLElement | null>)
+      : undefined,
+  );
 
   useEffect(() => {
     // Initialize position randomly
@@ -132,6 +168,25 @@ export function VideoPlayerWithWatermark({
           }}
         >
           <div>{watermarkId}</div>
+        </div>
+      )}
+
+      {/* Protection overlay - shown when video should be hidden */}
+      {isHidden && (
+        <div
+          className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/95"
+          style={{ position: "absolute" }}
+        >
+          <div className="flex flex-col items-center gap-4 text-white">
+            {reason === "devtools_open" ? (
+              <Shield className="h-16 w-16 text-yellow-400" />
+            ) : (
+              <EyeOff className="h-16 w-16 text-gray-400" />
+            )}
+            <p className="text-lg font-medium text-center px-4">
+              {getProtectionMessage(reason)}
+            </p>
+          </div>
         </div>
       )}
     </div>

@@ -8,7 +8,7 @@ vi.mock("@dnd-kit/sortable", () => ({
   useSortable: () => ({
     attributes: {},
     listeners: {},
-    setNodeRef: () => { },
+    setNodeRef: () => {},
     transform: null,
     transition: null,
     isDragging: false,
@@ -74,7 +74,7 @@ describe("UnitTreeItem", () => {
       isPublished: true,
     } as Doc<"units">;
     const unitLessons: Array<Doc<"lessons">> = [];
-    const onDragEndLessons = () => async () => { };
+    const onDragEndLessons = () => async () => {};
 
     const props = {
       unit,
