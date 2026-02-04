@@ -24,7 +24,7 @@ function getProtectionMessage(reason: ProtectionReason): string {
     case "window_blur":
       return "Clique na janela para continuar assistindo";
     case "devtools_open":
-      return "Feche as ferramentas de desenvolvedor para continuar";
+      return "Volte para a tela para continuar assistindo";
     default:
       return "Vídeo pausado por segurança";
   }
