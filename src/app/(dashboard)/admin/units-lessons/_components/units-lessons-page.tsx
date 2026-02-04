@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, createContext, useContext } from "react";
+import { useMemo, createContext, useContext, useState } from "react";
 import { api } from "@/convex/_generated/api";
 import {
   useTenantQuery,
@@ -41,12 +41,15 @@ import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 // Import refactored components
 import { UnitsTreeSidebar } from "./units-tree-sidebar";
 import { UnitEditPanel } from "./unit-edit-panel";
-
 import { LessonEditPanel } from "./lesson-edit-panel";
 import { UnitForm } from "./unit-create-form";
 import { LessonForm } from "./lesson-create-form";
 import { useUnitsLessonsStore } from "./store";
 import { LessonPreviewPanel } from "../lesson-preview-panel";
+import {
+  MobileUnitsTreeSidebar,
+  MobileSidebarTrigger,
+} from "./mobile-units-tree-sidebar";
 
 // Context for passing down handlers that need access to mutations
 interface UnitsLessonsPageContextValue {
@@ -77,6 +80,9 @@ export function UnitsLessonsPage() {
   const { toast } = useToast();
   const { error, showError, hideError } = useErrorModal();
   const { confirm, showConfirm, hideConfirm } = useConfirmModal();
+
+  // Mobile sidebar state
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Zustand store
   const {
@@ -430,10 +436,10 @@ export function UnitsLessonsPage() {
     >
       <div className=" relative">
         {/* Header */}
-        <div className="border-b ">
-          <div className="p-4 pt-12 flex items-center pl-14 gap-4">
+        <div className="border-b">
+          <div className="p-4 pt-8 lg:pt-12 flex items-center pl-4 lg:pl-14 gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-xl lg:text-2xl font-bold text-gray-900">
                 Gerenciar Unidades e Aulas
               </h1>
             </div>
@@ -441,49 +447,51 @@ export function UnitsLessonsPage() {
         </div>
 
         {/* Category Selector */}
-        <div className="py-4 px-8 ">
+        <div className="py-4 px-4 lg:px-8">
           <div className="max-w-7xl mx-auto">
-            <div className="flex items-center gap-4">
-              <label className="text-sm font-medium whitespace-nowrap">
-                Categoria:
-              </label>
-              <Select
-                value={selectedCategoryId || ""}
-                onValueChange={(value) =>
-                  setSelectedCategoryId(value as Id<"categories">)
-                }
-              >
-                <SelectTrigger className="w-full max-w-md bg-white">
-                  <SelectValue placeholder="Selecione uma categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(categories || []).map((category) => (
-                    <SelectItem key={category._id} value={category._id}>
-                      {category.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <label className="text-sm font-medium whitespace-nowrap">
+                  Categoria:
+                </label>
+                <Select
+                  value={selectedCategoryId || ""}
+                  onValueChange={(value) =>
+                    setSelectedCategoryId(value as Id<"categories">)
+                  }
+                >
+                  <SelectTrigger className="w-full max-w-md bg-white">
+                    <SelectValue placeholder="Selecione uma categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(categories || []).map((category) => (
+                      <SelectItem key={category._id} value={category._id}>
+                        {category.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
               {/* Create Buttons */}
-              <div className="flex items-center gap-2 ml-auto">
+              <div className="flex items-center gap-2 sm:ml-auto">
                 <Button
                   onClick={() => setShowCreateUnitModal(true)}
                   disabled={!selectedCategoryId}
                   size="sm"
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 flex-1 sm:flex-none"
                 >
                   <PlusIcon className="h-4 w-4" />
-                  Criar Unidade
+                  <span className="hidden sm:inline">Criar</span> Unidade
                 </Button>
                 <Button
                   onClick={() => setShowCreateLessonModal(true)}
                   disabled={!selectedCategoryId || !units || units.length === 0}
                   size="sm"
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 flex-1 sm:flex-none"
                 >
                   <PlusIcon className="h-4 w-4" />
-                  Criar Aula
+                  <span className="hidden sm:inline">Criar</span> Aula
                 </Button>
               </div>
             </div>
@@ -492,8 +500,8 @@ export function UnitsLessonsPage() {
 
         {/* Main Content */}
         {selectedCategoryId ? (
-          <div className="flex h-[calc(100vh-240px)]">
-            {/* Left Sidebar - Units and Lessons Tree */}
+          <div className="flex h-[calc(100vh-200px)] lg:h-[calc(100vh-240px)]">
+            {/* Desktop Sidebar - Units and Lessons Tree */}
             <UnitsTreeSidebar
               units={localUnits}
               lessons={localLessons}
@@ -502,16 +510,32 @@ export function UnitsLessonsPage() {
               onDragEndLessons={handleDragEndLessons}
             />
 
+            {/* Mobile Sidebar */}
+            <MobileUnitsTreeSidebar
+              units={localUnits}
+              lessons={localLessons}
+              sensors={sensors}
+              onDragEndUnits={handleDragEndUnits}
+              onDragEndLessons={handleDragEndLessons}
+              isOpen={isMobileSidebarOpen}
+              onOpenChange={setIsMobileSidebarOpen}
+            />
+
             {/* Right Content Area - Edit Forms or Empty State */}
-            <div className="flex-1 overflow-y-auto p-2">
+            <div className="flex-1 overflow-y-auto p-2 lg:p-4">
               {editMode.type === "none" ? (
                 <div className="flex items-center justify-center h-full">
-                  <div className="text-center text-muted-foreground space-y-2">
-                    <p className="text-lg">
+                  <div className="text-center text-muted-foreground space-y-2 px-4">
+                    <p className="text-base lg:text-lg">
                       Selecione uma unidade ou aula para editar
                     </p>
                     <p className="text-sm">
-                      Clique no ícone de lápis ao lado de cada item
+                      <span className="lg:hidden">
+                        Toque no botão abaixo para ver as unidades
+                      </span>
+                      <span className="hidden lg:inline">
+                        Clique no ícone de lápis ao lado de cada item
+                      </span>
                     </p>
                   </div>
                 </div>
@@ -537,10 +561,16 @@ export function UnitsLessonsPage() {
                 />
               ) : null}
             </div>
+
+            {/* Mobile Sidebar Trigger Button */}
+            <MobileSidebarTrigger
+              onClick={() => setIsMobileSidebarOpen(true)}
+              disabled={!selectedCategoryId}
+            />
           </div>
         ) : (
-          <div className="flex items-center justify-center h-[calc(100vh-240px)]">
-            <p className="text-muted-foreground">
+          <div className="flex items-center justify-center h-[calc(100vh-200px)] lg:h-[calc(100vh-240px)]">
+            <p className="text-muted-foreground px-4 text-center">
               Selecione uma categoria para começar
             </p>
           </div>
